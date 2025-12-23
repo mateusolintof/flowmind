@@ -20,7 +20,11 @@ const StrokeNode = ({ data, selected }: NodeProps) => {
             <svg
                 style={{ width: '100%', height: '100%', overflow: 'visible' }}
             >
-                <path d={path} fill="var(--foreground)" fillOpacity={0.8} />
+                <path
+                    d={path}
+                    fill={data.color as string || "var(--foreground)"}
+                    fillOpacity={0.8}
+                />
             </svg>
         </div>
     );

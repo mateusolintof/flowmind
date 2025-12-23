@@ -20,9 +20,18 @@ const BaseNode = ({ data, type, selected }: NodeProps) => {
             <Card
                 className={cn(
                     'w-40 shadow-sm border-2 transition-all',
-                    config.color,
+                    // Only apply default config color if NO dynamic color is present
+                    !data.color && config.color,
                     selected ? 'ring-2 ring-ring border-primary' : 'hover:border-primary/50'
                 )}
+                style={
+                    data.color
+                        ? {
+                            borderColor: data.color as string,
+                            backgroundColor: `${data.color}20`, // 20 = ~12% opacity
+                        }
+                        : undefined
+                }
             >
                 <Handle
                     type="target"

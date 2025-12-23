@@ -24,12 +24,14 @@ import '@xyflow/react/dist/style.css';
 
 import { useDnD } from '@/hooks/useDnD';
 import { useAutoSave } from '@/hooks/useAutoSave';
+import { useUndoRedo } from '@/hooks/useUndoRedo';
 import { loadFlow } from '@/lib/storage';
 import { Button } from '@/components/ui/button';
-import { Download, Save, Pencil, MousePointer2 } from 'lucide-react';
+import { Download, Save, Pencil, MousePointer2, Undo2, Redo2 } from 'lucide-react';
 import BaseNode from './BaseNode';
 import StrokeNode from './StrokeNode';
 import HelpDialog from './HelpDialog';
+import { ColorPicker } from './ColorPicker';
 import { NODE_CONFIG } from '@/config/nodeTypes';
 
 const initialNodes = [
@@ -52,12 +54,38 @@ function Flow() {
 
     const { type } = useDnD();
     const { save } = useAutoSave();
+    const { undo, redo, takeSnapshot, canUndo, canRedo } = useUndoRedo();
     const { setViewport, screenToFlowPosition, getNodes } = useReactFlow();
 
     // Drawing Mode State
     const [isDrawing, setIsDrawing] = useState(false);
     const [isDrawingProcess, setIsDrawingProcess] = useState(false);
     const [currentStroke, setCurrentStroke] = useState<number[][]>([]);
+
+    // Color State
+    const [selectedColor, setSelectedColor] = useState<string>(''); // '' means default
+
+    // Handler to change color of selected nodes or set global drawing color
+    const onColorChange = (color: string) => {
+        takeSnapshot(nodes, edges); // Save before changing color
+        setSelectedColor(color);
+
+        // Update selected nodes
+        setNodes((nds) =>
+            nds.map((node) => {
+                if (node.selected) {
+                    return {
+                        ...node,
+                        data: {
+                            ...node.data,
+                            color: color,
+                        },
+                    };
+                }
+                return node;
+            })
+        );
+    };
 
     // Load flow on mount
     useEffect(() => {
@@ -85,8 +113,11 @@ function Flow() {
     }, []);
 
     const onConnect = useCallback(
-        (params: Connection) => setEdges((eds) => addEdge(params, eds)),
-        [setEdges],
+        (params: Connection) => {
+            takeSnapshot(nodes, edges); // Save before connecting
+            setEdges((eds) => addEdge(params, eds));
+        },
+        [setEdges, nodes, edges, takeSnapshot],
     );
 
     const onDragOver = useCallback((event: React.DragEvent) => {
@@ -99,6 +130,8 @@ function Flow() {
             event.preventDefault();
             if (!type || isDrawing) return;
 
+            takeSnapshot(nodes, edges); // Save before dropping
+
             const position = reactFlowInstance?.screenToFlowPosition({
                 x: event.clientX,
                 y: event.clientY,
@@ -108,7 +141,10 @@ function Flow() {
                 id: getId(),
                 type,
                 position,
-                data: { label: `${type.charAt(0).toUpperCase() + type.slice(1)}` },
+                data: {
+                    label: `${type.charAt(0).toUpperCase() + type.slice(1)}`,
+                    color: selectedColor // Apply current color to new node
+                },
             };
 
             setNodes((nds) => nds.concat(newNode));
@@ -119,6 +155,7 @@ function Flow() {
     // Drawing Handlers
     const onPointerDown = (e: React.PointerEvent) => {
         if (!isDrawing) return;
+        takeSnapshot(nodes, edges); // Save before drawing stroke
         setIsDrawingProcess(true);
         const { x, y } = screenToFlowPosition({ x: e.clientX, y: e.clientY });
         setCurrentStroke([[x, y, e.pressure]]);
@@ -152,7 +189,13 @@ function Flow() {
             id: getId(),
             type: 'stroke',
             position: { x: minX, y: minY },
-            data: { points: relativePoints },
+            id: getId(),
+            type: 'stroke',
+            position: { x: minX, y: minY },
+            data: {
+                points: relativePoints,
+                color: selectedColor // Apply current color to new drawing
+            },
             style: { width: maxX - minX, height: maxY - minY, zIndex: 1000 },
             draggable: true,
         };
@@ -160,6 +203,34 @@ function Flow() {
         setNodes((nds) => nds.concat(newNode));
         setCurrentStroke([]);
     };
+
+    // Keyboard Shortcuts for Undo/Redo
+    useEffect(() => {
+        const handleKeyDown = (e: KeyboardEvent) => {
+            if ((e.metaKey || e.ctrlKey) && e.key === 'z') {
+                if (e.shiftKey) {
+                    const next = redo(nodes, edges);
+                    if (next) {
+                        setNodes(next.nodes);
+                        setEdges(next.edges);
+                    }
+                } else {
+                    const prev = undo(nodes, edges);
+                    if (prev) {
+                        setNodes(prev.nodes);
+                        setEdges(prev.edges);
+                    }
+                }
+            }
+        };
+        window.addEventListener('keydown', handleKeyDown);
+        return () => window.removeEventListener('keydown', handleKeyDown);
+    }, [undo, redo, nodes, edges, setNodes, setEdges]);
+
+    // Handle Node Drag Start to save state
+    const onNodeDragStart = useCallback(() => {
+        takeSnapshot(nodes, edges);
+    }, [nodes, edges, takeSnapshot]);
 
     // Export Logic
     const onExport = async () => {
@@ -243,6 +314,7 @@ function Flow() {
                 onInit={setReactFlowInstance}
                 onDrop={onDrop}
                 onDragOver={onDragOver}
+                onNodeDragStart={onNodeDragStart}
                 fitView
                 panOnDrag={!isDrawing}
                 selectionOnDrag={!isDrawing}
@@ -254,7 +326,37 @@ function Flow() {
                 <Background variant={BackgroundVariant.Dots} gap={12} size={1} />
 
                 <Panel position="top-right" className="flex gap-2">
-                    <div className="bg-background border rounded-md flex mr-4 shadow-sm">
+                    <div className="bg-background border rounded-md flex mr-2 shadow-sm items-center">
+                        <Button
+                            size="sm"
+                            variant="ghost"
+                            onClick={() => {
+                                const prev = undo(nodes, edges);
+                                if (prev) { setNodes(prev.nodes); setEdges(prev.edges); }
+                            }}
+                            disabled={!canUndo}
+                            className="h-8 w-8 p-0 rounded-none rounded-l-md"
+                            title="Undo (Ctrl+Z)"
+                        >
+                            <Undo2 className="h-4 w-4" />
+                        </Button>
+                        <div className="w-[1px] h-4 bg-border" />
+                        <Button
+                            size="sm"
+                            variant="ghost"
+                            onClick={() => {
+                                const next = redo(nodes, edges);
+                                if (next) { setNodes(next.nodes); setEdges(next.edges); }
+                            }}
+                            disabled={!canRedo}
+                            className="h-8 w-8 p-0 rounded-none"
+                            title="Redo (Ctrl+Shift+Z)"
+                        >
+                            <Redo2 className="h-4 w-4" />
+                        </Button>
+                        <div className="w-[1px] h-4 bg-border" />
+                        <ColorPicker selectedColor={selectedColor} onSelectColor={onColorChange} />
+                        <div className="w-[1px] h-4 bg-border mx-1" />
                         <Button
                             size="sm"
                             variant={!isDrawing ? 'secondary' : 'ghost'}

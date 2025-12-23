@@ -33,18 +33,35 @@ export const saveFlow = async (state: FlowState, showToast = false) => {
     try {
         const userId = await getUserId();
 
-        // Upsert logic: check if we have a diagram for this user
-        // For simplicity in this anonymous model, we assume 1 active diagram per user for now
-        // or we could store a diagram_id in local storage.
-        // Let's store a SINGLE diagram object per user for this MVP.
-
-        const { error } = await supabase
+        // Check if a diagram already exists for this user
+        const { data: existing } = await supabase
             .from('diagrams')
-            .upsert({
-                user_id: userId,
-                data: state,
-                updated_at: new Date().toISOString()
-            }, { onConflict: 'user_id' });
+            .select('id')
+            .eq('user_id', userId)
+            .single();
+
+        let error;
+        if (existing) {
+            // Update existing record
+            const result = await supabase
+                .from('diagrams')
+                .update({
+                    data: state,
+                    updated_at: new Date().toISOString()
+                })
+                .eq('user_id', userId);
+            error = result.error;
+        } else {
+            // Insert new record
+            const result = await supabase
+                .from('diagrams')
+                .insert({
+                    user_id: userId,
+                    data: state,
+                    updated_at: new Date().toISOString()
+                });
+            error = result.error;
+        }
 
         if (error) {
             console.error('Supabase save error:', error);
@@ -86,5 +103,5 @@ export const loadFlow = async (): Promise<FlowState | null> => {
     }
 
     // 2. Fallback to local
-    return await get(STORAGE_KEY);
+    return await get(STORAGE_KEY) ?? null;
 };

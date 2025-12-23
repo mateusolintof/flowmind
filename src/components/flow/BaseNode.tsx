@@ -1,25 +1,56 @@
 'use client';
 
 import { memo } from 'react';
-import { Handle, Position, NodeProps } from '@xyflow/react';
+import { Handle, Position, NodeProps, NodeResizer } from '@xyflow/react';
 import { NODE_CONFIG, NodeType } from '@/config/nodeTypes';
 import { cn } from '@/lib/utils';
 import { Card } from '@/components/ui/card';
 import { motion } from 'framer-motion';
+import { useReactFlow } from '@xyflow/react';
+import { useState, useEffect, useRef } from 'react';
 
-const BaseNode = ({ data, type, selected }: NodeProps) => {
-    const config = NODE_CONFIG[type as NodeType] || NODE_CONFIG.agent; // Fallback
+const BaseNode = ({ data, type, selected, id }: NodeProps) => {
+    const config = NODE_CONFIG[data.type as NodeType] || NODE_CONFIG.general; // Fallback
     const Icon = config.icon;
+    const { setNodes } = useReactFlow();
+
+    // Auto-resize textarea logic could go here, but allowing manual node resize is better.
+
+    const onLabelChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+        const newLabel = e.target.value;
+        setNodes((nds) =>
+            nds.map((node) => {
+                if (node.id === id) {
+                    return {
+                        ...node,
+                        data: {
+                            ...node.data,
+                            label: newLabel,
+                        },
+                    };
+                }
+                return node;
+            })
+        );
+    };
 
     return (
         <motion.div
             initial={{ scale: 0, opacity: 0 }}
             animate={{ scale: 1, opacity: 1 }}
-            transition={{ type: 'spring', stiffness: 300, damping: 20 }}
+            transition={{ type: "spring", stiffness: 260, damping: 20 }}
+            className="h-full w-full"
         >
+            <NodeResizer
+                isVisible={selected}
+                minWidth={100}
+                minHeight={60}
+                handleStyle={{ width: 8, height: 8, borderRadius: 2 }}
+                lineStyle={{ border: 0 }}
+            />
             <Card
                 className={cn(
-                    'w-40 shadow-sm border-2 transition-all',
+                    'h-full min-w-[150px] min-h-[80px] shadow-sm border-2 transition-all flex flex-col',
                     // Only apply default config color if NO dynamic color is present
                     !data.color && config.color,
                     selected ? 'ring-2 ring-ring border-primary' : 'hover:border-primary/50'
@@ -28,7 +59,7 @@ const BaseNode = ({ data, type, selected }: NodeProps) => {
                     data.color
                         ? {
                             borderColor: data.color as string,
-                            backgroundColor: `${data.color}20`, // 20 = ~12% opacity
+                            backgroundColor: `${data.color} 20`, // 20 = ~12% opacity
                         }
                         : undefined
                 }
@@ -44,14 +75,16 @@ const BaseNode = ({ data, type, selected }: NodeProps) => {
                     className="w-3 h-3 bg-muted-foreground border-2 border-background"
                 />
 
-                <div className="p-3 flex items-center gap-3">
-                    <div className="p-2 rounded-md bg-background/50 border shadow-sm">
-                        <Icon className="w-5 h-5 text-foreground" />
-                    </div>
-                    <div className="flex flex-col">
-                        <span className="text-xs font-bold leading-none text-foreground">{data.label as string || config.label}</span>
-                        <span className="text-[10px] text-muted-foreground mt-1 capitalize">{type?.replace('-', ' ')}</span>
-                    </div>
+                <div className="flex flex-col items-center justify-center p-4 gap-2 h-full w-full">
+                    <Icon className="h-8 w-8 opacity-80 shrink-0" />
+                    <textarea
+                        className="text-sm font-medium text-center bg-transparent border-none resize-none focus:outline-hidden w-full h-full nodrag cursor-text"
+                        value={(data.label as string) || ''}
+                        onChange={onLabelChange}
+                        placeholder="Label..."
+                        style={{ color: 'inherit' }}
+                    />
+                    <span className="text-[10px] text-muted-foreground mt-1 capitalize">{type?.replace('-', ' ')}</span>
                 </div>
 
                 <Handle

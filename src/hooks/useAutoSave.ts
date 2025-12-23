@@ -5,36 +5,45 @@ import { saveFlow } from '@/lib/storage';
 export const useAutoSave = () => {
     const { getNodes, getEdges, getViewport } = useReactFlow();
 
-    // Just a simple save function we can call
-    const save = useCallback(async () => {
+    // Internal save function (no toast)
+    const saveInternal = useCallback(async (showToast = false) => {
         const flow = {
             nodes: getNodes(),
             edges: getEdges(),
             viewport: getViewport(),
             updatedAt: Date.now(),
         };
-        await saveFlow(flow);
-        console.log('Saved flow', flow);
+        await saveFlow(flow, showToast);
     }, [getNodes, getEdges, getViewport]);
 
-    // Save every 30 seconds automatically
+    // Manual save (shows toast)
+    const save = useCallback(async () => {
+        await saveInternal(true);
+    }, [saveInternal]);
+
+    // Auto-save (no toast)
+    const autoSave = useCallback(async () => {
+        await saveInternal(false);
+    }, [saveInternal]);
+
+    // Save every 30 seconds automatically (no toast)
     useEffect(() => {
         const interval = setInterval(() => {
-            save();
+            autoSave();
         }, 30000);
         return () => clearInterval(interval);
-    }, [save]);
+    }, [autoSave]);
 
-    // Also save on visibility change (tab switch)
+    // Also save on visibility change (tab switch, no toast)
     useEffect(() => {
         const handleVisibilityChange = () => {
             if (document.visibilityState === 'hidden') {
-                save();
+                autoSave();
             }
         };
         document.addEventListener('visibilitychange', handleVisibilityChange);
         return () => document.removeEventListener('visibilitychange', handleVisibilityChange);
-    }, [save]);
+    }, [autoSave]);
 
     return { save };
 };

@@ -28,6 +28,7 @@ import { useUndoRedo } from '@/hooks/useUndoRedo';
 import { loadFlow } from '@/lib/storage';
 import { Button } from '@/components/ui/button';
 import { Download, Save, Pencil, MousePointer2, Undo2, Redo2 } from 'lucide-react';
+import { toast } from 'sonner';
 import BaseNode from './BaseNode';
 import StrokeNode from './StrokeNode';
 import HelpDialog from './HelpDialog';
@@ -65,10 +66,14 @@ function Flow() {
     // Color State
     const [selectedColor, setSelectedColor] = useState<string>(''); // '' means default
 
+    // Dirty state for unsaved changes warning
+    const [isDirty, setIsDirty] = useState(false);
+
     // Handler to change color of selected nodes or set global drawing color
     const onColorChange = (color: string) => {
         takeSnapshot(nodes, edges); // Save before changing color
         setSelectedColor(color);
+        setIsDirty(true);
 
         // Update selected nodes
         setNodes((nds) =>
@@ -85,6 +90,24 @@ function Flow() {
                 return node;
             })
         );
+    };
+
+    // Unsaved changes warning
+    useEffect(() => {
+        const handleBeforeUnload = (e: BeforeUnloadEvent) => {
+            if (isDirty) {
+                e.preventDefault();
+                return '';
+            }
+        };
+        window.addEventListener('beforeunload', handleBeforeUnload);
+        return () => window.removeEventListener('beforeunload', handleBeforeUnload);
+    }, [isDirty]);
+
+    // Manual save handler that resets dirty state
+    const handleSave = async () => {
+        await save();
+        setIsDirty(false);
     };
 
     // Load flow on mount
@@ -116,6 +139,7 @@ function Flow() {
         (params: Connection) => {
             takeSnapshot(nodes, edges); // Save before connecting
             setEdges((eds) => addEdge(params, eds));
+            setIsDirty(true);
         },
         [setEdges, nodes, edges, takeSnapshot],
     );
@@ -148,8 +172,9 @@ function Flow() {
             };
 
             setNodes((nds) => nds.concat(newNode));
+            setIsDirty(true);
         },
-        [reactFlowInstance, type, setNodes, isDrawing],
+        [reactFlowInstance, type, setNodes, isDrawing, selectedColor, takeSnapshot, nodes, edges],
     );
 
     // Drawing Handlers
@@ -189,9 +214,6 @@ function Flow() {
             id: getId(),
             type: 'stroke',
             position: { x: minX, y: minY },
-            id: getId(),
-            type: 'stroke',
-            position: { x: minX, y: minY },
             data: {
                 points: relativePoints,
                 color: selectedColor // Apply current color to new drawing
@@ -202,6 +224,7 @@ function Flow() {
 
         setNodes((nds) => nds.concat(newNode));
         setCurrentStroke([]);
+        setIsDirty(true);
     };
 
     // Keyboard Shortcuts for Undo/Redo
@@ -276,14 +299,20 @@ function Flow() {
             a.setAttribute('download', 'flowmind-diagram.png');
             a.setAttribute('href', dataUrl);
             a.click();
+            toast.success('Diagram exported successfully');
         } catch (err) {
             console.error('Export failed', err);
             // Fallback: simple screenshot of current view
-            const dataUrl = await toPng(reactFlowWrapper.current, { backgroundColor: '#fff' });
-            const a = document.createElement('a');
-            a.setAttribute('download', 'flowmind-snapshot.png');
-            a.setAttribute('href', dataUrl);
-            a.click();
+            try {
+                const dataUrl = await toPng(reactFlowWrapper.current, { backgroundColor: '#fff' });
+                const a = document.createElement('a');
+                a.setAttribute('download', 'flowmind-snapshot.png');
+                a.setAttribute('href', dataUrl);
+                a.click();
+                toast.success('Snapshot exported');
+            } catch (fallbackErr) {
+                toast.error('Export failed');
+            }
         }
     };
 
@@ -337,6 +366,7 @@ function Flow() {
                             disabled={!canUndo}
                             className="h-8 w-8 p-0 rounded-none rounded-l-md"
                             title="Undo (Ctrl+Z)"
+                            aria-label="Undo last action"
                         >
                             <Undo2 className="h-4 w-4" />
                         </Button>
@@ -351,6 +381,7 @@ function Flow() {
                             disabled={!canRedo}
                             className="h-8 w-8 p-0 rounded-none"
                             title="Redo (Ctrl+Shift+Z)"
+                            aria-label="Redo last action"
                         >
                             <Redo2 className="h-4 w-4" />
                         </Button>
@@ -363,6 +394,8 @@ function Flow() {
                             onClick={() => setIsDrawing(false)}
                             className="rounded-none rounded-l-md px-3 h-8"
                             title="Selection Mode"
+                            aria-label="Selection mode"
+                            aria-pressed={!isDrawing}
                         >
                             <MousePointer2 className="h-4 w-4" />
                         </Button>
@@ -372,15 +405,17 @@ function Flow() {
                             onClick={() => setIsDrawing(true)}
                             className="rounded-none rounded-r-md px-3 h-8"
                             title="Drawing Mode"
+                            aria-label="Drawing mode"
+                            aria-pressed={isDrawing}
                         >
                             <Pencil className="h-4 w-4" />
                         </Button>
                     </div>
 
-                    <Button size="sm" variant="outline" className="gap-2 bg-background h-8" onClick={save}>
+                    <Button size="sm" variant="outline" className="gap-2 bg-background h-8" onClick={handleSave} aria-label="Save diagram">
                         <Save className="h-4 w-4" /> Save
                     </Button>
-                    <Button size="sm" variant="outline" className="gap-2 bg-background h-8" onClick={onExport}>
+                    <Button size="sm" variant="outline" className="gap-2 bg-background h-8" onClick={onExport} aria-label="Export diagram as PNG">
                         <Download className="h-4 w-4" /> Export
                     </Button>
                     <HelpDialog />

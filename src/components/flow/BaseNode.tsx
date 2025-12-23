@@ -7,10 +7,9 @@ import { cn } from '@/lib/utils';
 import { Card } from '@/components/ui/card';
 import { motion } from 'framer-motion';
 import { useReactFlow } from '@xyflow/react';
-import { useState, useEffect, useRef } from 'react';
 
 const BaseNode = ({ data, type, selected, id }: NodeProps) => {
-    const config = NODE_CONFIG[data.type as NodeType] || NODE_CONFIG.general; // Fallback
+    const config = NODE_CONFIG[type as NodeType] || NODE_CONFIG.note; // Fallback to note
     const Icon = config.icon;
     const { setNodes } = useReactFlow();
 
@@ -45,6 +44,8 @@ const BaseNode = ({ data, type, selected, id }: NodeProps) => {
                 isVisible={selected}
                 minWidth={100}
                 minHeight={60}
+                maxWidth={600}
+                maxHeight={400}
                 handleStyle={{ width: 8, height: 8, borderRadius: 2 }}
                 lineStyle={{ border: 0 }}
             />

@@ -1,6 +1,7 @@
 import { get, set } from 'idb-keyval';
 import { Edge, Node, Viewport } from '@xyflow/react';
 import { supabase } from './supabase';
+import { toast } from 'sonner';
 
 const STORAGE_KEY = 'flowmind-canvas';
 const USER_ID_KEY = 'flowmind-user-id';
@@ -23,11 +24,12 @@ const getUserId = async () => {
     return userId;
 };
 
-export const saveFlow = async (state: FlowState) => {
+export const saveFlow = async (state: FlowState, showToast = false) => {
     // Always save locally first (speed/offline)
     await set(STORAGE_KEY, state);
 
     // Then try to save to Supabase
+    let cloudSaveSuccess = false;
     try {
         const userId = await getUserId();
 
@@ -46,10 +48,20 @@ export const saveFlow = async (state: FlowState) => {
 
         if (error) {
             console.error('Supabase save error:', error);
+        } else {
+            cloudSaveSuccess = true;
         }
     } catch (err) {
         // If supabase fails (e.g. invalid URL/Key), just warn, don't crash the app
         console.warn('Supabase sync failed, using local only', err);
+    }
+
+    if (showToast) {
+        if (cloudSaveSuccess) {
+            toast.success('Saved to cloud');
+        } else {
+            toast.success('Saved locally');
+        }
     }
 };
 

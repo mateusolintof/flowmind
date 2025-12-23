@@ -19,8 +19,8 @@ export function ColorPicker({ selectedColor, onSelectColor }: ColorPickerProps) 
     return (
         <Popover>
             <PopoverTrigger asChild>
-                <Button variant="outline" size="sm" className="h-8 w-8 p-0">
-                    <Palette className="h-4 w-4" style={{ color: selectedColor || 'var(--foreground)' }} />
+                <Button variant="outline" size="sm" className="h-8 w-8 p-0" aria-label="Open color picker">
+                    <Palette className="h-4 w-4" style={{ color: selectedColor || 'var(--foreground)' }} aria-hidden="true" />
                 </Button>
             </PopoverTrigger>
             <PopoverContent className="w-40 p-2" align="end">
@@ -35,6 +35,8 @@ export function ColorPicker({ selectedColor, onSelectColor }: ColorPickerProps) 
                             style={{ backgroundColor: color.value || 'var(--card)' }}
                             onClick={() => onSelectColor(color.value)}
                             title={color.name}
+                            aria-label={`Select ${color.name} color`}
+                            aria-pressed={selectedColor === color.value}
                         >
                             {/* Visual indicator for 'Default' (transparent/theme) */}
                             {!color.value && (

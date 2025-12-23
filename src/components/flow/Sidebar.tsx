@@ -75,8 +75,11 @@ export default function Sidebar() {
                                         className="flex flex-col items-center justify-center gap-2 p-3 text-xs border rounded-md cursor-grab hover:bg-accent hover:text-accent-foreground transition-colors bg-card"
                                         onDragStart={(event) => onDragStart(event, item.type)}
                                         draggable
+                                        role="button"
+                                        aria-label={`Drag ${item.label} component to canvas`}
+                                        tabIndex={0}
                                     >
-                                        <item.icon className="h-6 w-6 stroke-1" />
+                                        <item.icon className="h-6 w-6 stroke-1" aria-hidden="true" />
                                         <span className="text-[10px] font-medium text-center leading-none">{item.label}</span>
                                     </div>
                                 ))}

@@ -35,7 +35,7 @@ import HelpDialog from './HelpDialog';
 import { ColorPicker } from './ColorPicker';
 import { NODE_CONFIG } from '@/config/nodeTypes';
 
-const initialNodes = [
+const initialNodes: Node[] = [
     {
         id: '1',
         type: 'agent',
@@ -50,7 +50,7 @@ const getId = () => `dndnode_${id++}`;
 function Flow() {
     const reactFlowWrapper = useRef<HTMLDivElement>(null);
     const [nodes, setNodes, onNodesChange] = useNodesState(initialNodes);
-    const [edges, setEdges, onEdgesChange] = useEdgesState([]);
+    const [edges, setEdges, onEdgesChange] = useEdgesState<Edge>([]);
     const [reactFlowInstance, setReactFlowInstance] = useState<any>(null); // eslint-disable-line @typescript-eslint/no-explicit-any
 
     const { type } = useDnD();

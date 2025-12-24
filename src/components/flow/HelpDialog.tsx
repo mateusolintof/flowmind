@@ -54,13 +54,16 @@ export default function HelpDialog() {
                         <h3 className="font-semibold text-sm">Keyboard Shortcuts</h3>
                         <div className="grid grid-cols-3 gap-2 text-xs text-muted-foreground">
                             <div className="p-2 border rounded bg-muted/50"><kbd className="font-mono bg-background px-1 rounded">⌘S</kbd> Save</div>
-                            <div className="p-2 border rounded bg-muted/50"><kbd className="font-mono bg-background px-1 rounded">⌘E</kbd> Export PNG</div>
+                            <div className="p-2 border rounded bg-muted/50"><kbd className="font-mono bg-background px-1 rounded">⌘E</kbd> Export</div>
                             <div className="p-2 border rounded bg-muted/50"><kbd className="font-mono bg-background px-1 rounded">⌘D</kbd> Duplicate</div>
+                            <div className="p-2 border rounded bg-muted/50"><kbd className="font-mono bg-background px-1 rounded">⌘C</kbd> Copy</div>
+                            <div className="p-2 border rounded bg-muted/50"><kbd className="font-mono bg-background px-1 rounded">⌘X</kbd> Cut</div>
+                            <div className="p-2 border rounded bg-muted/50"><kbd className="font-mono bg-background px-1 rounded">⌘V</kbd> Paste</div>
                             <div className="p-2 border rounded bg-muted/50"><kbd className="font-mono bg-background px-1 rounded">⌘Z</kbd> Undo</div>
                             <div className="p-2 border rounded bg-muted/50"><kbd className="font-mono bg-background px-1 rounded">⌘⇧Z</kbd> Redo</div>
-                            <div className="p-2 border rounded bg-muted/50"><kbd className="font-mono bg-background px-1 rounded">D</kbd> Toggle Drawing</div>
-                            <div className="p-2 border rounded bg-muted/50"><kbd className="font-mono bg-background px-1 rounded">C</kbd> Color Picker</div>
-                            <div className="p-2 border rounded bg-muted/50"><kbd className="font-mono bg-background px-1 rounded">Esc</kbd> Exit Mode</div>
+                            <div className="p-2 border rounded bg-muted/50"><kbd className="font-mono bg-background px-1 rounded">D</kbd> Drawing</div>
+                            <div className="p-2 border rounded bg-muted/50"><kbd className="font-mono bg-background px-1 rounded">C</kbd> Colors</div>
+                            <div className="p-2 border rounded bg-muted/50"><kbd className="font-mono bg-background px-1 rounded">Esc</kbd> Exit</div>
                             <div className="p-2 border rounded bg-muted/50"><kbd className="font-mono bg-background px-1 rounded">Del</kbd> Delete</div>
                         </div>
                     </div>

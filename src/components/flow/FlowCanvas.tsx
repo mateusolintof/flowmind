@@ -25,15 +25,17 @@ import '@xyflow/react/dist/style.css';
 import { useDnD } from '@/hooks/useDnD';
 import { useAutoSave } from '@/hooks/useAutoSave';
 import { useUndoRedo } from '@/hooks/useUndoRedo';
+import { useClipboard } from '@/hooks/useClipboard';
 import { loadFlow } from '@/lib/storage';
 import { Button } from '@/components/ui/button';
-import { Download, Save, Pencil, MousePointer2, Undo2, Redo2 } from 'lucide-react';
+import { Download, Save, Pencil, MousePointer2, Undo2, Redo2, Grid3X3 } from 'lucide-react';
 import { toast } from 'sonner';
 import BaseNode from './BaseNode';
 import StrokeNode from './StrokeNode';
 import HelpDialog from './HelpDialog';
 import { ColorPicker } from './ColorPicker';
 import { SyncStatusIndicator } from './SyncStatusIndicator';
+import { ZoomControls } from './ZoomControls';
 import { NODE_CONFIG } from '@/config/nodeTypes';
 
 const initialNodes: Node[] = [
@@ -57,6 +59,7 @@ function Flow() {
     const { type } = useDnD();
     const { save } = useAutoSave();
     const { undo, redo, takeSnapshot, canUndo, canRedo } = useUndoRedo();
+    const { copy, cut, paste } = useClipboard();
     const { setViewport, screenToFlowPosition, getNodes } = useReactFlow();
 
     // Drawing Mode State
@@ -70,6 +73,9 @@ function Flow() {
 
     // Dirty state for unsaved changes warning
     const [isDirty, setIsDirty] = useState(false);
+
+    // Snap to Grid State
+    const [snapToGrid, setSnapToGrid] = useState(true);
 
     // Handler to change color of selected nodes or set global drawing color
     const onColorChange = (color: string) => {
@@ -425,6 +431,31 @@ function Flow() {
                             toast.success(`${selectedNodes.length} node${selectedNodes.length > 1 ? 's' : ''} duplicated`);
                         }
                         break;
+                    case 'c':
+                        e.preventDefault();
+                        const copiedCount = copy(nodes, edges);
+                        if (copiedCount > 0) {
+                            toast.success(`${copiedCount} node${copiedCount > 1 ? 's' : ''} copied`);
+                        }
+                        break;
+                    case 'x':
+                        e.preventDefault();
+                        takeSnapshot(nodes, edges);
+                        const cutCount = cut(nodes, edges, setNodes, setEdges);
+                        if (cutCount > 0) {
+                            setIsDirty(true);
+                            toast.success(`${cutCount} node${cutCount > 1 ? 's' : ''} cut`);
+                        }
+                        break;
+                    case 'v':
+                        e.preventDefault();
+                        takeSnapshot(nodes, edges);
+                        const pastedCount = paste(getId, setNodes, setEdges);
+                        if (pastedCount > 0) {
+                            setIsDirty(true);
+                            toast.success(`${pastedCount} node${pastedCount > 1 ? 's' : ''} pasted`);
+                        }
+                        break;
                 }
                 return;
             }
@@ -490,11 +521,18 @@ function Flow() {
                 panOnDrag={!isDrawing}
                 selectionOnDrag={!isDrawing}
                 nodesDraggable={!isDrawing}
+                snapToGrid={snapToGrid}
+                snapGrid={[12, 12]}
                 className="bg-background"
             >
-                <Controls />
+                <Controls showZoom={false} showFitView={false} className="bg-background border rounded-md shadow-sm" />
                 <MiniMap zoomable pannable className="bg-card border rounded-lg overflow-hidden" />
                 <Background variant={BackgroundVariant.Dots} gap={12} size={1} />
+
+                {/* Zoom Controls */}
+                <Panel position="bottom-left" className="ml-12">
+                    <ZoomControls />
+                </Panel>
 
                 {/* Drawing Mode Indicator */}
                 {isDrawing && (
@@ -543,9 +581,21 @@ function Flow() {
                         <div className="w-[1px] h-4 bg-border mx-1" />
                         <Button
                             size="sm"
+                            variant={snapToGrid ? 'secondary' : 'ghost'}
+                            onClick={() => setSnapToGrid((prev) => !prev)}
+                            className="rounded-none px-3 h-8"
+                            title={snapToGrid ? 'Snap to Grid: ON' : 'Snap to Grid: OFF'}
+                            aria-label="Toggle snap to grid"
+                            aria-pressed={snapToGrid}
+                        >
+                            <Grid3X3 className="h-4 w-4" />
+                        </Button>
+                        <div className="w-[1px] h-4 bg-border mx-1" />
+                        <Button
+                            size="sm"
                             variant={!isDrawing ? 'secondary' : 'ghost'}
                             onClick={() => setIsDrawing(false)}
-                            className="rounded-none rounded-l-md px-3 h-8"
+                            className="rounded-none px-3 h-8"
                             title="Selection Mode (Esc)"
                             aria-label="Selection mode"
                             aria-pressed={!isDrawing}

@@ -66,7 +66,7 @@ export default function Sidebar({ onItemSelect }: SidebarProps = {}) {
 
     return (
         <TooltipProvider delayDuration={300}>
-            <Card className="h-full w-64 border-r rounded-none bg-sidebar text-sidebar-foreground flex flex-col pointer-events-auto shadow-xl z-50" data-onboarding="sidebar">
+            <Card className="h-full w-64 border-r rounded-none bg-sidebar text-sidebar-foreground flex flex-col pointer-events-auto shadow-xl z-50 overflow-hidden" data-onboarding="sidebar">
                 <div className="p-4 font-bold text-lg tracking-tight">FlowMind</div>
                 <Separator />
                 <div className="p-3" data-onboarding="search">
@@ -88,8 +88,8 @@ export default function Sidebar({ onItemSelect }: SidebarProps = {}) {
                         )}
                     </div>
                 </div>
-                <ScrollArea className="flex-1">
-                    <div className="p-4 gap-6 flex flex-col">
+                <ScrollArea className="flex-1 min-h-0">
+                    <div className="p-4 gap-6 flex flex-col pb-2">
                         {categories.map((cat) => (
                             <div key={cat.name}>
                                 <h3 className="mb-3 text-xs font-medium text-muted-foreground uppercase tracking-wider">

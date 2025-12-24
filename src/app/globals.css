@@ -124,3 +124,22 @@
     @apply bg-background text-foreground;
   }
 }
+
+/* Fix React Flow background intercepting pointer events - OUTSIDE @layer for higher specificity */
+svg.react-flow__background {
+  pointer-events: none !important;
+}
+
+svg.react-flow__background > * {
+  pointer-events: none !important;
+}
+
+.react-flow__panel {
+  pointer-events: auto !important;
+  position: relative !important;
+  z-index: 5 !important;
+}
+
+.react-flow__panel > * {
+  pointer-events: auto !important;
+}

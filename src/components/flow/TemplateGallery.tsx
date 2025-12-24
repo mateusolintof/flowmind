@@ -49,8 +49,8 @@ export function TemplateGallery({ onSelectTemplate }: TemplateGalleryProps) {
                     Templates
                 </Button>
             </DialogTrigger>
-            <DialogContent className="max-w-4xl max-h-[85vh]">
-                <DialogHeader>
+            <DialogContent className="max-w-4xl max-h-[85vh] overflow-hidden flex flex-col">
+                <DialogHeader className="shrink-0">
                     <DialogTitle className="flex items-center gap-2">
                         <LayoutTemplate className="h-5 w-5" />
                         Diagram Templates
@@ -60,9 +60,9 @@ export function TemplateGallery({ onSelectTemplate }: TemplateGalleryProps) {
                     </DialogDescription>
                 </DialogHeader>
 
-                <div className="flex gap-4 h-[500px]">
+                <div className="flex gap-4 flex-1 min-h-0">
                     {/* Categories Sidebar */}
-                    <div className="w-48 shrink-0 border-r pr-4">
+                    <div className="w-48 shrink-0 border-r pr-4 overflow-y-auto">
                         <div className="space-y-1">
                             {CATEGORIES.map((category) => {
                                 const Icon = category.icon;
@@ -115,19 +115,19 @@ export function TemplateGallery({ onSelectTemplate }: TemplateGalleryProps) {
 
                                     {/* Info */}
                                     <div className="flex items-start justify-between gap-2">
-                                        <div>
-                                            <h3 className="font-medium text-sm">{template.name}</h3>
-                                            <p className="text-xs text-muted-foreground mt-0.5">
+                                        <div className="min-w-0 flex-1">
+                                            <h3 className="font-medium text-sm truncate">{template.name}</h3>
+                                            <p className="text-xs text-muted-foreground mt-0.5 line-clamp-2">
                                                 {template.description}
                                             </p>
                                             <div className="flex items-center gap-2 mt-2 text-xs text-muted-foreground">
                                                 <span>{template.nodes.length} nodes</span>
                                                 <span>·</span>
-                                                <span>{template.edges.length} connections</span>
+                                                <span>{template.edges.length} conn.</span>
                                             </div>
                                         </div>
                                         <ChevronRight className={cn(
-                                            'h-4 w-4 shrink-0 transition-opacity',
+                                            'h-4 w-4 shrink-0 transition-opacity mt-0.5',
                                             hoveredTemplate === template.id ? 'opacity-100' : 'opacity-0'
                                         )} />
                                     </div>

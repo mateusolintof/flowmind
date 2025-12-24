@@ -179,6 +179,18 @@ function Flow() {
         restoreFlow();
     }, [setNodes, setEdges, setViewport]);
 
+    // Fix React Flow background pointer events
+    useEffect(() => {
+        const style = document.createElement('style');
+        style.textContent = `
+            .react-flow__background { pointer-events: none !important; }
+            .react-flow__background * { pointer-events: none !important; }
+            .react-flow__panel { pointer-events: auto !important; z-index: 5 !important; }
+        `;
+        document.head.appendChild(style);
+        return () => { document.head.removeChild(style); };
+    }, []);
+
     // Define nodeTypes
     const nodeTypes = useMemo(() => {
         const types: Record<string, any> = { stroke: StrokeNode };
@@ -612,16 +624,16 @@ function Flow() {
             >
                 <Controls showZoom={false} showFitView={false} className="bg-background border rounded-md shadow-sm" />
                 <MiniMap zoomable pannable className="bg-card border rounded-lg overflow-hidden" />
-                <Background variant={BackgroundVariant.Dots} gap={12} size={1} />
+                <Background variant={BackgroundVariant.Dots} gap={12} size={1} style={{ pointerEvents: 'none' }} />
 
                 {/* Zoom Controls */}
-                <Panel position="bottom-left" className="ml-12" data-onboarding="zoom-controls">
+                <Panel position="bottom-left" className="ml-12 !z-10" data-onboarding="zoom-controls">
                     <ZoomControls />
                 </Panel>
 
                 {/* Drawing Mode Indicator */}
                 {isDrawing && (
-                    <Panel position="top-center" className="pointer-events-none">
+                    <Panel position="top-center" className="pointer-events-none !z-10">
                         <div className="bg-primary text-primary-foreground px-3 py-1.5 rounded-full text-sm font-medium shadow-lg animate-in fade-in slide-in-from-top-2 duration-200 flex items-center gap-2">
                             <Pencil className="h-3.5 w-3.5" />
                             Drawing Mode
@@ -630,7 +642,7 @@ function Flow() {
                     </Panel>
                 )}
 
-                <Panel position="top-right" className="flex gap-2">
+                <Panel position="top-right" className="flex gap-2 !z-10">
                     <div className="bg-background border rounded-md flex mr-2 shadow-sm items-center">
                         <Button
                             size="sm"

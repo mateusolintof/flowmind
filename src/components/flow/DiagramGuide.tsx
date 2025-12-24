@@ -40,8 +40,8 @@ export function DiagramGuide() {
                     Guide
                 </Button>
             </DialogTrigger>
-            <DialogContent className="max-w-5xl max-h-[90vh]">
-                <DialogHeader>
+            <DialogContent className="max-w-5xl max-h-[90vh] overflow-hidden flex flex-col">
+                <DialogHeader className="shrink-0">
                     <DialogTitle className="flex items-center gap-2 text-xl">
                         <BookOpen className="h-5 w-5" />
                         Diagram Design Guide
@@ -51,35 +51,35 @@ export function DiagramGuide() {
                     </DialogDescription>
                 </DialogHeader>
 
-                <Tabs defaultValue="thinking" className="h-[600px]">
-                    <TabsList className="grid grid-cols-6 w-full">
-                        <TabsTrigger value="thinking" className="text-xs">
-                            <Lightbulb className="h-3.5 w-3.5 mr-1" />
-                            Thinking
+                <Tabs defaultValue="thinking" className="flex-1 flex flex-col min-h-0">
+                    <TabsList className="grid grid-cols-3 md:grid-cols-6 w-full shrink-0 h-auto gap-1 p-1">
+                        <TabsTrigger value="thinking" className="text-xs py-2 px-2">
+                            <Lightbulb className="h-3.5 w-3.5 mr-1 shrink-0" />
+                            <span className="truncate">Thinking</span>
                         </TabsTrigger>
-                        <TabsTrigger value="frontend" className="text-xs">
-                            <Monitor className="h-3.5 w-3.5 mr-1" />
-                            Frontend
+                        <TabsTrigger value="frontend" className="text-xs py-2 px-2">
+                            <Monitor className="h-3.5 w-3.5 mr-1 shrink-0" />
+                            <span className="truncate">Frontend</span>
                         </TabsTrigger>
-                        <TabsTrigger value="backend" className="text-xs">
-                            <Server className="h-3.5 w-3.5 mr-1" />
-                            Backend
+                        <TabsTrigger value="backend" className="text-xs py-2 px-2">
+                            <Server className="h-3.5 w-3.5 mr-1 shrink-0" />
+                            <span className="truncate">Backend</span>
                         </TabsTrigger>
-                        <TabsTrigger value="fullstack" className="text-xs">
-                            <Layers className="h-3.5 w-3.5 mr-1" />
-                            Fullstack
+                        <TabsTrigger value="fullstack" className="text-xs py-2 px-2">
+                            <Layers className="h-3.5 w-3.5 mr-1 shrink-0" />
+                            <span className="truncate">Fullstack</span>
                         </TabsTrigger>
-                        <TabsTrigger value="ai-agents" className="text-xs">
-                            <Bot className="h-3.5 w-3.5 mr-1" />
-                            AI Agents
+                        <TabsTrigger value="ai-agents" className="text-xs py-2 px-2">
+                            <Bot className="h-3.5 w-3.5 mr-1 shrink-0" />
+                            <span className="truncate">AI Agents</span>
                         </TabsTrigger>
-                        <TabsTrigger value="multi-agent" className="text-xs">
-                            <Workflow className="h-3.5 w-3.5 mr-1" />
-                            Multi-Agent
+                        <TabsTrigger value="multi-agent" className="text-xs py-2 px-2">
+                            <Workflow className="h-3.5 w-3.5 mr-1 shrink-0" />
+                            <span className="truncate">Multi-Agent</span>
                         </TabsTrigger>
                     </TabsList>
 
-                    <ScrollArea className="h-[530px] mt-4">
+                    <ScrollArea className="flex-1 mt-4 min-h-0">
                         {/* HOW TO THINK TAB */}
                         <TabsContent value="thinking" className="space-y-6 pr-4">
                             <GuideSection
@@ -196,8 +196,8 @@ export function DiagramGuide() {
                                 </div>
 
                                 <h4 className="font-medium mb-3">Exemplo de Estrutura:</h4>
-                                <Card className="p-4 bg-muted/30">
-                                    <pre className="text-xs text-muted-foreground">
+                                <Card className="p-4 bg-muted/30 overflow-x-auto">
+                                    <pre className="text-xs text-muted-foreground whitespace-pre">
 {`User
   ↓
 [Frontend App]
@@ -299,8 +299,8 @@ export function DiagramGuide() {
                                 </p>
 
                                 <h4 className="font-medium mb-3">Estrutura em Camadas:</h4>
-                                <Card className="p-4 bg-muted/30">
-                                    <pre className="text-xs text-muted-foreground">
+                                <Card className="p-4 bg-muted/30 overflow-x-auto">
+                                    <pre className="text-xs text-muted-foreground whitespace-pre">
 {`┌─────────────────────────────────────┐
 │         PRESENTATION LAYER          │
 │  [User] → [Frontend App] → [CDN]    │
@@ -361,8 +361,8 @@ export function DiagramGuide() {
                                 </div>
 
                                 <h4 className="font-medium mb-3">Fluxo de Atendimento Comercial:</h4>
-                                <Card className="p-4 bg-muted/30">
-                                    <pre className="text-xs text-muted-foreground">
+                                <Card className="p-4 bg-muted/30 overflow-x-auto">
+                                    <pre className="text-xs text-muted-foreground whitespace-pre">
 {`[Cliente (WhatsApp/Chat)]
           ↓
      [Input Parser] ← classifica intenção
@@ -442,8 +442,8 @@ export function DiagramGuide() {
                                 </div>
 
                                 <h4 className="font-medium mb-3">Exemplo: Sistema de Pesquisa Multi-Agent</h4>
-                                <Card className="p-4 bg-muted/30">
-                                    <pre className="text-xs text-muted-foreground">
+                                <Card className="p-4 bg-muted/30 overflow-x-auto">
+                                    <pre className="text-xs text-muted-foreground whitespace-pre">
 {`[User Request]
       ↓
 [Planner Agent] ← define estratégia

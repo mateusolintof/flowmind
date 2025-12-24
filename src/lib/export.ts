@@ -1,0 +1,178 @@
+import { Node, Edge, Viewport, getNodesBounds, getViewportForBounds } from '@xyflow/react';
+import { toPng, toSvg } from 'html-to-image';
+
+export interface FlowData {
+    nodes: Node[];
+    edges: Edge[];
+    viewport?: Viewport;
+    metadata?: {
+        title?: string;
+        description?: string;
+        createdAt?: string;
+        updatedAt?: string;
+        version?: string;
+    };
+}
+
+export type ExportFormat = 'png' | 'svg' | 'json';
+
+/**
+ * Export flow as PNG image
+ */
+export async function exportAsPng(
+    element: HTMLElement,
+    nodes: Node[],
+    filename: string = 'flowmind-diagram'
+): Promise<void> {
+    if (nodes.length === 0) {
+        throw new Error('No nodes to export');
+    }
+
+    const nodesBounds = getNodesBounds(nodes);
+    const imageWidth = nodesBounds.width || 1024;
+    const imageHeight = nodesBounds.height || 768;
+
+    const transform = getViewportForBounds(
+        nodesBounds,
+        imageWidth,
+        imageHeight,
+        0.5,
+        2,
+        0.1
+    );
+
+    try {
+        const dataUrl = await toPng(element, {
+            backgroundColor: '#ffffff',
+            width: imageWidth * 2,
+            height: imageHeight * 2,
+            style: {
+                width: `${imageWidth}px`,
+                height: `${imageHeight}px`,
+                transform: `translate(${transform.x}px, ${transform.y}px) scale(${transform.zoom})`,
+            },
+        });
+
+        downloadDataUrl(dataUrl, `${filename}.png`);
+    } catch (error) {
+        // Fallback to simple screenshot
+        const dataUrl = await toPng(element, { backgroundColor: '#fff' });
+        downloadDataUrl(dataUrl, `${filename}-snapshot.png`);
+    }
+}
+
+/**
+ * Export flow as SVG (vector format)
+ */
+export async function exportAsSvg(
+    element: HTMLElement,
+    nodes: Node[],
+    filename: string = 'flowmind-diagram'
+): Promise<void> {
+    if (nodes.length === 0) {
+        throw new Error('No nodes to export');
+    }
+
+    const nodesBounds = getNodesBounds(nodes);
+    const imageWidth = nodesBounds.width || 1024;
+    const imageHeight = nodesBounds.height || 768;
+
+    const transform = getViewportForBounds(
+        nodesBounds,
+        imageWidth,
+        imageHeight,
+        0.5,
+        2,
+        0.1
+    );
+
+    try {
+        const dataUrl = await toSvg(element, {
+            backgroundColor: '#ffffff',
+            width: imageWidth * 2,
+            height: imageHeight * 2,
+            style: {
+                width: `${imageWidth}px`,
+                height: `${imageHeight}px`,
+                transform: `translate(${transform.x}px, ${transform.y}px) scale(${transform.zoom})`,
+            },
+        });
+
+        downloadDataUrl(dataUrl, `${filename}.svg`);
+    } catch (error) {
+        // Fallback to simple screenshot
+        const dataUrl = await toSvg(element, { backgroundColor: '#fff' });
+        downloadDataUrl(dataUrl, `${filename}-snapshot.svg`);
+    }
+}
+
+/**
+ * Export flow as JSON (for backup/sharing)
+ */
+export function exportAsJson(
+    data: FlowData,
+    filename: string = 'flowmind-diagram'
+): void {
+    const exportData: FlowData = {
+        nodes: data.nodes,
+        edges: data.edges,
+        viewport: data.viewport,
+        metadata: {
+            ...data.metadata,
+            updatedAt: new Date().toISOString(),
+            version: '1.0',
+        },
+    };
+
+    const jsonString = JSON.stringify(exportData, null, 2);
+    const blob = new Blob([jsonString], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+
+    downloadDataUrl(url, `${filename}.json`);
+    URL.revokeObjectURL(url);
+}
+
+/**
+ * Import flow from JSON file
+ */
+export async function importFromJson(file: File): Promise<FlowData> {
+    return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+
+        reader.onload = (event) => {
+            try {
+                const json = JSON.parse(event.target?.result as string);
+
+                // Validate the structure
+                if (!json.nodes || !Array.isArray(json.nodes)) {
+                    throw new Error('Invalid JSON: missing nodes array');
+                }
+                if (!json.edges || !Array.isArray(json.edges)) {
+                    throw new Error('Invalid JSON: missing edges array');
+                }
+
+                resolve({
+                    nodes: json.nodes,
+                    edges: json.edges,
+                    viewport: json.viewport,
+                    metadata: json.metadata,
+                });
+            } catch (error) {
+                reject(new Error(`Failed to parse JSON: ${(error as Error).message}`));
+            }
+        };
+
+        reader.onerror = () => reject(new Error('Failed to read file'));
+        reader.readAsText(file);
+    });
+}
+
+/**
+ * Helper function to trigger download
+ */
+function downloadDataUrl(dataUrl: string, filename: string): void {
+    const link = document.createElement('a');
+    link.download = filename;
+    link.href = dataUrl;
+    link.click();
+}

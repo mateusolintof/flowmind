@@ -9,9 +9,17 @@ import {
     DialogTrigger,
 } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
-import { HelpCircle } from 'lucide-react';
+import { HelpCircle, PlayCircle } from 'lucide-react';
+import { useOnboarding } from '@/hooks/useOnboarding';
 
 export default function HelpDialog() {
+    const { startTour, resetTour } = useOnboarding();
+
+    const handleStartTour = () => {
+        resetTour();
+        startTour();
+    };
+
     return (
         <Dialog>
             <DialogTrigger asChild>
@@ -66,6 +74,17 @@ export default function HelpDialog() {
                             <div className="p-2 border rounded bg-muted/50"><kbd className="font-mono bg-background px-1 rounded">Esc</kbd> Exit</div>
                             <div className="p-2 border rounded bg-muted/50"><kbd className="font-mono bg-background px-1 rounded">Del</kbd> Delete</div>
                         </div>
+                    </div>
+
+                    <div className="border-t pt-4">
+                        <Button
+                            variant="outline"
+                            className="w-full gap-2"
+                            onClick={handleStartTour}
+                        >
+                            <PlayCircle className="h-4 w-4" />
+                            Take the Interactive Tour
+                        </Button>
                     </div>
                 </div>
             </DialogContent>

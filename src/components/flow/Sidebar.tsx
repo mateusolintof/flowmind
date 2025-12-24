@@ -1,9 +1,11 @@
 'use client';
 
+import { useState, useMemo } from 'react';
 import { useDnD } from '@/hooks/useDnD';
 import { Card } from '@/components/ui/card';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Separator } from '@/components/ui/separator';
+import { Input } from '@/components/ui/input';
 import {
     Tooltip,
     TooltipContent,
@@ -11,16 +13,23 @@ import {
     TooltipTrigger,
 } from '@/components/ui/tooltip';
 import { NODE_CONFIG, NodeType } from '@/config/nodeTypes';
+import { Search, X } from 'lucide-react';
 
-export default function Sidebar() {
+interface SidebarProps {
+    onItemSelect?: () => void;
+}
+
+export default function Sidebar({ onItemSelect }: SidebarProps = {}) {
     const { setType } = useDnD();
+    const [searchQuery, setSearchQuery] = useState('');
 
     const onDragStart = (event: React.DragEvent, nodeType: string) => {
         setType(nodeType);
         event.dataTransfer.effectAllowed = 'move';
+        onItemSelect?.();
     };
 
-    const categories = [
+    const allCategories = [
         {
             name: 'AI Agents',
             items: ['agent', 'llm', 'tool', 'memory', 'input'] as NodeType[]
@@ -35,11 +44,50 @@ export default function Sidebar() {
         }
     ];
 
+    // Filter categories and items based on search query
+    const categories = useMemo(() => {
+        if (!searchQuery.trim()) return allCategories;
+
+        const query = searchQuery.toLowerCase();
+        return allCategories
+            .map((cat) => ({
+                ...cat,
+                items: cat.items.filter((nodeType) => {
+                    const config = NODE_CONFIG[nodeType];
+                    return (
+                        config.label.toLowerCase().includes(query) ||
+                        config.tooltip.toLowerCase().includes(query) ||
+                        nodeType.toLowerCase().includes(query)
+                    );
+                }),
+            }))
+            .filter((cat) => cat.items.length > 0);
+    }, [searchQuery]);
+
     return (
         <TooltipProvider delayDuration={300}>
-            <Card className="h-full w-64 border-r rounded-none bg-sidebar text-sidebar-foreground flex flex-col pointer-events-auto shadow-xl z-50">
+            <Card className="h-full w-64 border-r rounded-none bg-sidebar text-sidebar-foreground flex flex-col pointer-events-auto shadow-xl z-50" data-onboarding="sidebar">
                 <div className="p-4 font-bold text-lg tracking-tight">FlowMind</div>
                 <Separator />
+                <div className="p-3" data-onboarding="search">
+                    <div className="relative">
+                        <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+                        <Input
+                            placeholder="Search components..."
+                            value={searchQuery}
+                            onChange={(e) => setSearchQuery(e.target.value)}
+                            className="pl-8 pr-8 h-9 text-sm"
+                        />
+                        {searchQuery && (
+                            <button
+                                onClick={() => setSearchQuery('')}
+                                className="absolute right-2.5 top-2.5 h-4 w-4 text-muted-foreground hover:text-foreground"
+                            >
+                                <X className="h-4 w-4" />
+                            </button>
+                        )}
+                    </div>
+                </div>
                 <ScrollArea className="flex-1">
                     <div className="p-4 gap-6 flex flex-col">
                         {categories.map((cat) => (

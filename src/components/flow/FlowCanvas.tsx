@@ -28,7 +28,7 @@ import { useUndoRedo } from '@/hooks/useUndoRedo';
 import { useClipboard } from '@/hooks/useClipboard';
 import { loadFlow } from '@/lib/storage';
 import { Button } from '@/components/ui/button';
-import { Download, Save, Pencil, MousePointer2, Undo2, Redo2, Grid3X3 } from 'lucide-react';
+import { Save, Pencil, MousePointer2, Undo2, Redo2, Grid3X3 } from 'lucide-react';
 import { toast } from 'sonner';
 import BaseNode from './BaseNode';
 import StrokeNode from './StrokeNode';
@@ -36,7 +36,14 @@ import HelpDialog from './HelpDialog';
 import { ColorPicker } from './ColorPicker';
 import { SyncStatusIndicator } from './SyncStatusIndicator';
 import { ZoomControls } from './ZoomControls';
+import CustomEdge, { CustomEdgeData } from './CustomEdge';
+import { EdgeStylePicker } from './EdgeStylePicker';
+import { ExportMenu } from './ExportMenu';
+import { TemplateGallery } from './TemplateGallery';
+import { DiagramGuide } from './DiagramGuide';
+import { FlowData } from '@/lib/export';
 import { NODE_CONFIG } from '@/config/nodeTypes';
+import { DiagramTemplate } from '@/config/templates';
 
 const initialNodes: Node[] = [
     {
@@ -60,7 +67,7 @@ function Flow() {
     const { save } = useAutoSave();
     const { undo, redo, takeSnapshot, canUndo, canRedo } = useUndoRedo();
     const { copy, cut, paste } = useClipboard();
-    const { setViewport, screenToFlowPosition, getNodes } = useReactFlow();
+    const { setViewport, screenToFlowPosition, getNodes, getViewport } = useReactFlow();
 
     // Drawing Mode State
     const [isDrawing, setIsDrawing] = useState(false);
@@ -118,6 +125,44 @@ function Flow() {
         setIsDirty(false);
     };
 
+    // Import handler
+    const handleImport = useCallback((data: FlowData) => {
+        takeSnapshot(nodes, edges);
+        setNodes(data.nodes || []);
+        setEdges(data.edges || []);
+        if (data.viewport) {
+            setViewport(data.viewport);
+        }
+        // Reset ID counter
+        const maxId = Math.max(
+            ...data.nodes.map((n) => {
+                const match = n.id.match(/dndnode_(\d+)/);
+                return match ? parseInt(match[1], 10) : 0;
+            }),
+            0
+        );
+        id = maxId + 1;
+        setIsDirty(true);
+    }, [nodes, edges, takeSnapshot, setNodes, setEdges, setViewport]);
+
+    // Template selection handler
+    const handleSelectTemplate = useCallback((template: DiagramTemplate) => {
+        takeSnapshot(nodes, edges);
+        setNodes(template.nodes || []);
+        setEdges(template.edges || []);
+        // Reset ID counter based on template nodes
+        const maxId = Math.max(
+            ...template.nodes.map((n) => {
+                const match = n.id.match(/dndnode_(\d+)/);
+                return match ? parseInt(match[1], 10) : 0;
+            }),
+            template.nodes.length
+        );
+        id = maxId + 1;
+        setIsDirty(true);
+        toast.success(`Template "${template.name}" loaded`);
+    }, [nodes, edges, takeSnapshot, setNodes, setEdges]);
+
     // Load flow on mount
     useEffect(() => {
         const restoreFlow = async () => {
@@ -143,10 +188,47 @@ function Flow() {
         return types;
     }, []);
 
+    // Define edgeTypes
+    const edgeTypes = useMemo(() => ({
+        custom: CustomEdge,
+    }), []);
+
+    // Get selected edge for styling
+    const selectedEdge = useMemo(() => {
+        return edges.find((e) => e.selected);
+    }, [edges]);
+
+    // Update edge data
+    const updateEdgeData = useCallback((data: Partial<CustomEdgeData>) => {
+        if (!selectedEdge) return;
+        takeSnapshot(nodes, edges);
+        setEdges((eds) =>
+            eds.map((edge) => {
+                if (edge.id === selectedEdge.id) {
+                    return {
+                        ...edge,
+                        data: {
+                            ...(edge.data || {}),
+                            ...data,
+                        },
+                    };
+                }
+                return edge;
+            })
+        );
+        setIsDirty(true);
+    }, [selectedEdge, nodes, edges, takeSnapshot, setEdges]);
+
     const onConnect = useCallback(
         (params: Connection) => {
             takeSnapshot(nodes, edges); // Save before connecting
-            setEdges((eds) => addEdge(params, eds));
+            // Add edge with custom type
+            const newEdge = {
+                ...params,
+                type: 'custom',
+                data: { styleType: 'bezier' as const },
+            };
+            setEdges((eds) => addEdge(newEdge, eds));
             setIsDirty(true);
         },
         [setEdges, nodes, edges, takeSnapshot],
@@ -491,6 +573,7 @@ function Flow() {
         <div
             className="flex-1 h-full w-full relative"
             ref={reactFlowWrapper}
+            data-onboarding="canvas"
         >
             <div
                 className="absolute inset-0 z-50 transition-colors"
@@ -508,6 +591,8 @@ function Flow() {
                 nodes={nodes}
                 edges={edges}
                 nodeTypes={nodeTypes}
+                edgeTypes={edgeTypes}
+                defaultEdgeOptions={{ type: 'custom' }}
                 onNodesChange={handleNodesChange}
                 onEdgesChange={handleEdgesChange}
                 onNodesDelete={onNodesDelete}
@@ -530,7 +615,7 @@ function Flow() {
                 <Background variant={BackgroundVariant.Dots} gap={12} size={1} />
 
                 {/* Zoom Controls */}
-                <Panel position="bottom-left" className="ml-12">
+                <Panel position="bottom-left" className="ml-12" data-onboarding="zoom-controls">
                     <ZoomControls />
                 </Panel>
 
@@ -610,19 +695,34 @@ function Flow() {
                             title="Drawing Mode (D)"
                             aria-label="Drawing mode"
                             aria-pressed={isDrawing}
+                            data-onboarding="drawing-toggle"
                         >
                             <Pencil className="h-4 w-4" />
                         </Button>
                     </div>
 
+                    {selectedEdge && (
+                        <EdgeStylePicker
+                            edgeData={(selectedEdge.data as CustomEdgeData) || {}}
+                            onUpdate={updateEdgeData}
+                        />
+                    )}
+                    <TemplateGallery onSelectTemplate={handleSelectTemplate} />
+                    <DiagramGuide />
                     <SyncStatusIndicator />
                     <Button size="sm" variant="outline" className="gap-2 bg-background h-8" onClick={handleSave} title="Save (Cmd+S)" aria-label="Save diagram">
                         <Save className="h-4 w-4" /> Save
                     </Button>
-                    <Button size="sm" variant="outline" className="gap-2 bg-background h-8" onClick={onExport} title="Export (Cmd+E)" aria-label="Export diagram as PNG">
-                        <Download className="h-4 w-4" /> Export
-                    </Button>
-                    <HelpDialog />
+                    <ExportMenu
+                        nodes={nodes}
+                        edges={edges}
+                        viewport={getViewport()}
+                        reactFlowWrapper={reactFlowWrapper}
+                        onImport={handleImport}
+                    />
+                    <div data-onboarding="help">
+                        <HelpDialog />
+                    </div>
                 </Panel>
             </ReactFlow>
         </div>

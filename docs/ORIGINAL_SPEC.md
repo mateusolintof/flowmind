@@ -1,4 +1,30 @@
-# Conteúdo dos Guias para FlowMind
+# FlowMind - Original Specification
+
+> **Status:** This is the original project specification. See [README.md](../README.md) for current features and [ROADMAP.md](./ROADMAP.md) for pending features.
+>
+> **Last Updated:** December 24, 2024
+
+---
+
+## Implementation Status
+
+| Section | Status |
+|---------|--------|
+| Canvas with nodes | ✅ Implemented |
+| Saving (local + cloud) | ✅ Implemented |
+| Component library (13 types) | ✅ Implemented |
+| Freehand drawing | ✅ Implemented |
+| Image export (PNG, SVG, JSON) | ✅ Implemented |
+| Guides and tooltips | ✅ Implemented |
+| Templates (5 ready) | ✅ Implemented |
+| Multiple diagrams | ⏳ Pending |
+| AI Assistant | ⏳ Pending |
+
+---
+
+# Original Specification Content
+
+## Conteúdo dos Guias para FlowMind
 
 Este arquivo contém o CONTEÚDO que deve aparecer nos guias dentro da aplicação. O AI Agent deve incorporar esse conteúdo na seção de Guias e nos tooltips dos componentes.
 
@@ -156,12 +182,6 @@ Quando o usuário passar o mouse em um componente da biblioteca, mostrar uma des
 
 ---
 
-Fim do conteúdo dos guias.
-
-
-
----
-
 # FlowMind - Spec para AI Agent
 
 ## Contexto do Usuário
@@ -314,63 +334,16 @@ Pesquise as versões mais atuais de dezembro de 2025 antes de implementar:
 
 ---
 
-## Referências Visuais
+## Entregáveis (Status)
 
-O usuário enviou 3 imagens de referência:
-
-1. **Infográfico de Agente Comercial**: Mostra um fluxo de agente de IA com cliente → canais (WhatsApp, Email, Chat) → agente central → CRM/ERP → equipe humana. Tem seções de "Cérebro e Memória", "Treinamento", "Caixa de Ferramentas".
-
-2. **Hub de Agentes**: Diagrama simples mostrando múltiplos agentes conectando a um hub central, que por sua vez conecta a sistemas via MCP e A2A. Também mostra um Copilot e como um Prompt pode criar um novo agente.
-
-3. **Arquitetura de AI Agent**: Infográfico mais técnico mostrando o ciclo Percepção → Brain → Ação, com componentes de Storage (Memory, Knowledge), Decision Making, Tools, e interação com o Environment.
-
-A aplicação deve permitir criar esse tipo de visualização arrastando componentes e conectando-os.
+1. ✅ Aplicação web funcional rodando localmente
+2. ✅ Instruções de como rodar (npm install, npm run dev, etc)
+3. ✅ Pelo menos 20 componentes pré-definidos na biblioteca (13 tipos)
+4. ✅ Pelo menos 3 templates de exemplo (5 templates implementados)
+5. ✅ Guias básicos integrados explicando os padrões principais
+6. ✅ Funcionalidade de salvar/carregar funcionando
+7. ✅ Exportação de imagem funcionando (PNG, SVG, JSON)
 
 ---
 
-## O Que NÃO Fazer
-
-- NÃO criar um sistema de login/autenticação - é uma ferramenta pessoal
-- NÃO fazer backend complexo - persistência local é suficiente
-- NÃO adicionar colaboração em tempo real - não é necessário
-- NÃO colocar muitas opções de customização - manter simples
-- NÃO exigir que o usuário saiba regras de diagramas - os componentes já vêm formatados corretamente
-
----
-
-## Entregáveis
-
-1. Aplicação web funcional rodando localmente
-2. Instruções de como rodar (npm install, npm run dev, etc)
-3. Pelo menos 20 componentes pré-definidos na biblioteca
-4. Pelo menos 3 templates de exemplo (1 de agente de IA, 1 de arquitetura de software, 1 de infográfico)
-5. Guias básicos integrados explicando os padrões principais
-6. Funcionalidade de salvar/carregar funcionando
-7. Exportação de imagem funcionando
-
----
-
-## Ordem de Prioridade
-
-Se precisar priorizar, faça nesta ordem:
-
-1. **PRIMEIRO**: Canvas funcionando com nodes arrastáveis e conectáveis
-2. **SEGUNDO**: Salvamento local funcionando (não perder trabalho!)
-3. **TERCEIRO**: Biblioteca de componentes básica
-4. **QUARTO**: Funcionalidade de desenho/anotação
-5. **QUINTO**: Exportação de imagem
-6. **SEXTO**: Guias e tooltips
-7. **SÉTIMO**: Templates prontos
-8. **OITAVO**: Polish visual e animações
-
----
-
-## Notas Finais
-
-- Pesquise a documentação atual das bibliotecas antes de implementar
-- Teste frequentemente se arrastar e conectar está funcionando bem
-- O usuário vai usar isso para planejar ANTES de codar, então precisa ser rápido de usar
-- Foque em funcionar bem, não em ter muitas features
-- Quando em dúvida, escolha a opção mais simples
-
-Data: 23/12/2025
+*Original specification date: December 23, 2024*

@@ -51,11 +51,17 @@ export default function HelpDialog() {
                     </div>
 
                     <div className="space-y-2 border-t pt-4">
-                        <h3 className="font-semibold text-sm">Shortcuts</h3>
+                        <h3 className="font-semibold text-sm">Keyboard Shortcuts</h3>
                         <div className="grid grid-cols-3 gap-2 text-xs text-muted-foreground">
-                            <div className="p-2 border rounded bg-muted/50">Backspace/Del: Delete</div>
-                            <div className="p-2 border rounded bg-muted/50">Scroll: Zoom</div>
-                            <div className="p-2 border rounded bg-muted/50">Space + Drag: Pan (if locked)</div>
+                            <div className="p-2 border rounded bg-muted/50"><kbd className="font-mono bg-background px-1 rounded">⌘S</kbd> Save</div>
+                            <div className="p-2 border rounded bg-muted/50"><kbd className="font-mono bg-background px-1 rounded">⌘E</kbd> Export PNG</div>
+                            <div className="p-2 border rounded bg-muted/50"><kbd className="font-mono bg-background px-1 rounded">⌘D</kbd> Duplicate</div>
+                            <div className="p-2 border rounded bg-muted/50"><kbd className="font-mono bg-background px-1 rounded">⌘Z</kbd> Undo</div>
+                            <div className="p-2 border rounded bg-muted/50"><kbd className="font-mono bg-background px-1 rounded">⌘⇧Z</kbd> Redo</div>
+                            <div className="p-2 border rounded bg-muted/50"><kbd className="font-mono bg-background px-1 rounded">D</kbd> Toggle Drawing</div>
+                            <div className="p-2 border rounded bg-muted/50"><kbd className="font-mono bg-background px-1 rounded">C</kbd> Color Picker</div>
+                            <div className="p-2 border rounded bg-muted/50"><kbd className="font-mono bg-background px-1 rounded">Esc</kbd> Exit Mode</div>
+                            <div className="p-2 border rounded bg-muted/50"><kbd className="font-mono bg-background px-1 rounded">Del</kbd> Delete</div>
                         </div>
                     </div>
                 </div>

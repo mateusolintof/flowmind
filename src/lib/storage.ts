@@ -2,6 +2,7 @@ import { get, set } from 'idb-keyval';
 import { Edge, Node, Viewport } from '@xyflow/react';
 import { supabase } from './supabase';
 import { toast } from 'sonner';
+import { setSyncStatus } from '@/hooks/useSyncStatus';
 
 const STORAGE_KEY = 'flowmind-canvas';
 const USER_ID_KEY = 'flowmind-user-id';
@@ -25,6 +26,18 @@ const getUserId = async () => {
 };
 
 export const saveFlow = async (state: FlowState, showToast = false) => {
+    // Check if online
+    if (typeof window !== 'undefined' && !navigator.onLine) {
+        setSyncStatus('offline');
+        await set(STORAGE_KEY, state);
+        if (showToast) {
+            toast.success('Saved locally (offline)');
+        }
+        return;
+    }
+
+    setSyncStatus('syncing');
+
     // Always save locally first (speed/offline)
     await set(STORAGE_KEY, state);
 
@@ -65,12 +78,17 @@ export const saveFlow = async (state: FlowState, showToast = false) => {
 
         if (error) {
             console.error('Supabase save error:', error);
+            setSyncStatus('error');
         } else {
             cloudSaveSuccess = true;
+            setSyncStatus('synced');
+            // Reset to idle after 3 seconds
+            setTimeout(() => setSyncStatus('idle'), 3000);
         }
     } catch (err) {
         // If supabase fails (e.g. invalid URL/Key), just warn, don't crash the app
         console.warn('Supabase sync failed, using local only', err);
+        setSyncStatus('error');
     }
 
     if (showToast) {

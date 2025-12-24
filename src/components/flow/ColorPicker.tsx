@@ -13,11 +13,13 @@ import {
 interface ColorPickerProps {
     selectedColor?: string;
     onSelectColor: (color: string) => void;
+    open?: boolean;
+    onOpenChange?: (open: boolean) => void;
 }
 
-export function ColorPicker({ selectedColor, onSelectColor }: ColorPickerProps) {
+export function ColorPicker({ selectedColor, onSelectColor, open, onOpenChange }: ColorPickerProps) {
     return (
-        <Popover>
+        <Popover open={open} onOpenChange={onOpenChange}>
             <PopoverTrigger asChild>
                 <Button variant="outline" size="sm" className="h-8 w-8 p-0" aria-label="Open color picker">
                     <Palette className="h-4 w-4" style={{ color: selectedColor || 'var(--foreground)' }} aria-hidden="true" />

@@ -33,6 +33,7 @@ import BaseNode from './BaseNode';
 import StrokeNode from './StrokeNode';
 import HelpDialog from './HelpDialog';
 import { ColorPicker } from './ColorPicker';
+import { SyncStatusIndicator } from './SyncStatusIndicator';
 import { NODE_CONFIG } from '@/config/nodeTypes';
 
 const initialNodes: Node[] = [
@@ -65,6 +66,7 @@ function Flow() {
 
     // Color State
     const [selectedColor, setSelectedColor] = useState<string>(''); // '' means default
+    const [colorPickerOpen, setColorPickerOpen] = useState(false);
 
     // Dirty state for unsaved changes warning
     const [isDirty, setIsDirty] = useState(false);
@@ -227,33 +229,82 @@ function Flow() {
         setIsDirty(true);
     };
 
-    // Keyboard Shortcuts for Undo/Redo
-    useEffect(() => {
-        const handleKeyDown = (e: KeyboardEvent) => {
-            if ((e.metaKey || e.ctrlKey) && e.key === 'z') {
-                if (e.shiftKey) {
-                    const next = redo(nodes, edges);
-                    if (next) {
-                        setNodes(next.nodes);
-                        setEdges(next.edges);
-                    }
-                } else {
-                    const prev = undo(nodes, edges);
-                    if (prev) {
-                        setNodes(prev.nodes);
-                        setEdges(prev.edges);
-                    }
-                }
-            }
-        };
-        window.addEventListener('keydown', handleKeyDown);
-        return () => window.removeEventListener('keydown', handleKeyDown);
-    }, [undo, redo, nodes, edges, setNodes, setEdges]);
-
     // Handle Node Drag Start to save state
     const onNodeDragStart = useCallback(() => {
         takeSnapshot(nodes, edges);
     }, [nodes, edges, takeSnapshot]);
+
+    // Handle deletion with undo feedback
+    const onNodesDelete = useCallback(
+        (deletedNodes: Node[]) => {
+            if (deletedNodes.length === 0) return;
+            setIsDirty(true);
+
+            const count = deletedNodes.length;
+            toast(`${count} node${count > 1 ? 's' : ''} deleted`, {
+                action: {
+                    label: 'Undo',
+                    onClick: () => {
+                        const prev = undo(nodes, edges);
+                        if (prev) {
+                            setNodes(prev.nodes);
+                            setEdges(prev.edges);
+                            toast.success('Deletion undone');
+                        }
+                    },
+                },
+                duration: 5000,
+            });
+        },
+        [undo, nodes, edges, setNodes, setEdges]
+    );
+
+    const onEdgesDelete = useCallback(
+        (deletedEdges: Edge[]) => {
+            if (deletedEdges.length === 0) return;
+            setIsDirty(true);
+
+            const count = deletedEdges.length;
+            toast(`${count} connection${count > 1 ? 's' : ''} deleted`, {
+                action: {
+                    label: 'Undo',
+                    onClick: () => {
+                        const prev = undo(nodes, edges);
+                        if (prev) {
+                            setNodes(prev.nodes);
+                            setEdges(prev.edges);
+                            toast.success('Deletion undone');
+                        }
+                    },
+                },
+                duration: 5000,
+            });
+        },
+        [undo, nodes, edges, setNodes, setEdges]
+    );
+
+    // Take snapshot before deletion (called by React Flow's onNodesChange/onEdgesChange)
+    const handleNodesChange = useCallback(
+        (changes: any[]) => {
+            const hasDelete = changes.some((c) => c.type === 'remove');
+            if (hasDelete) {
+                takeSnapshot(nodes, edges);
+            }
+            onNodesChange(changes);
+        },
+        [nodes, edges, takeSnapshot, onNodesChange]
+    );
+
+    const handleEdgesChange = useCallback(
+        (changes: any[]) => {
+            const hasDelete = changes.some((c) => c.type === 'remove');
+            if (hasDelete) {
+                takeSnapshot(nodes, edges);
+            }
+            onEdgesChange(changes);
+        },
+        [nodes, edges, takeSnapshot, onEdgesChange]
+    );
 
     // Export Logic
     const onExport = async () => {
@@ -316,6 +367,95 @@ function Flow() {
         }
     };
 
+    // Keyboard Shortcuts
+    useEffect(() => {
+        const handleKeyDown = (e: KeyboardEvent) => {
+            // Check if user is typing in an input/textarea
+            const target = e.target as HTMLElement;
+            const isTyping = target.tagName === 'INPUT' || target.tagName === 'TEXTAREA' || target.isContentEditable;
+
+            // Cmd/Ctrl shortcuts (work even when typing)
+            if (e.metaKey || e.ctrlKey) {
+                switch (e.key.toLowerCase()) {
+                    case 'z':
+                        e.preventDefault();
+                        if (e.shiftKey) {
+                            const next = redo(nodes, edges);
+                            if (next) {
+                                setNodes(next.nodes);
+                                setEdges(next.edges);
+                            }
+                        } else {
+                            const prev = undo(nodes, edges);
+                            if (prev) {
+                                setNodes(prev.nodes);
+                                setEdges(prev.edges);
+                            }
+                        }
+                        break;
+                    case 's':
+                        e.preventDefault();
+                        handleSave();
+                        break;
+                    case 'e':
+                        e.preventDefault();
+                        onExport();
+                        break;
+                    case 'd':
+                        e.preventDefault();
+                        // Duplicate selected nodes
+                        const selectedNodes = nodes.filter((n) => n.selected);
+                        if (selectedNodes.length > 0) {
+                            takeSnapshot(nodes, edges);
+                            const newNodes = selectedNodes.map((node) => ({
+                                ...node,
+                                id: getId(),
+                                position: {
+                                    x: node.position.x + 20,
+                                    y: node.position.y + 20,
+                                },
+                                selected: false,
+                                data: { ...node.data },
+                            }));
+                            setNodes((nds) => [
+                                ...nds.map((n) => ({ ...n, selected: false })),
+                                ...newNodes.map((n) => ({ ...n, selected: true })),
+                            ]);
+                            setIsDirty(true);
+                            toast.success(`${selectedNodes.length} node${selectedNodes.length > 1 ? 's' : ''} duplicated`);
+                        }
+                        break;
+                }
+                return;
+            }
+
+            // Single key shortcuts (only when not typing)
+            if (isTyping) return;
+
+            switch (e.key.toLowerCase()) {
+                case 'd':
+                    e.preventDefault();
+                    setIsDrawing((prev) => !prev);
+                    break;
+                case 'c':
+                    e.preventDefault();
+                    setColorPickerOpen((prev) => !prev);
+                    break;
+                case 'escape':
+                    e.preventDefault();
+                    if (isDrawing) {
+                        setIsDrawing(false);
+                    }
+                    if (colorPickerOpen) {
+                        setColorPickerOpen(false);
+                    }
+                    break;
+            }
+        };
+        window.addEventListener('keydown', handleKeyDown);
+        return () => window.removeEventListener('keydown', handleKeyDown);
+    }, [undo, redo, nodes, edges, setNodes, setEdges, isDrawing, colorPickerOpen]);
+
     return (
         <div
             className="flex-1 h-full w-full relative"
@@ -337,8 +477,10 @@ function Flow() {
                 nodes={nodes}
                 edges={edges}
                 nodeTypes={nodeTypes}
-                onNodesChange={onNodesChange}
-                onEdgesChange={onEdgesChange}
+                onNodesChange={handleNodesChange}
+                onEdgesChange={handleEdgesChange}
+                onNodesDelete={onNodesDelete}
+                onEdgesDelete={onEdgesDelete}
                 onConnect={onConnect}
                 onInit={setReactFlowInstance}
                 onDrop={onDrop}
@@ -353,6 +495,17 @@ function Flow() {
                 <Controls />
                 <MiniMap zoomable pannable className="bg-card border rounded-lg overflow-hidden" />
                 <Background variant={BackgroundVariant.Dots} gap={12} size={1} />
+
+                {/* Drawing Mode Indicator */}
+                {isDrawing && (
+                    <Panel position="top-center" className="pointer-events-none">
+                        <div className="bg-primary text-primary-foreground px-3 py-1.5 rounded-full text-sm font-medium shadow-lg animate-in fade-in slide-in-from-top-2 duration-200 flex items-center gap-2">
+                            <Pencil className="h-3.5 w-3.5" />
+                            Drawing Mode
+                            <span className="text-xs opacity-75">(Press D or Esc to exit)</span>
+                        </div>
+                    </Panel>
+                )}
 
                 <Panel position="top-right" className="flex gap-2">
                     <div className="bg-background border rounded-md flex mr-2 shadow-sm items-center">
@@ -386,14 +539,14 @@ function Flow() {
                             <Redo2 className="h-4 w-4" />
                         </Button>
                         <div className="w-[1px] h-4 bg-border" />
-                        <ColorPicker selectedColor={selectedColor} onSelectColor={onColorChange} />
+                        <ColorPicker selectedColor={selectedColor} onSelectColor={onColorChange} open={colorPickerOpen} onOpenChange={setColorPickerOpen} />
                         <div className="w-[1px] h-4 bg-border mx-1" />
                         <Button
                             size="sm"
                             variant={!isDrawing ? 'secondary' : 'ghost'}
                             onClick={() => setIsDrawing(false)}
                             className="rounded-none rounded-l-md px-3 h-8"
-                            title="Selection Mode"
+                            title="Selection Mode (Esc)"
                             aria-label="Selection mode"
                             aria-pressed={!isDrawing}
                         >
@@ -404,7 +557,7 @@ function Flow() {
                             variant={isDrawing ? 'secondary' : 'ghost'}
                             onClick={() => setIsDrawing(true)}
                             className="rounded-none rounded-r-md px-3 h-8"
-                            title="Drawing Mode"
+                            title="Drawing Mode (D)"
                             aria-label="Drawing mode"
                             aria-pressed={isDrawing}
                         >
@@ -412,10 +565,11 @@ function Flow() {
                         </Button>
                     </div>
 
-                    <Button size="sm" variant="outline" className="gap-2 bg-background h-8" onClick={handleSave} aria-label="Save diagram">
+                    <SyncStatusIndicator />
+                    <Button size="sm" variant="outline" className="gap-2 bg-background h-8" onClick={handleSave} title="Save (Cmd+S)" aria-label="Save diagram">
                         <Save className="h-4 w-4" /> Save
                     </Button>
-                    <Button size="sm" variant="outline" className="gap-2 bg-background h-8" onClick={onExport} aria-label="Export diagram as PNG">
+                    <Button size="sm" variant="outline" className="gap-2 bg-background h-8" onClick={onExport} title="Export (Cmd+E)" aria-label="Export diagram as PNG">
                         <Download className="h-4 w-4" /> Export
                     </Button>
                     <HelpDialog />

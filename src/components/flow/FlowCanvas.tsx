@@ -26,7 +26,8 @@ import { useDnD } from '@/hooks/useDnD';
 import { useAutoSave } from '@/hooks/useAutoSave';
 import { useUndoRedo } from '@/hooks/useUndoRedo';
 import { useClipboard } from '@/hooks/useClipboard';
-import { loadFlow } from '@/lib/storage';
+import { loadFlow, migrateLegacyStorage, loadDiagramById, listDiagrams, Diagram } from '@/lib/storage';
+import { DiagramManager } from './DiagramManager';
 import { Button } from '@/components/ui/button';
 import { Save, Pencil, MousePointer2, Undo2, Redo2, Grid3X3 } from 'lucide-react';
 import { toast } from 'sonner';
@@ -83,6 +84,10 @@ function Flow() {
 
     // Snap to Grid State
     const [snapToGrid, setSnapToGrid] = useState(true);
+
+    // Current Diagram State
+    const [currentDiagramId, setCurrentDiagramId] = useState<string | null>(null);
+    const [currentDiagramName, setCurrentDiagramName] = useState<string>('Loading...');
 
     // Handler to change color of selected nodes or set global drawing color
     const onColorChange = (color: string) => {
@@ -163,21 +168,46 @@ function Flow() {
         toast.success(`Template "${template.name}" loaded`);
     }, [nodes, edges, takeSnapshot, setNodes, setEdges]);
 
-    // Load flow on mount
+    // Load diagram by ID
+    const loadDiagram = useCallback(async (diagramId: string) => {
+        const flow = await loadDiagramById(diagramId);
+        if (flow) {
+            setNodes(flow.nodes || []);
+            setEdges(flow.edges || []);
+            if (flow.viewport) {
+                setViewport(flow.viewport);
+            }
+            id = (flow.nodes || []).length + 1;
+        } else {
+            // Empty diagram
+            setNodes([]);
+            setEdges([]);
+            setViewport({ x: 0, y: 0, zoom: 1 });
+            id = 0;
+        }
+
+        // Update diagram name
+        const diagrams = await listDiagrams();
+        const diagram = diagrams.find((d: Diagram) => d.id === diagramId);
+        setCurrentDiagramName(diagram?.name || 'Untitled');
+        setCurrentDiagramId(diagramId);
+        setIsDirty(false);
+    }, [setNodes, setEdges, setViewport]);
+
+    // Handle diagram change from DiagramManager
+    const handleDiagramChange = useCallback(async (diagramId: string) => {
+        await loadDiagram(diagramId);
+    }, [loadDiagram]);
+
+    // Load flow on mount with migration
     useEffect(() => {
         const restoreFlow = async () => {
-            const flow = await loadFlow();
-            if (flow) {
-                setNodes(flow.nodes || []);
-                setEdges(flow.edges || []);
-                if (flow.viewport) {
-                    setViewport(flow.viewport);
-                }
-                id = (flow.nodes || []).length + 1;
-            }
+            // Run migration to ensure we have at least one diagram
+            const diagramId = await migrateLegacyStorage();
+            await loadDiagram(diagramId);
         };
         restoreFlow();
-    }, [setNodes, setEdges, setViewport]);
+    }, [loadDiagram]);
 
     // Fix React Flow background pointer events
     useEffect(() => {
@@ -625,6 +655,17 @@ function Flow() {
                 <Controls showZoom={false} showFitView={false} className="bg-background border rounded-md shadow-sm" />
                 <MiniMap zoomable pannable className="bg-card border rounded-lg overflow-hidden" />
                 <Background variant={BackgroundVariant.Dots} gap={12} size={1} style={{ pointerEvents: 'none' }} />
+
+                {/* Diagram Selector - Top Left */}
+                <Panel position="top-left" className="!z-10">
+                    <div className="bg-background border rounded-md shadow-sm">
+                        <DiagramManager
+                            currentDiagramId={currentDiagramId}
+                            currentDiagramName={currentDiagramName}
+                            onDiagramChange={handleDiagramChange}
+                        />
+                    </div>
+                </Panel>
 
                 {/* Zoom Controls */}
                 <Panel position="bottom-left" className="ml-12 !z-10" data-onboarding="zoom-controls">

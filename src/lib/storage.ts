@@ -219,41 +219,26 @@ export const saveDiagramById = async (
     let cloudSaveSuccess = false;
     try {
         const userId = await getUserId();
+        const diagrams = await listDiagrams();
+        const diagram = diagrams.find(d => d.id === diagramId);
 
-        // Check if diagram exists in cloud
-        const { data: existing } = await supabase
+        // Use upsert with the unique constraint on (user_id, diagram_id)
+        // This avoids the need to check if the record exists first
+        const { error } = await supabase
             .from('diagrams')
-            .select('id')
-            .eq('user_id', userId)
-            .eq('diagram_id', diagramId)
-            .single();
-
-        let error;
-        if (existing) {
-            const result = await supabase
-                .from('diagrams')
-                .update({
-                    data: state,
-                    updated_at: new Date().toISOString()
-                })
-                .eq('user_id', userId)
-                .eq('diagram_id', diagramId);
-            error = result.error;
-        } else {
-            const diagrams = await listDiagrams();
-            const diagram = diagrams.find(d => d.id === diagramId);
-
-            const result = await supabase
-                .from('diagrams')
-                .insert({
+            .upsert(
+                {
                     user_id: userId,
                     diagram_id: diagramId,
                     name: diagram?.name ?? 'Untitled',
                     data: state,
                     updated_at: new Date().toISOString()
-                });
-            error = result.error;
-        }
+                },
+                {
+                    onConflict: 'user_id,diagram_id',
+                    ignoreDuplicates: false
+                }
+            );
 
         if (error) {
             console.error('Supabase save error:', error);

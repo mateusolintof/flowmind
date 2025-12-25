@@ -19,10 +19,11 @@
 - [x] 2.6 Copy/Cut/Paste (Cmd+C/X/V)
 - [x] 2.7 Advanced Edge Styling (types, colors, labels)
 
-### Tier 3: Major Features (3/7)
+### Tier 3: Major Features (4/7)
 - [x] 3.1 Multiple Export Formats (PNG, SVG, JSON)
 - [x] 3.2 Import Diagram from JSON
 - [x] 3.3 Diagram Templates (5 pre-built templates)
+- [x] 3.4 Multiple Diagram Management (create, rename, delete, switch)
 
 ### Bonus
 - [x] Diagram Design Guide (Frontend, Backend, Fullstack, AI Agents, Multi-Agent)
@@ -32,28 +33,6 @@
 ## Pending Features
 
 ### Tier 3: Major Features (Remaining)
-
-#### 3.4 Multiple Diagram Management
-**Priority:** High
-**Effort:** Medium
-
-Create, rename, delete, and switch between multiple diagrams per user.
-
-**Implementation:**
-- Create `DiagramManager.tsx` component with diagram list
-- Update `storage.ts` to support multiple diagrams
-- Add diagram selector in header
-- Implement create/rename/delete operations
-- Add last modified timestamps
-
-**Files to modify:**
-- `src/lib/storage.ts`
-- `src/components/flow/FlowCanvas.tsx`
-
-**New files:**
-- `src/components/flow/DiagramManager.tsx`
-
----
 
 #### 3.5 Diagram Metadata
 **Priority:** Medium
@@ -190,7 +169,6 @@ Progressive Web App with offline support and touch gestures.
 
 | Feature | Priority | Effort | Impact |
 |---------|----------|--------|--------|
-| 3.4 Multiple Diagrams | High | Medium | High |
 | 4.1 AI Assistant | High | High | Very High |
 | 3.5 Diagram Metadata | Medium | Low | Medium |
 | 3.6 Auto-Resize Containers | Medium | High | Medium |

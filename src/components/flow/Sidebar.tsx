@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useCallback, memo } from 'react';
 import { useDnD } from '@/hooks/useDnD';
 import { Card } from '@/components/ui/card';
 import { ScrollArea } from '@/components/ui/scroll-area';
@@ -15,41 +15,43 @@ import {
 import { NODE_CONFIG, NodeType } from '@/config/nodeTypes';
 import { Search, X } from 'lucide-react';
 
+// Module-level constant - never recreated
+const ALL_CATEGORIES = [
+    {
+        name: 'AI Agents',
+        items: ['agent', 'llm', 'tool', 'memory', 'input'] as NodeType[]
+    },
+    {
+        name: 'Architecture',
+        items: ['frontend', 'backend', 'database', 'cloud'] as NodeType[]
+    },
+    {
+        name: 'General',
+        items: ['user', 'note', 'container'] as NodeType[]
+    }
+] as const;
+
 interface SidebarProps {
     onItemSelect?: () => void;
 }
 
-export default function Sidebar({ onItemSelect }: SidebarProps = {}) {
+function Sidebar({ onItemSelect }: SidebarProps = {}) {
     const { setType } = useDnD();
     const [searchQuery, setSearchQuery] = useState('');
 
-    const onDragStart = (event: React.DragEvent, nodeType: string) => {
+    // Memoized drag handler
+    const onDragStart = useCallback((event: React.DragEvent, nodeType: string) => {
         setType(nodeType);
         event.dataTransfer.effectAllowed = 'move';
         onItemSelect?.();
-    };
-
-    const allCategories = [
-        {
-            name: 'AI Agents',
-            items: ['agent', 'llm', 'tool', 'memory', 'input'] as NodeType[]
-        },
-        {
-            name: 'Architecture',
-            items: ['frontend', 'backend', 'database', 'cloud'] as NodeType[]
-        },
-        {
-            name: 'General',
-            items: ['user', 'note', 'container'] as NodeType[]
-        }
-    ];
+    }, [setType, onItemSelect]);
 
     // Filter categories and items based on search query
     const categories = useMemo(() => {
-        if (!searchQuery.trim()) return allCategories;
+        if (!searchQuery.trim()) return ALL_CATEGORIES;
 
         const query = searchQuery.toLowerCase();
-        return allCategories
+        return ALL_CATEGORIES
             .map((cat) => ({
                 ...cat,
                 items: cat.items.filter((nodeType) => {
@@ -134,3 +136,5 @@ export default function Sidebar({ onItemSelect }: SidebarProps = {}) {
         </TooltipProvider>
     );
 }
+
+export default memo(Sidebar);

@@ -5,17 +5,19 @@ A visual diagram editor for AI agent architectures and software systems. Create 
 ![FlowMind](https://img.shields.io/badge/version-0.1.0-blue.svg)
 ![Next.js](https://img.shields.io/badge/Next.js-16.1.1-black.svg)
 ![React](https://img.shields.io/badge/React-19-blue.svg)
+![TypeScript](https://img.shields.io/badge/TypeScript-5.x-blue.svg)
 
 ## Features
 
 ### Core Features
-- **Drag & Drop Components** - 13 node types for AI agents and architecture diagrams
+- **Drag & Drop Components** - 12 node types for AI agents and architecture diagrams
 - **Freehand Drawing** - Sketch annotations directly on the canvas
-- **Auto-Save** - Local (IndexedDB) + Cloud (Supabase) synchronization
-- **Undo/Redo** - Full history with 50 states
+- **Auto-Save** - Local (IndexedDB) + Cloud (Supabase) synchronization with debouncing
+- **Undo/Redo** - Full history with 30 states
+- **Multiple Diagrams** - Create, rename, duplicate, and delete diagrams
 
 ### Productivity
-- **Keyboard Shortcuts** - Cmd+S (save), Cmd+E (export), Cmd+D (duplicate), Cmd+C/X/V (copy/cut/paste), Cmd+Z (undo)
+- **Keyboard Shortcuts** - Full keyboard support (see table below)
 - **Templates** - Pre-built diagrams for common patterns (Single Agent, Multi-Agent, RAG, Microservices)
 - **Snap to Grid** - Align components precisely
 - **Copy/Paste** - Duplicate nodes with their connections
@@ -24,7 +26,7 @@ A visual diagram editor for AI agent architectures and software systems. Create 
 - **Custom Edge Styles** - Bezier, Step, Straight lines with colors and labels
 - **Color Customization** - Apply colors to nodes and edges
 - **Zoom Controls** - Visual zoom in/out with percentage display
-- **Responsive Design** - Works on desktop and mobile
+- **Responsive Design** - Works on desktop and mobile with collapsible sidebar
 - **Dark/Light Mode** - System theme support
 
 ### Export/Import
@@ -38,19 +40,24 @@ A visual diagram editor for AI agent architectures and software systems. Create 
 
 ## Node Types
 
-| Category | Nodes |
-|----------|-------|
-| AI Agents | Agent, LLM, Tool, Memory, Input |
-| Architecture | Frontend, Backend, Database, Cloud |
-| General | User, Note, Container |
+| Category | Nodes | Description |
+|----------|-------|-------------|
+| **AI Agents** | Agent, LLM, Tool, Memory, Input | Components for building AI agent systems |
+| **Architecture** | Frontend, Backend, Database, Cloud | Software architecture components |
+| **General** | User, Note, Container | General-purpose diagram elements |
 
 ## Tech Stack
 
-- **Framework:** Next.js 16.1.1 with React 19
-- **Flow Library:** @xyflow/react 12.10
-- **Styling:** Tailwind CSS 4, Radix UI, shadcn/ui
-- **Storage:** Supabase (cloud) + IndexedDB (local)
-- **Language:** TypeScript
+| Category | Technology |
+|----------|------------|
+| **Framework** | Next.js 16.1.1 with App Router |
+| **UI Library** | React 19 |
+| **Flow Library** | @xyflow/react 12.10 |
+| **State Management** | Zustand with Immer |
+| **Styling** | Tailwind CSS 4, Radix UI, shadcn/ui |
+| **Animations** | Framer Motion |
+| **Storage** | Supabase (cloud) + IndexedDB (local via idb-keyval) |
+| **Language** | TypeScript 5.x |
 
 ## Getting Started
 
@@ -106,26 +113,51 @@ NEXT_PUBLIC_SUPABASE_ANON_KEY=your_supabase_anon_key
 
 ```
 src/
-├── app/                    # Next.js app router
+├── app/                      # Next.js app router
+│   ├── layout.tsx           # Root layout with providers
+│   └── page.tsx             # Main page
 ├── components/
-│   ├── flow/              # Flow diagram components
-│   │   ├── FlowCanvas.tsx # Main canvas component
-│   │   ├── BaseNode.tsx   # Node renderer
-│   │   ├── Sidebar.tsx    # Component library
+│   ├── flow/                # Flow diagram components
+│   │   ├── FlowCanvas.tsx   # Main canvas orchestrator
+│   │   ├── FlowToolbar.tsx  # Top toolbar with all controls
+│   │   ├── DrawingOverlay.tsx # Freehand drawing handler
+│   │   ├── BaseNode.tsx     # Generic node renderer
+│   │   ├── CustomEdge.tsx   # Custom edge with labels
+│   │   ├── Sidebar.tsx      # Component library
+│   │   ├── DiagramManager.tsx # Diagram CRUD operations
 │   │   └── ...
-│   └── ui/                # shadcn/ui components
+│   └── ui/                  # shadcn/ui components
 ├── config/
-│   ├── nodeTypes.ts       # Node definitions
-│   └── templates.ts       # Diagram templates
-├── hooks/                 # Custom React hooks
-├── lib/                   # Utilities and storage
-└── styles/                # Global styles
+│   ├── nodeTypes.ts         # Node type definitions with icons
+│   └── templates.ts         # Pre-built diagram templates
+├── hooks/
+│   ├── useAutoSave.ts       # Debounced auto-save logic
+│   ├── useUndoRedo.ts       # Undo/redo with Zustand
+│   ├── useClipboard.ts      # Copy/cut/paste operations
+│   ├── useKeyboardShortcuts.ts # All keyboard handlers
+│   └── ...
+├── store/
+│   ├── flowStore.ts         # Main UI state (Zustand)
+│   ├── undoRedoStore.ts     # History state
+│   ├── syncStatusStore.ts   # Cloud sync status
+│   └── clipboardStore.ts    # Clipboard state
+├── lib/
+│   ├── storage.ts           # IndexedDB + Supabase sync
+│   ├── export.ts            # PNG/SVG/JSON export
+│   └── supabase.ts          # Supabase client
+├── utils/
+│   └── idGenerator.ts       # Node ID generation
+└── styles/                  # Global styles
 ```
+
+## Documentation
+
+For detailed documentation about how the project works, see [DOCS.md](./DOCS.md).
 
 ## Scripts
 
 ```bash
-npm run dev      # Start development server
+npm run dev      # Start development server (Turbopack)
 npm run build    # Build for production
 npm run start    # Start production server
 npm run lint     # Run ESLint
@@ -145,6 +177,8 @@ This project is private.
 
 ## Acknowledgments
 
-- [React Flow](https://reactflow.dev/) for the flow diagram library
-- [shadcn/ui](https://ui.shadcn.com/) for the UI components
-- [Radix UI](https://www.radix-ui.com/) for accessible primitives
+- [React Flow](https://reactflow.dev/) - Flow diagram library
+- [shadcn/ui](https://ui.shadcn.com/) - UI components
+- [Radix UI](https://www.radix-ui.com/) - Accessible primitives
+- [Zustand](https://zustand-demo.pmnd.rs/) - State management
+- [Supabase](https://supabase.com/) - Backend as a Service

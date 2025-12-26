@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useMemo, useCallback, memo } from 'react';
 import { Button } from '@/components/ui/button';
 import {
     Dialog,
@@ -20,26 +20,32 @@ interface TemplateGalleryProps {
     onSelectTemplate: (template: DiagramTemplate) => void;
 }
 
+// Module-level constant
 const CATEGORIES = [
     { id: 'all', label: 'All Templates', icon: LayoutTemplate },
     { id: 'ai-agents', label: 'AI Agents', icon: Bot },
     { id: 'architecture', label: 'Architecture', icon: Server },
     { id: 'general', label: 'General', icon: Layout },
-];
+] as const;
 
 export function TemplateGallery({ onSelectTemplate }: TemplateGalleryProps) {
     const [open, setOpen] = useState(false);
     const [selectedCategory, setSelectedCategory] = useState('all');
     const [hoveredTemplate, setHoveredTemplate] = useState<string | null>(null);
 
-    const filteredTemplates = selectedCategory === 'all'
-        ? DIAGRAM_TEMPLATES
-        : DIAGRAM_TEMPLATES.filter((t) => t.category === selectedCategory);
+    // Memoize filtered templates
+    const filteredTemplates = useMemo(() =>
+        selectedCategory === 'all'
+            ? DIAGRAM_TEMPLATES
+            : DIAGRAM_TEMPLATES.filter((t) => t.category === selectedCategory),
+        [selectedCategory]
+    );
 
-    const handleSelect = (template: DiagramTemplate) => {
+    // Memoize handler
+    const handleSelect = useCallback((template: DiagramTemplate) => {
         onSelectTemplate(template);
         setOpen(false);
-    };
+    }, [onSelectTemplate]);
 
     return (
         <Dialog open={open} onOpenChange={setOpen}>
@@ -141,74 +147,93 @@ export function TemplateGallery({ onSelectTemplate }: TemplateGalleryProps) {
     );
 }
 
-function TemplatePreview({ template }: { template: DiagramTemplate }) {
-    if (template.nodes.length === 0) return null;
+// Memoized TemplatePreview component with O(1) node lookup
+const TemplatePreview = memo(function TemplatePreview({ template }: { template: DiagramTemplate }) {
+    // Memoize all calculations
+    const previewData = useMemo(() => {
+        if (template.nodes.length === 0) return null;
 
-    // Calculate bounds
-    const xs = template.nodes.map((n) => n.position.x);
-    const ys = template.nodes.map((n) => n.position.y);
-    const minX = Math.min(...xs);
-    const minY = Math.min(...ys);
-    const maxX = Math.max(...xs) + 120; // Approximate node width
-    const maxY = Math.max(...ys) + 60; // Approximate node height
-    const width = maxX - minX;
-    const height = maxY - minY;
+        // Create Map for O(1) lookup instead of O(n) find
+        const nodeMap = new Map(template.nodes.map(n => [n.id, n]));
 
-    // Scale to fit
-    const scale = Math.min(180 / width, 100 / height, 0.4);
-    const offsetX = (180 - width * scale) / 2;
-    const offsetY = (100 - height * scale) / 2;
+        // Calculate bounds
+        const xs = template.nodes.map((n) => n.position.x);
+        const ys = template.nodes.map((n) => n.position.y);
+        const minX = Math.min(...xs);
+        const minY = Math.min(...ys);
+        const maxX = Math.max(...xs) + 120;
+        const maxY = Math.max(...ys) + 60;
+        const width = maxX - minX;
+        const height = maxY - minY;
+
+        // Scale to fit
+        const scale = Math.min(180 / width, 100 / height, 0.4);
+        const offsetX = (180 - width * scale) / 2;
+        const offsetY = (100 - height * scale) / 2;
+
+        // Pre-calculate edge lines using O(1) lookup
+        const edgeLines = template.edges
+            .map((edge) => {
+                const source = nodeMap.get(edge.source);
+                const target = nodeMap.get(edge.target);
+                if (!source || !target) return null;
+
+                return {
+                    id: edge.id,
+                    x1: (source.position.x - minX) * scale + offsetX + 30,
+                    y1: (source.position.y - minY) * scale + offsetY + 15,
+                    x2: (target.position.x - minX) * scale + offsetX + 30,
+                    y2: (target.position.y - minY) * scale + offsetY + 15,
+                };
+            })
+            .filter(Boolean);
+
+        // Pre-calculate node rects
+        const nodeRects = template.nodes.map((node) => ({
+            id: node.id,
+            x: (node.position.x - minX) * scale + offsetX,
+            y: (node.position.y - minY) * scale + offsetY,
+        }));
+
+        return { edgeLines, nodeRects };
+    }, [template]);
+
+    if (!previewData) return null;
 
     return (
         <svg
-            viewBox={`0 0 200 120`}
+            viewBox="0 0 200 120"
             className="w-full h-full"
             style={{ opacity: 0.8 }}
         >
             {/* Edges */}
-            {template.edges.map((edge) => {
-                const source = template.nodes.find((n) => n.id === edge.source);
-                const target = template.nodes.find((n) => n.id === edge.target);
-                if (!source || !target) return null;
-
-                const x1 = (source.position.x - minX) * scale + offsetX + 30;
-                const y1 = (source.position.y - minY) * scale + offsetY + 15;
-                const x2 = (target.position.x - minX) * scale + offsetX + 30;
-                const y2 = (target.position.y - minY) * scale + offsetY + 15;
-
-                return (
-                    <line
-                        key={edge.id}
-                        x1={x1}
-                        y1={y1}
-                        x2={x2}
-                        y2={y2}
-                        stroke="hsl(var(--muted-foreground))"
-                        strokeWidth={1}
-                        opacity={0.4}
-                    />
-                );
-            })}
+            {previewData.edgeLines.map((line) => line && (
+                <line
+                    key={line.id}
+                    x1={line.x1}
+                    y1={line.y1}
+                    x2={line.x2}
+                    y2={line.y2}
+                    stroke="hsl(var(--muted-foreground))"
+                    strokeWidth={1}
+                    opacity={0.4}
+                />
+            ))}
 
             {/* Nodes */}
-            {template.nodes.map((node) => {
-                const x = (node.position.x - minX) * scale + offsetX;
-                const y = (node.position.y - minY) * scale + offsetY;
-
-                return (
-                    <rect
-                        key={node.id}
-                        x={x}
-                        y={y}
-                        width={60}
-                        height={30}
-                        rx={4}
-                        fill="hsl(var(--card))"
-                        stroke="hsl(var(--border))"
-                        strokeWidth={1}
-                    />
-                );
-            })}
+            {previewData.nodeRects.map((rect) => (
+                <rect
+                    key={rect.id}
+                    x={rect.x}
+                    y={rect.y}
+                    width={60}
+                    height={30}
+                    rx={4}
+                    fill="hsl(var(--card))"
+                    stroke="hsl(var(--border))"
+                    strokeWidth={1}
+                />
+            ))}
         </svg>
     );
-}
+});

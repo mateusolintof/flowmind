@@ -1,27 +1,31 @@
 'use client';
 
-import { createContext, useContext, useState, PropsWithChildren } from 'react';
+import { createContext, useContext, useState, useMemo, PropsWithChildren } from 'react';
 
 type DnDContextType = {
-    type: string | null;
-    setType: (type: string | null) => void;
+  type: string | null;
+  setType: (type: string | null) => void;
 };
 
-const DnDContext = createContext<DnDContextType>({
-    type: null,
-    setType: () => { },
-});
+const DnDContext = createContext<DnDContextType | null>(null);
 
 export const useDnD = () => {
-    return useContext(DnDContext);
+  const context = useContext(DnDContext);
+  if (!context) {
+    throw new Error('useDnD must be used within DnDProvider');
+  }
+  return context;
 };
 
 export const DnDProvider = ({ children }: PropsWithChildren) => {
-    const [type, setType] = useState<string | null>(null);
+  const [type, setType] = useState<string | null>(null);
 
-    return (
-        <DnDContext.Provider value={{ type, setType }}>
-            {children}
-        </DnDContext.Provider>
-    );
+  // Memoize context value to prevent unnecessary re-renders of consumers
+  const value = useMemo(() => ({ type, setType }), [type]);
+
+  return (
+    <DnDContext.Provider value={value}>
+      {children}
+    </DnDContext.Provider>
+  );
 };

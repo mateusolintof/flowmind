@@ -1,10 +1,10 @@
-import { get, set, del, keys } from 'idb-keyval';
+import { get, set, del } from 'idb-keyval';
 import { Edge, Node, Viewport } from '@xyflow/react';
 import { supabase } from './supabase';
 import { toast } from 'sonner';
-import { setSyncStatus } from '@/hooks/useSyncStatus';
+import { setSyncStatus } from '@/store/syncStatusStore';
 
-const STORAGE_KEY = 'flowmind-canvas'; // Legacy key for backward compatibility
+const STORAGE_KEY = 'flowmind-canvas'; // Legacy key for migration only
 const DIAGRAMS_PREFIX = 'flowmind-diagram-';
 const DIAGRAMS_LIST_KEY = 'flowmind-diagrams-list';
 const CURRENT_DIAGRAM_KEY = 'flowmind-current-diagram';
@@ -28,7 +28,19 @@ export type DiagramWithData = Diagram & {
     data: FlowState;
 };
 
-// Helper: Get or create persistent anonymous user ID
+// ==================== IN-MEMORY CACHE ====================
+
+/**
+ * In-memory cache for diagrams list to avoid repeated IndexedDB reads.
+ * Updated on write operations via saveDiagramsList.
+ */
+let diagramsCache: Diagram[] | null = null;
+
+// ==================== HELPERS ====================
+
+/**
+ * Get or create persistent anonymous user ID
+ */
 const getUserId = async () => {
     if (typeof window === 'undefined') return 'server-side';
     let userId = localStorage.getItem(USER_ID_KEY);
@@ -39,26 +51,36 @@ const getUserId = async () => {
     return userId;
 };
 
-// Generate a unique diagram ID
+/**
+ * Generate a unique diagram ID
+ */
 const generateDiagramId = () => crypto.randomUUID();
 
-// Get storage key for a specific diagram
+/**
+ * Get storage key for a specific diagram
+ */
 const getDiagramKey = (diagramId: string) => `${DIAGRAMS_PREFIX}${diagramId}`;
 
 // ==================== DIAGRAM LIST OPERATIONS ====================
 
 /**
  * Get the list of all diagrams (metadata only, no data)
+ * Uses in-memory cache to avoid repeated IndexedDB reads.
  */
 export const listDiagrams = async (): Promise<Diagram[]> => {
+    if (diagramsCache !== null) {
+        return diagramsCache;
+    }
     const diagrams = await get<Diagram[]>(DIAGRAMS_LIST_KEY);
-    return diagrams ?? [];
+    diagramsCache = diagrams ?? [];
+    return diagramsCache;
 };
 
 /**
- * Save the diagrams list
+ * Save the diagrams list and update cache
  */
 const saveDiagramsList = async (diagrams: Diagram[]) => {
+    diagramsCache = diagrams; // Update cache immediately
     await set(DIAGRAMS_LIST_KEY, diagrams);
 };
 
@@ -96,10 +118,10 @@ export const createDiagram = async (
         updatedAt: now,
     };
 
-    // Add to list
+    // Add to list (uses cache)
     const diagrams = await listDiagrams();
-    diagrams.unshift(diagram); // Add at beginning
-    await saveDiagramsList(diagrams);
+    const updatedDiagrams = [diagram, ...diagrams]; // Add at beginning
+    await saveDiagramsList(updatedDiagrams);
 
     // Save initial data
     const data: FlowState = initialData ?? {
@@ -124,12 +146,13 @@ export const renameDiagram = async (diagramId: string, newName: string): Promise
     const index = diagrams.findIndex(d => d.id === diagramId);
 
     if (index !== -1) {
-        diagrams[index] = {
+        const updatedDiagrams = [...diagrams];
+        updatedDiagrams[index] = {
             ...diagrams[index],
             name: newName,
             updatedAt: Date.now(),
         };
-        await saveDiagramsList(diagrams);
+        await saveDiagramsList(updatedDiagrams);
     }
 };
 
@@ -164,8 +187,10 @@ export const deleteDiagram = async (diagramId: string): Promise<string | null> =
  * Duplicate a diagram
  */
 export const duplicateDiagram = async (diagramId: string): Promise<Diagram | null> => {
-    const data = await loadDiagramById(diagramId);
-    const diagrams = await listDiagrams();
+    const [data, diagrams] = await Promise.all([
+        loadDiagramById(diagramId),
+        listDiagrams()
+    ]);
     const original = diagrams.find(d => d.id === diagramId);
 
     if (!data || !original) return null;
@@ -185,25 +210,34 @@ export const loadDiagramById = async (diagramId: string): Promise<FlowState | nu
 
 /**
  * Save a diagram by ID
+ * Optimized to avoid redundant IndexedDB reads using cache.
  */
 export const saveDiagramById = async (
     diagramId: string,
     state: FlowState,
     showToast = false
 ): Promise<void> => {
-    // Update local storage first
-    await set(getDiagramKey(diagramId), state);
-
-    // Update diagram metadata (updatedAt)
+    // Get diagrams from cache (single read, reused for both local and cloud)
     const diagrams = await listDiagrams();
     const index = diagrams.findIndex(d => d.id === diagramId);
+    const diagram = index !== -1 ? diagrams[index] : null;
+
+    // Update local storage - batch both writes
+    const localSavePromise = set(getDiagramKey(diagramId), state);
+
+    // Update diagram metadata if found
+    let listSavePromise: Promise<void> | null = null;
     if (index !== -1) {
-        diagrams[index] = {
+        const updatedDiagrams = [...diagrams];
+        updatedDiagrams[index] = {
             ...diagrams[index],
             updatedAt: Date.now(),
         };
-        await saveDiagramsList(diagrams);
+        listSavePromise = saveDiagramsList(updatedDiagrams);
     }
+
+    // Wait for local saves to complete
+    await Promise.all([localSavePromise, listSavePromise].filter(Boolean));
 
     // Cloud sync
     if (typeof window !== 'undefined' && !navigator.onLine) {
@@ -219,11 +253,8 @@ export const saveDiagramById = async (
     let cloudSaveSuccess = false;
     try {
         const userId = await getUserId();
-        const diagrams = await listDiagrams();
-        const diagram = diagrams.find(d => d.id === diagramId);
 
         // Use upsert with the unique constraint on (user_id, diagram_id)
-        // This avoids the need to check if the record exists first
         const { error } = await supabase
             .from('diagrams')
             .upsert(
@@ -258,7 +289,7 @@ export const saveDiagramById = async (
     }
 };
 
-// ==================== MIGRATION & LEGACY SUPPORT ====================
+// ==================== MIGRATION ====================
 
 /**
  * Migrate legacy single-diagram storage to multi-diagram format
@@ -290,33 +321,4 @@ export const migrateLegacyStorage = async (): Promise<string> => {
     // No legacy data, create a fresh diagram
     const diagram = await createDiagram('My First Diagram');
     return diagram.id;
-};
-
-// ==================== BACKWARD COMPATIBLE API ====================
-
-/**
- * Legacy saveFlow - saves to current diagram
- * @deprecated Use saveDiagramById instead
- */
-export const saveFlow = async (state: FlowState, showToast = false) => {
-    const diagramId = getCurrentDiagramId();
-    if (diagramId) {
-        await saveDiagramById(diagramId, state, showToast);
-    } else {
-        // Fallback to legacy behavior
-        await set(STORAGE_KEY, state);
-    }
-};
-
-/**
- * Legacy loadFlow - loads current diagram
- * @deprecated Use loadDiagramById instead
- */
-export const loadFlow = async (): Promise<FlowState | null> => {
-    const diagramId = getCurrentDiagramId();
-    if (diagramId) {
-        return await loadDiagramById(diagramId);
-    }
-    // Fallback to legacy storage
-    return await get(STORAGE_KEY) ?? null;
 };

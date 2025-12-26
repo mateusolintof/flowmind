@@ -1,59 +1,45 @@
 'use client';
 
-import { useState, useCallback, useEffect } from 'react';
+import { useEffect } from 'react';
+import { useSyncStatusStore, setSyncStatus } from '@/store/syncStatusStore';
 
-export type SyncStatus = 'idle' | 'syncing' | 'synced' | 'error' | 'offline';
+// Re-export types and functions for backward compatibility
+export type { SyncStatus } from '@/store/syncStatusStore';
+export { setSyncStatus, getSyncStatus } from '@/store/syncStatusStore';
 
-// Global state to share sync status across components
-let globalStatus: SyncStatus = 'idle';
-let listeners: Set<(status: SyncStatus) => void> = new Set();
-
-const notifyListeners = () => {
-    listeners.forEach((listener) => listener(globalStatus));
-};
-
-export const setSyncStatus = (status: SyncStatus) => {
-    globalStatus = status;
-    notifyListeners();
-};
-
-export const getSyncStatus = () => globalStatus;
-
+/**
+ * Hook for sync status using Zustand store.
+ * Handles online/offline detection automatically.
+ */
 export function useSyncStatus() {
-    const [status, setStatus] = useState<SyncStatus>(globalStatus);
+  const status = useSyncStatusStore((s) => s.status);
 
-    useEffect(() => {
-        const listener = (newStatus: SyncStatus) => setStatus(newStatus);
-        listeners.add(listener);
-        return () => {
-            listeners.delete(listener);
-        };
-    }, []);
+  // Handle online/offline status
+  useEffect(() => {
+    const handleOnline = () => {
+      const currentStatus = useSyncStatusStore.getState().status;
+      if (currentStatus === 'offline') {
+        setSyncStatus('idle');
+      }
+    };
 
-    // Check online status
-    useEffect(() => {
-        const handleOnline = () => {
-            if (globalStatus === 'offline') {
-                setSyncStatus('idle');
-            }
-        };
-        const handleOffline = () => {
-            setSyncStatus('offline');
-        };
+    const handleOffline = () => {
+      setSyncStatus('offline');
+    };
 
-        window.addEventListener('online', handleOnline);
-        window.addEventListener('offline', handleOffline);
+    window.addEventListener('online', handleOnline);
+    window.addEventListener('offline', handleOffline);
 
-        // Initial check
-        if (!navigator.onLine) {
-            setSyncStatus('offline');
-        }
+    // Initial check
+    if (!navigator.onLine) {
+      setSyncStatus('offline');
+    }
 
-        return () => {
-            window.removeEventListener('online', handleOnline);
-            window.removeEventListener('offline', handleOffline);
-        };
-    }, []);
+    return () => {
+      window.removeEventListener('online', handleOnline);
+      window.removeEventListener('offline', handleOffline);
+    };
+  }, []);
 
-    return status;
+  return status;
 }

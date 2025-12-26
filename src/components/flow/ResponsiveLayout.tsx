@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, createContext, useContext } from 'react';
+import { useState, useEffect, createContext, useContext, useMemo, useCallback } from 'react';
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
@@ -48,10 +48,11 @@ const MINI_ICONS = [
 function CollapsedSidebar() {
     const { setType } = useDnD();
 
-    const onDragStart = (event: React.DragEvent, nodeType: string) => {
+    // Memoized drag handler
+    const onDragStart = useCallback((event: React.DragEvent, nodeType: string) => {
         setType(nodeType);
         event.dataTransfer.effectAllowed = 'move';
-    };
+    }, [setType]);
 
     return (
         <TooltipProvider delayDuration={200}>
@@ -94,9 +95,21 @@ export function ResponsiveLayout({ children }: { children: React.ReactNode }) {
         return () => window.removeEventListener('resize', checkMobile);
     }, []);
 
+    // Memoize context value for mobile
+    const mobileContextValue = useMemo(() => ({
+        isCollapsed: true,
+        setIsCollapsed
+    }), []);
+
+    // Memoize context value for desktop
+    const desktopContextValue = useMemo(() => ({
+        isCollapsed,
+        setIsCollapsed
+    }), [isCollapsed]);
+
     if (isMobile) {
         return (
-            <SidebarContext.Provider value={{ isCollapsed: true, setIsCollapsed }}>
+            <SidebarContext.Provider value={mobileContextValue}>
                 <OnboardingTour />
                 <main className="h-screen w-screen overflow-hidden bg-background flex flex-col">
                     {/* Mobile Header */}
@@ -124,7 +137,7 @@ export function ResponsiveLayout({ children }: { children: React.ReactNode }) {
     }
 
     return (
-        <SidebarContext.Provider value={{ isCollapsed, setIsCollapsed }}>
+        <SidebarContext.Provider value={desktopContextValue}>
             <OnboardingTour />
             <main className="h-screen w-screen overflow-hidden bg-background flex">
                 {/* Sidebar - Full or Collapsed */}

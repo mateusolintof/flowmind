@@ -66,22 +66,23 @@ export default function Sidebar({ onItemSelect }: SidebarProps = {}) {
 
     return (
         <TooltipProvider delayDuration={300}>
-            <Card className="h-full w-64 border-r rounded-none bg-sidebar text-sidebar-foreground flex flex-col pointer-events-auto shadow-xl z-50 overflow-hidden" data-onboarding="sidebar">
-                <div className="p-4 font-bold text-lg tracking-tight">FlowMind</div>
-                <Separator />
+            <Card className="h-full w-60 border-r rounded-none bg-sidebar text-sidebar-foreground flex flex-col pointer-events-auto z-50 overflow-hidden" data-onboarding="sidebar">
+                <div className="h-12 px-4 flex items-center border-b shrink-0">
+                    <span className="font-bold text-base tracking-tight">Components</span>
+                </div>
                 <div className="p-3" data-onboarding="search">
                     <div className="relative">
                         <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
                         <Input
-                            placeholder="Search components..."
+                            placeholder="Search..."
                             value={searchQuery}
                             onChange={(e) => setSearchQuery(e.target.value)}
-                            className="pl-8 pr-8 h-9 text-sm"
+                            className="pl-8 pr-8 h-8 text-sm"
                         />
                         {searchQuery && (
                             <button
                                 onClick={() => setSearchQuery('')}
-                                className="absolute right-2.5 top-2.5 h-4 w-4 text-muted-foreground hover:text-foreground"
+                                className="absolute right-2.5 top-2 h-4 w-4 text-muted-foreground hover:text-foreground"
                             >
                                 <X className="h-4 w-4" />
                             </button>

@@ -28,8 +28,9 @@ import { useUndoRedo } from '@/hooks/useUndoRedo';
 import { useClipboard } from '@/hooks/useClipboard';
 import { loadFlow, migrateLegacyStorage, loadDiagramById, listDiagrams, Diagram } from '@/lib/storage';
 import { DiagramManager } from './DiagramManager';
+import { useSidebar } from './ResponsiveLayout';
 import { Button } from '@/components/ui/button';
-import { Save, Pencil, MousePointer2, Undo2, Redo2, Grid3X3 } from 'lucide-react';
+import { Save, Pencil, MousePointer2, Undo2, Redo2, Grid3X3, PanelLeft, PanelLeftClose } from 'lucide-react';
 import { toast } from 'sonner';
 import BaseNode from './BaseNode';
 import StrokeNode from './StrokeNode';
@@ -69,6 +70,7 @@ function Flow() {
     const { undo, redo, takeSnapshot, canUndo, canRedo } = useUndoRedo();
     const { copy, cut, paste } = useClipboard();
     const { setViewport, screenToFlowPosition, getNodes, getViewport } = useReactFlow();
+    const { isCollapsed, setIsCollapsed } = useSidebar();
 
     // Drawing Mode State
     const [isDrawing, setIsDrawing] = useState(false);
@@ -612,79 +614,32 @@ function Flow() {
     }, [undo, redo, nodes, edges, setNodes, setEdges, isDrawing, colorPickerOpen]);
 
     return (
-        <div
-            className="flex-1 h-full w-full relative"
-            ref={reactFlowWrapper}
-            data-onboarding="canvas"
-        >
-            <div
-                className="absolute inset-0 z-50 transition-colors"
-                onPointerDown={onPointerDown}
-                onPointerMove={onPointerMove}
-                onPointerUp={onPointerUp}
-                onPointerLeave={onPointerUp}
-                style={{
-                    pointerEvents: isDrawing ? 'auto' : 'none',
-                    cursor: isDrawing ? 'crosshair' : 'default'
-                }}
-            />
+        <div className="flex-1 h-full w-full flex flex-col" data-onboarding="canvas">
+            {/* Top Header Bar */}
+            <div className="h-12 border-b bg-background flex items-center px-2 gap-2 shrink-0 z-10">
+                {/* Left Section: Sidebar Toggle + Diagram Selector */}
+                <div className="flex items-center gap-2">
+                    <Button
+                        size="sm"
+                        variant="ghost"
+                        onClick={() => setIsCollapsed(!isCollapsed)}
+                        className="h-8 w-8 p-0"
+                        title={isCollapsed ? 'Show Sidebar' : 'Hide Sidebar'}
+                        aria-label={isCollapsed ? 'Show sidebar' : 'Hide sidebar'}
+                    >
+                        {isCollapsed ? <PanelLeft className="h-4 w-4" /> : <PanelLeftClose className="h-4 w-4" />}
+                    </Button>
+                    <div className="w-[1px] h-6 bg-border" />
+                    <DiagramManager
+                        currentDiagramId={currentDiagramId}
+                        currentDiagramName={currentDiagramName}
+                        onDiagramChange={handleDiagramChange}
+                    />
+                </div>
 
-            <ReactFlow
-                nodes={nodes}
-                edges={edges}
-                nodeTypes={nodeTypes}
-                edgeTypes={edgeTypes}
-                defaultEdgeOptions={{ type: 'custom' }}
-                onNodesChange={handleNodesChange}
-                onEdgesChange={handleEdgesChange}
-                onNodesDelete={onNodesDelete}
-                onEdgesDelete={onEdgesDelete}
-                onConnect={onConnect}
-                onInit={setReactFlowInstance}
-                onDrop={onDrop}
-                onDragOver={onDragOver}
-                onNodeDragStart={onNodeDragStart}
-                fitView
-                panOnDrag={!isDrawing}
-                selectionOnDrag={!isDrawing}
-                nodesDraggable={!isDrawing}
-                snapToGrid={snapToGrid}
-                snapGrid={[12, 12]}
-                className="bg-background"
-            >
-                <Controls showZoom={false} showFitView={false} className="bg-background border rounded-md shadow-sm" />
-                <MiniMap zoomable pannable className="bg-card border rounded-lg overflow-hidden" />
-                <Background variant={BackgroundVariant.Dots} gap={12} size={1} style={{ pointerEvents: 'none' }} />
-
-                {/* Diagram Selector - Top Left */}
-                <Panel position="top-left" className="!z-10">
-                    <div className="bg-background border rounded-md shadow-sm">
-                        <DiagramManager
-                            currentDiagramId={currentDiagramId}
-                            currentDiagramName={currentDiagramName}
-                            onDiagramChange={handleDiagramChange}
-                        />
-                    </div>
-                </Panel>
-
-                {/* Zoom Controls */}
-                <Panel position="bottom-left" className="ml-12 !z-10" data-onboarding="zoom-controls">
-                    <ZoomControls />
-                </Panel>
-
-                {/* Drawing Mode Indicator */}
-                {isDrawing && (
-                    <Panel position="top-center" className="pointer-events-none !z-10">
-                        <div className="bg-primary text-primary-foreground px-3 py-1.5 rounded-full text-sm font-medium shadow-lg animate-in fade-in slide-in-from-top-2 duration-200 flex items-center gap-2">
-                            <Pencil className="h-3.5 w-3.5" />
-                            Drawing Mode
-                            <span className="text-xs opacity-75">(Press D or Esc to exit)</span>
-                        </div>
-                    </Panel>
-                )}
-
-                <Panel position="top-right" className="flex gap-2 !z-10">
-                    <div className="bg-background border rounded-md flex mr-2 shadow-sm items-center">
+                {/* Center Section: Tools */}
+                <div className="flex-1 flex items-center justify-center gap-2">
+                    <div className="bg-muted/50 border rounded-md flex items-center">
                         <Button
                             size="sm"
                             variant="ghost"
@@ -708,32 +663,36 @@ function Flow() {
                                 if (next) { setNodes(next.nodes); setEdges(next.edges); }
                             }}
                             disabled={!canRedo}
-                            className="h-8 w-8 p-0 rounded-none"
+                            className="h-8 w-8 p-0 rounded-none rounded-r-md"
                             title="Redo (Ctrl+Shift+Z)"
                             aria-label="Redo last action"
                         >
                             <Redo2 className="h-4 w-4" />
                         </Button>
-                        <div className="w-[1px] h-4 bg-border" />
+                    </div>
+
+                    <div className="w-[1px] h-6 bg-border" />
+
+                    <div className="bg-muted/50 border rounded-md flex items-center">
                         <ColorPicker selectedColor={selectedColor} onSelectColor={onColorChange} open={colorPickerOpen} onOpenChange={setColorPickerOpen} />
-                        <div className="w-[1px] h-4 bg-border mx-1" />
+                        <div className="w-[1px] h-4 bg-border" />
                         <Button
                             size="sm"
                             variant={snapToGrid ? 'secondary' : 'ghost'}
                             onClick={() => setSnapToGrid((prev) => !prev)}
-                            className="rounded-none px-3 h-8"
+                            className="rounded-none px-2 h-8"
                             title={snapToGrid ? 'Snap to Grid: ON' : 'Snap to Grid: OFF'}
                             aria-label="Toggle snap to grid"
                             aria-pressed={snapToGrid}
                         >
                             <Grid3X3 className="h-4 w-4" />
                         </Button>
-                        <div className="w-[1px] h-4 bg-border mx-1" />
+                        <div className="w-[1px] h-4 bg-border" />
                         <Button
                             size="sm"
                             variant={!isDrawing ? 'secondary' : 'ghost'}
                             onClick={() => setIsDrawing(false)}
-                            className="rounded-none px-3 h-8"
+                            className="rounded-none px-2 h-8"
                             title="Selection Mode (Esc)"
                             aria-label="Selection mode"
                             aria-pressed={!isDrawing}
@@ -744,7 +703,7 @@ function Flow() {
                             size="sm"
                             variant={isDrawing ? 'secondary' : 'ghost'}
                             onClick={() => setIsDrawing(true)}
-                            className="rounded-none rounded-r-md px-3 h-8"
+                            className="rounded-none rounded-r-md px-2 h-8"
                             title="Drawing Mode (D)"
                             aria-label="Drawing mode"
                             aria-pressed={isDrawing}
@@ -755,16 +714,32 @@ function Flow() {
                     </div>
 
                     {selectedEdge && (
-                        <EdgeStylePicker
-                            edgeData={(selectedEdge.data as CustomEdgeData) || {}}
-                            onUpdate={updateEdgeData}
-                        />
+                        <>
+                            <div className="w-[1px] h-6 bg-border" />
+                            <EdgeStylePicker
+                                edgeData={(selectedEdge.data as CustomEdgeData) || {}}
+                                onUpdate={updateEdgeData}
+                            />
+                        </>
                     )}
+
+                    {/* Drawing Mode Indicator */}
+                    {isDrawing && (
+                        <div className="bg-primary text-primary-foreground px-3 py-1 rounded-full text-xs font-medium flex items-center gap-1.5">
+                            <Pencil className="h-3 w-3" />
+                            Drawing
+                        </div>
+                    )}
+                </div>
+
+                {/* Right Section: Actions */}
+                <div className="flex items-center gap-2">
                     <TemplateGallery onSelectTemplate={handleSelectTemplate} />
                     <DiagramGuide />
+                    <div className="w-[1px] h-6 bg-border" />
                     <SyncStatusIndicator />
-                    <Button size="sm" variant="outline" className="gap-2 bg-background h-8" onClick={handleSave} title="Save (Cmd+S)" aria-label="Save diagram">
-                        <Save className="h-4 w-4" /> Save
+                    <Button size="sm" variant="outline" className="gap-1.5 h-8" onClick={handleSave} title="Save (Cmd+S)" aria-label="Save diagram">
+                        <Save className="h-3.5 w-3.5" /> Save
                     </Button>
                     <ExportMenu
                         nodes={nodes}
@@ -776,8 +751,59 @@ function Flow() {
                     <div data-onboarding="help">
                         <HelpDialog />
                     </div>
-                </Panel>
-            </ReactFlow>
+                </div>
+            </div>
+
+            {/* Canvas Area */}
+            <div
+                className="flex-1 relative"
+                ref={reactFlowWrapper}
+            >
+                <div
+                    className="absolute inset-0 z-50 transition-colors"
+                    onPointerDown={onPointerDown}
+                    onPointerMove={onPointerMove}
+                    onPointerUp={onPointerUp}
+                    onPointerLeave={onPointerUp}
+                    style={{
+                        pointerEvents: isDrawing ? 'auto' : 'none',
+                        cursor: isDrawing ? 'crosshair' : 'default'
+                    }}
+                />
+
+                <ReactFlow
+                    nodes={nodes}
+                    edges={edges}
+                    nodeTypes={nodeTypes}
+                    edgeTypes={edgeTypes}
+                    defaultEdgeOptions={{ type: 'custom' }}
+                    onNodesChange={handleNodesChange}
+                    onEdgesChange={handleEdgesChange}
+                    onNodesDelete={onNodesDelete}
+                    onEdgesDelete={onEdgesDelete}
+                    onConnect={onConnect}
+                    onInit={setReactFlowInstance}
+                    onDrop={onDrop}
+                    onDragOver={onDragOver}
+                    onNodeDragStart={onNodeDragStart}
+                    fitView
+                    panOnDrag={!isDrawing}
+                    selectionOnDrag={!isDrawing}
+                    nodesDraggable={!isDrawing}
+                    snapToGrid={snapToGrid}
+                    snapGrid={[12, 12]}
+                    className="bg-background"
+                >
+                    <Controls showZoom={false} showFitView={false} className="bg-background border rounded-md shadow-sm" />
+                    <MiniMap zoomable pannable className="bg-card border rounded-lg overflow-hidden !bottom-4 !right-4" />
+                    <Background variant={BackgroundVariant.Dots} gap={12} size={1} style={{ pointerEvents: 'none' }} />
+
+                    {/* Zoom Controls - Bottom Left */}
+                    <Panel position="bottom-left" className="!z-10" data-onboarding="zoom-controls">
+                        <ZoomControls />
+                    </Panel>
+                </ReactFlow>
+            </div>
         </div>
     );
 }

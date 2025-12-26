@@ -68,7 +68,7 @@ export default function Sidebar({ onItemSelect }: SidebarProps = {}) {
         <TooltipProvider delayDuration={300}>
             <Card className="h-full w-60 border-r rounded-none bg-sidebar text-sidebar-foreground flex flex-col pointer-events-auto z-50 overflow-hidden" data-onboarding="sidebar">
                 <div className="h-12 px-4 flex items-center border-b shrink-0">
-                    <span className="font-bold text-base tracking-tight">Components</span>
+                    <span className="font-bold text-lg tracking-tight">FlowMind</span>
                 </div>
                 <div className="p-3" data-onboarding="search">
                     <div className="relative">

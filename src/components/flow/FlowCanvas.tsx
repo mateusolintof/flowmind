@@ -7,13 +7,11 @@ import {
     addEdge,
     useNodesState,
     useEdgesState,
-    Controls,
     MiniMap,
     Background,
     Connection,
     Edge,
     BackgroundVariant,
-    Panel,
     useReactFlow,
     Node,
     getNodesBounds,
@@ -794,14 +792,25 @@ function Flow() {
                     snapGrid={[12, 12]}
                     className="bg-background"
                 >
-                    <Controls showZoom={false} showFitView={false} className="bg-background border rounded-md shadow-sm" />
-                    <MiniMap zoomable pannable className="bg-card border rounded-lg overflow-hidden !bottom-4 !right-4" />
                     <Background variant={BackgroundVariant.Dots} gap={12} size={1} style={{ pointerEvents: 'none' }} />
 
                     {/* Zoom Controls - Bottom Left */}
-                    <Panel position="bottom-left" className="!z-10" data-onboarding="zoom-controls">
+                    <div
+                        className="absolute left-4 bottom-4 z-10"
+                        data-onboarding="zoom-controls"
+                    >
                         <ZoomControls />
-                    </Panel>
+                    </div>
+
+                    {/* MiniMap - Bottom Right */}
+                    <div className="absolute right-4 bottom-4 z-10">
+                        <MiniMap
+                            zoomable
+                            pannable
+                            className="bg-card border rounded-lg overflow-hidden"
+                            style={{ width: 150, height: 100 }}
+                        />
+                    </div>
                 </ReactFlow>
             </div>
         </div>

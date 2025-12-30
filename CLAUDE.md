@@ -99,6 +99,7 @@ Key functions in `lib/storage`:
 | File | Purpose |
 |------|---------|
 | `types/flowNodes.ts` | Shared node data types |
+| `types/diagram.ts` | Diagram data models |
 
 ### Hooks
 

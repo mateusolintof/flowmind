@@ -182,7 +182,8 @@ src/
 │   │   └── useDnD.tsx
 │   └── ...
 ├── types/
-│   └── flowNodes.ts         # Shared node data types
+│   ├── flowNodes.ts         # Shared node data types
+│   └── diagram.ts           # Diagram data models
 ├── store/
 │   ├── flowStore.ts         # Main UI state (Zustand)
 │   └── ...

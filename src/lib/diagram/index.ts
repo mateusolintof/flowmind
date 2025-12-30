@@ -1,18 +1,8 @@
-import { Node, Edge, Viewport, getNodesBounds, getViewportForBounds } from '@xyflow/react';
-// html-to-image is lazy loaded to reduce initial bundle size (~120KB savings)
+import { getNodesBounds, getViewportForBounds } from '@xyflow/react';
+import type { FlowData } from '@/types/diagram';
 
-export interface FlowData {
-    nodes: Node[];
-    edges: Edge[];
-    viewport?: Viewport;
-    metadata?: {
-        title?: string;
-        description?: string;
-        createdAt?: string;
-        updatedAt?: string;
-        version?: string;
-    };
-}
+export type { FlowData } from '@/types/diagram';
+// html-to-image is lazy loaded to reduce initial bundle size (~120KB savings)
 
 export type ExportFormat = 'png' | 'svg' | 'json';
 

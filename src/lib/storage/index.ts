@@ -1,8 +1,8 @@
 import { get, set, del } from 'idb-keyval';
-import { Edge, Node, Viewport } from '@xyflow/react';
 import { supabase } from './supabase';
 import { toast } from 'sonner';
 import { setSyncStatus } from '@/store/syncStatusStore';
+import type { Diagram, DiagramWithData, FlowState } from '@/types/diagram';
 
 const STORAGE_KEY = 'flowmind-canvas'; // Legacy key for migration only
 const DIAGRAMS_PREFIX = 'flowmind-diagram-';
@@ -10,23 +10,7 @@ const DIAGRAMS_LIST_KEY = 'flowmind-diagrams-list';
 const CURRENT_DIAGRAM_KEY = 'flowmind-current-diagram';
 const USER_ID_KEY = 'flowmind-user-id';
 
-export type FlowState = {
-    nodes: Node[];
-    edges: Edge[];
-    viewport: Viewport;
-    updatedAt: number;
-};
-
-export type Diagram = {
-    id: string;
-    name: string;
-    createdAt: number;
-    updatedAt: number;
-};
-
-export type DiagramWithData = Diagram & {
-    data: FlowState;
-};
+export type { Diagram, DiagramWithData, FlowState };
 
 // ==================== IN-MEMORY CACHE ====================
 

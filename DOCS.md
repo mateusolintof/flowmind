@@ -356,6 +356,8 @@ interface ClipboardState {
 
 ### Estrutura de Dados
 
+Tipos compartilhados: `src/types/diagram.ts`
+
 #### Diagram (metadata)
 ```typescript
 interface Diagram {

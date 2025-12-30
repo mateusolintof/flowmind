@@ -30,11 +30,15 @@ import { toast } from 'sonner';
 
 import BaseNode from './BaseNode';
 import StrokeNode from './StrokeNode';
+import FlowchartNode from './FlowchartNode';
+import ShapeNode from './ShapeNode';
+import GenericNode from './GenericNode';
 import CustomEdge, { CustomEdgeData } from './CustomEdge';
 import FlowToolbar from './FlowToolbar';
 import DrawingOverlay from './DrawingOverlay';
 import { ZoomControls } from './ZoomControls';
 import { NODE_CONFIG } from '@/config/nodeTypes';
+import { FLOWCHART_NODE_CONFIG } from '@/config/flowchartNodeTypes';
 import { FlowData } from '@/lib/export';
 import { DiagramTemplate } from '@/config/templates';
 
@@ -246,9 +250,18 @@ function Flow() {
 
   // Define nodeTypes
   const nodeTypes = useMemo(() => {
-    const types: Record<string, any> = { stroke: StrokeNode };
+    const types: Record<string, any> = {
+      stroke: StrokeNode,
+      shape: ShapeNode,
+      generic: GenericNode,
+    };
+    // AI Architecture nodes
     Object.keys(NODE_CONFIG).forEach((key) => {
       types[key] = BaseNode;
+    });
+    // Flowchart nodes
+    Object.keys(FLOWCHART_NODE_CONFIG).forEach((key) => {
+      types[key] = FlowchartNode;
     });
     return types;
   }, []);

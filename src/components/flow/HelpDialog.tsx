@@ -35,44 +35,79 @@ export default function HelpDialog() {
                     </DialogDescription>
                 </DialogHeader>
 
-                <div className="grid gap-6 py-4">
+                <div className="grid gap-6 py-4 max-h-[60vh] overflow-y-auto">
                     <div className="grid grid-cols-2 gap-4">
                         <div className="space-y-2">
                             <h3 className="font-semibold text-sm">Basic Controls</h3>
                             <ul className="text-sm text-muted-foreground list-disc pl-4 space-y-1">
                                 <li><strong>Drag & Drop</strong> components from the sidebar.</li>
-                                <li><strong>Connect</strong> nodes by dragging connects handles.</li>
-                                <li><strong>Drawing Mode</strong> (Pencil) allows freehand sketches.</li>
-                                <li><strong>Selection Mode</strong> (Pointer) to move items.</li>
+                                <li><strong>Connect</strong> nodes by dragging connection handles.</li>
+                                <li><strong>Edit Labels</strong> by clicking on node text.</li>
                                 <li><strong>Delete</strong> key to remove selected items.</li>
+                                <li><strong>Edge Labels</strong> - click on edges to add/edit labels.</li>
                             </ul>
                         </div>
                         <div className="space-y-2">
-                            <h3 className="font-semibold text-sm">Agent Design Patterns</h3>
+                            <h3 className="font-semibold text-sm">Node Categories</h3>
                             <ul className="text-sm text-muted-foreground list-disc pl-4 space-y-1">
-                                <li><strong>Orchestrator:</strong> Central agent managing others.</li>
-                                <li><strong>Worker:</strong> Specialized agent for single tasks.</li>
-                                <li><strong>Memory:</strong> Vector DB or History context.</li>
-                                <li><strong>Tools:</strong> External APIs or Functions.</li>
+                                <li><strong>AI Architecture:</strong> Agents, LLMs, Memory, Tools.</li>
+                                <li><strong>Flowchart:</strong> Start, End, Process, Decision.</li>
+                                <li><strong>System:</strong> Database, Cloud, Frontend, Backend.</li>
+                            </ul>
+                        </div>
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-4 border-t pt-4">
+                        <div className="space-y-2">
+                            <h3 className="font-semibold text-sm">Drawing Tools</h3>
+                            <ul className="text-sm text-muted-foreground list-disc pl-4 space-y-1">
+                                <li><strong>Select (V):</strong> Move and select items.</li>
+                                <li><strong>Pencil (P):</strong> Freehand drawing.</li>
+                                <li><strong>Arrow (A):</strong> Draw arrows.</li>
+                                <li><strong>Rectangle (R):</strong> Draw rectangles.</li>
+                                <li><strong>Ellipse (O):</strong> Draw circles/ellipses.</li>
+                                <li><strong>Line (L):</strong> Draw straight lines.</li>
+                            </ul>
+                        </div>
+                        <div className="space-y-2">
+                            <h3 className="font-semibold text-sm">Flowchart Nodes</h3>
+                            <ul className="text-sm text-muted-foreground list-disc pl-4 space-y-1">
+                                <li><span className="text-emerald-600">Start/End:</span> Entry and exit points.</li>
+                                <li><span className="text-blue-600">Process:</span> Actions and operations.</li>
+                                <li><span className="text-amber-600">Decision:</span> Yes/No branching.</li>
+                                <li><span className="text-purple-600">Result:</span> Outcomes and outputs.</li>
+                                <li><span className="text-slate-600">Data/IO:</span> Input and storage.</li>
                             </ul>
                         </div>
                     </div>
 
                     <div className="space-y-2 border-t pt-4">
-                        <h3 className="font-semibold text-sm">Keyboard Shortcuts</h3>
+                        <h3 className="font-semibold text-sm">General Shortcuts</h3>
                         <div className="grid grid-cols-3 gap-2 text-xs text-muted-foreground">
-                            <div className="p-2 border rounded bg-muted/50"><kbd className="font-mono bg-background px-1 rounded">⌘S</kbd> Save</div>
-                            <div className="p-2 border rounded bg-muted/50"><kbd className="font-mono bg-background px-1 rounded">⌘E</kbd> Export</div>
-                            <div className="p-2 border rounded bg-muted/50"><kbd className="font-mono bg-background px-1 rounded">⌘D</kbd> Duplicate</div>
-                            <div className="p-2 border rounded bg-muted/50"><kbd className="font-mono bg-background px-1 rounded">⌘C</kbd> Copy</div>
-                            <div className="p-2 border rounded bg-muted/50"><kbd className="font-mono bg-background px-1 rounded">⌘X</kbd> Cut</div>
-                            <div className="p-2 border rounded bg-muted/50"><kbd className="font-mono bg-background px-1 rounded">⌘V</kbd> Paste</div>
-                            <div className="p-2 border rounded bg-muted/50"><kbd className="font-mono bg-background px-1 rounded">⌘Z</kbd> Undo</div>
-                            <div className="p-2 border rounded bg-muted/50"><kbd className="font-mono bg-background px-1 rounded">⌘⇧Z</kbd> Redo</div>
-                            <div className="p-2 border rounded bg-muted/50"><kbd className="font-mono bg-background px-1 rounded">D</kbd> Drawing</div>
-                            <div className="p-2 border rounded bg-muted/50"><kbd className="font-mono bg-background px-1 rounded">C</kbd> Colors</div>
-                            <div className="p-2 border rounded bg-muted/50"><kbd className="font-mono bg-background px-1 rounded">Esc</kbd> Exit</div>
+                            <div className="p-2 border rounded bg-muted/50"><kbd className="font-mono bg-background px-1 rounded">Cmd+S</kbd> Save</div>
+                            <div className="p-2 border rounded bg-muted/50"><kbd className="font-mono bg-background px-1 rounded">Cmd+E</kbd> Export</div>
+                            <div className="p-2 border rounded bg-muted/50"><kbd className="font-mono bg-background px-1 rounded">Cmd+D</kbd> Duplicate</div>
+                            <div className="p-2 border rounded bg-muted/50"><kbd className="font-mono bg-background px-1 rounded">Cmd+C</kbd> Copy</div>
+                            <div className="p-2 border rounded bg-muted/50"><kbd className="font-mono bg-background px-1 rounded">Cmd+X</kbd> Cut</div>
+                            <div className="p-2 border rounded bg-muted/50"><kbd className="font-mono bg-background px-1 rounded">Cmd+V</kbd> Paste</div>
+                            <div className="p-2 border rounded bg-muted/50"><kbd className="font-mono bg-background px-1 rounded">Cmd+Z</kbd> Undo</div>
+                            <div className="p-2 border rounded bg-muted/50"><kbd className="font-mono bg-background px-1 rounded">Cmd+Shift+Z</kbd> Redo</div>
                             <div className="p-2 border rounded bg-muted/50"><kbd className="font-mono bg-background px-1 rounded">Del</kbd> Delete</div>
+                        </div>
+                    </div>
+
+                    <div className="space-y-2 border-t pt-4">
+                        <h3 className="font-semibold text-sm">Drawing Tool Shortcuts</h3>
+                        <div className="grid grid-cols-3 gap-2 text-xs text-muted-foreground">
+                            <div className="p-2 border rounded bg-muted/50"><kbd className="font-mono bg-background px-1 rounded">V</kbd> Select</div>
+                            <div className="p-2 border rounded bg-muted/50"><kbd className="font-mono bg-background px-1 rounded">P</kbd> Pencil</div>
+                            <div className="p-2 border rounded bg-muted/50"><kbd className="font-mono bg-background px-1 rounded">A</kbd> Arrow</div>
+                            <div className="p-2 border rounded bg-muted/50"><kbd className="font-mono bg-background px-1 rounded">R</kbd> Rectangle</div>
+                            <div className="p-2 border rounded bg-muted/50"><kbd className="font-mono bg-background px-1 rounded">O</kbd> Ellipse</div>
+                            <div className="p-2 border rounded bg-muted/50"><kbd className="font-mono bg-background px-1 rounded">L</kbd> Line</div>
+                            <div className="p-2 border rounded bg-muted/50"><kbd className="font-mono bg-background px-1 rounded">D</kbd> Toggle Draw</div>
+                            <div className="p-2 border rounded bg-muted/50"><kbd className="font-mono bg-background px-1 rounded">C</kbd> Colors</div>
+                            <div className="p-2 border rounded bg-muted/50"><kbd className="font-mono bg-background px-1 rounded">Esc</kbd> Exit Mode</div>
                         </div>
                     </div>
 

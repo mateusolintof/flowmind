@@ -4,7 +4,7 @@ export interface DiagramTemplate {
     id: string;
     name: string;
     description: string;
-    category: 'ai-agents' | 'architecture' | 'general';
+    category: 'ai-agents' | 'architecture' | 'flowchart' | 'general';
     thumbnail?: string;
     nodes: Node[];
     edges: Edge[];
@@ -316,6 +316,140 @@ export const DIAGRAM_TEMPLATES: DiagramTemplate[] = [
             { id: 'e5', source: 'cloud-fn1', target: 'database-1', type: 'custom' },
             { id: 'e6', source: 'cloud-fn2', target: 'database-1', type: 'custom' },
             { id: 'e7', source: 'cloud-fn3', target: 'cloud-s3', type: 'custom' },
+        ],
+    },
+    {
+        id: 'basic-flowchart',
+        name: 'Basic Flowchart',
+        description: 'Simple process flow with start, process, decision, and end',
+        category: 'flowchart',
+        nodes: [
+            {
+                id: 'fc-start',
+                type: 'flowchart-start',
+                position: { x: 250, y: 50 },
+                data: { label: 'Start', description: 'Process begins here' },
+            },
+            {
+                id: 'fc-input',
+                type: 'flowchart-io',
+                position: { x: 250, y: 150 },
+                data: { label: 'User Input', description: 'Receive user data' },
+            },
+            {
+                id: 'fc-process1',
+                type: 'flowchart-process',
+                position: { x: 250, y: 250 },
+                data: { label: 'Process Data', description: 'Validate and process' },
+            },
+            {
+                id: 'fc-decision',
+                type: 'flowchart-decision',
+                position: { x: 250, y: 350 },
+                data: { label: 'Is Valid?', description: 'Check validation result' },
+            },
+            {
+                id: 'fc-success',
+                type: 'flowchart-result',
+                position: { x: 100, y: 470 },
+                data: { label: 'Success', description: 'Process completed' },
+            },
+            {
+                id: 'fc-error',
+                type: 'flowchart-action',
+                position: { x: 400, y: 470 },
+                data: { label: 'Handle Error', description: 'Show error message' },
+            },
+            {
+                id: 'fc-end',
+                type: 'flowchart-end',
+                position: { x: 250, y: 580 },
+                data: { label: 'End', description: 'Process ends' },
+            },
+        ],
+        edges: [
+            { id: 'fc-e1', source: 'fc-start', target: 'fc-input', type: 'custom' },
+            { id: 'fc-e2', source: 'fc-input', target: 'fc-process1', type: 'custom' },
+            { id: 'fc-e3', source: 'fc-process1', target: 'fc-decision', type: 'custom' },
+            { id: 'fc-e4', source: 'fc-decision', target: 'fc-success', type: 'custom', label: 'Yes', data: { labelPreset: 'success' } },
+            { id: 'fc-e5', source: 'fc-decision', target: 'fc-error', type: 'custom', label: 'No', data: { labelPreset: 'error' } },
+            { id: 'fc-e6', source: 'fc-success', target: 'fc-end', type: 'custom' },
+            { id: 'fc-e7', source: 'fc-error', target: 'fc-end', type: 'custom' },
+        ],
+    },
+    {
+        id: 'decision-tree',
+        name: 'Decision Tree',
+        description: 'Multi-level decision branching structure',
+        category: 'flowchart',
+        nodes: [
+            {
+                id: 'dt-start',
+                type: 'flowchart-start',
+                position: { x: 350, y: 50 },
+                data: { label: 'Start', description: 'Begin evaluation' },
+            },
+            {
+                id: 'dt-condition1',
+                type: 'flowchart-condition',
+                position: { x: 350, y: 150 },
+                data: { label: 'Condition A', description: 'First check' },
+            },
+            {
+                id: 'dt-condition2',
+                type: 'flowchart-condition',
+                position: { x: 150, y: 280 },
+                data: { label: 'Condition B', description: 'Second check' },
+            },
+            {
+                id: 'dt-condition3',
+                type: 'flowchart-condition',
+                position: { x: 550, y: 280 },
+                data: { label: 'Condition C', description: 'Third check' },
+            },
+            {
+                id: 'dt-action1',
+                type: 'flowchart-action',
+                position: { x: 50, y: 410 },
+                data: { label: 'Action 1', description: 'Execute path A-B' },
+            },
+            {
+                id: 'dt-action2',
+                type: 'flowchart-action',
+                position: { x: 250, y: 410 },
+                data: { label: 'Action 2', description: 'Execute path A-!B' },
+            },
+            {
+                id: 'dt-action3',
+                type: 'flowchart-action',
+                position: { x: 450, y: 410 },
+                data: { label: 'Action 3', description: 'Execute path !A-C' },
+            },
+            {
+                id: 'dt-action4',
+                type: 'flowchart-action',
+                position: { x: 650, y: 410 },
+                data: { label: 'Action 4', description: 'Execute path !A-!C' },
+            },
+            {
+                id: 'dt-end',
+                type: 'flowchart-end',
+                position: { x: 350, y: 530 },
+                data: { label: 'End', description: 'Decision complete' },
+            },
+        ],
+        edges: [
+            { id: 'dt-e1', source: 'dt-start', target: 'dt-condition1', type: 'custom' },
+            { id: 'dt-e2', source: 'dt-condition1', target: 'dt-condition2', type: 'custom', label: 'Yes', data: { labelPreset: 'success' } },
+            { id: 'dt-e3', source: 'dt-condition1', target: 'dt-condition3', type: 'custom', label: 'No', data: { labelPreset: 'warning' } },
+            { id: 'dt-e4', source: 'dt-condition2', target: 'dt-action1', type: 'custom', label: 'Yes', data: { labelPreset: 'success' } },
+            { id: 'dt-e5', source: 'dt-condition2', target: 'dt-action2', type: 'custom', label: 'No', data: { labelPreset: 'warning' } },
+            { id: 'dt-e6', source: 'dt-condition3', target: 'dt-action3', type: 'custom', label: 'Yes', data: { labelPreset: 'success' } },
+            { id: 'dt-e7', source: 'dt-condition3', target: 'dt-action4', type: 'custom', label: 'No', data: { labelPreset: 'warning' } },
+            { id: 'dt-e8', source: 'dt-action1', target: 'dt-end', type: 'custom' },
+            { id: 'dt-e9', source: 'dt-action2', target: 'dt-end', type: 'custom' },
+            { id: 'dt-e10', source: 'dt-action3', target: 'dt-end', type: 'custom' },
+            { id: 'dt-e11', source: 'dt-action4', target: 'dt-end', type: 'custom' },
         ],
     },
     {

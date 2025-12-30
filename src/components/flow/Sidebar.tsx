@@ -13,21 +13,56 @@ import {
     TooltipTrigger,
 } from '@/components/ui/tooltip';
 import { NODE_CONFIG, NodeType } from '@/config/nodeTypes';
-import { Search, X } from 'lucide-react';
+import { FLOWCHART_NODE_CONFIG, type FlowchartNodeType } from '@/config/flowchartNodeTypes';
+import { Search, X, Sparkles } from 'lucide-react';
+
+// Config for special nodes not in the standard configs
+const SPECIAL_NODE_CONFIG = {
+    generic: {
+        label: 'Free Node',
+        icon: Sparkles,
+        tooltip: 'Fully customizable node - pick any icon and color',
+        category: 'brainstorming' as const,
+    },
+} as const;
+
+// Combined config for all node types
+const ALL_NODE_CONFIG = { ...NODE_CONFIG, ...FLOWCHART_NODE_CONFIG, ...SPECIAL_NODE_CONFIG };
+type AllNodeType = NodeType | FlowchartNodeType | keyof typeof SPECIAL_NODE_CONFIG;
 
 // Module-level constant - never recreated
 const ALL_CATEGORIES = [
     {
+        name: 'Brainstorming',
+        items: ['generic'] as AllNodeType[]
+    },
+    {
+        name: 'Flowchart',
+        items: [
+            'flowchart-start',
+            'flowchart-end',
+            'flowchart-process',
+            'flowchart-decision',
+            'flowchart-data',
+            'flowchart-io',
+            'flowchart-condition',
+            'flowchart-action',
+            'flowchart-result',
+            'flowchart-user',
+            'flowchart-system',
+        ] as AllNodeType[]
+    },
+    {
         name: 'AI Agents',
-        items: ['agent', 'llm', 'tool', 'memory', 'input'] as NodeType[]
+        items: ['agent', 'llm', 'tool', 'memory', 'input'] as AllNodeType[]
     },
     {
         name: 'Architecture',
-        items: ['frontend', 'backend', 'database', 'cloud'] as NodeType[]
+        items: ['frontend', 'backend', 'database', 'cloud'] as AllNodeType[]
     },
     {
         name: 'General',
-        items: ['user', 'note', 'container'] as NodeType[]
+        items: ['user', 'note', 'container'] as AllNodeType[]
     }
 ] as const;
 
@@ -55,7 +90,8 @@ function Sidebar({ onItemSelect }: SidebarProps = {}) {
             .map((cat) => ({
                 ...cat,
                 items: cat.items.filter((nodeType) => {
-                    const config = NODE_CONFIG[nodeType];
+                    const config = ALL_NODE_CONFIG[nodeType as keyof typeof ALL_NODE_CONFIG];
+                    if (!config) return false;
                     return (
                         config.label.toLowerCase().includes(query) ||
                         config.tooltip.toLowerCase().includes(query) ||
@@ -100,7 +136,8 @@ function Sidebar({ onItemSelect }: SidebarProps = {}) {
                                 </h3>
                                 <div className="grid grid-cols-2 gap-2">
                                     {cat.items.map((nodeType) => {
-                                        const config = NODE_CONFIG[nodeType];
+                                        const config = ALL_NODE_CONFIG[nodeType as keyof typeof ALL_NODE_CONFIG];
+                                        if (!config) return null;
                                         const Icon = config.icon;
                                         return (
                                             <Tooltip key={nodeType}>

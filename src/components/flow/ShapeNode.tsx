@@ -1,0 +1,304 @@
+'use client';
+
+import { memo, useMemo, useState, useCallback } from 'react';
+import { NodeProps, NodeResizer, Handle, Position, useReactFlow } from '@xyflow/react';
+import { cn } from '@/lib/utils';
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from '@/components/ui/popover';
+
+// Available colors for shapes
+const SHAPE_COLORS = [
+  { name: 'Slate', value: '#64748b' },
+  { name: 'Red', value: '#ef4444' },
+  { name: 'Orange', value: '#f97316' },
+  { name: 'Amber', value: '#f59e0b' },
+  { name: 'Green', value: '#22c55e' },
+  { name: 'Emerald', value: '#10b981' },
+  { name: 'Cyan', value: '#06b6d4' },
+  { name: 'Blue', value: '#3b82f6' },
+  { name: 'Indigo', value: '#6366f1' },
+  { name: 'Purple', value: '#a855f7' },
+  { name: 'Pink', value: '#ec4899' },
+  { name: 'Rose', value: '#f43f5e' },
+];
+
+export type ShapeType = 'rectangle' | 'ellipse' | 'line' | 'arrow';
+
+export interface ShapeNodeData {
+  shapeType: ShapeType;
+  color?: string;
+  strokeWidth?: number;
+  fill?: boolean;
+  width?: number;
+  height?: number;
+  // For line/arrow
+  startX?: number;
+  startY?: number;
+  endX?: number;
+  endY?: number;
+  // Index signature for React Flow compatibility
+  [key: string]: unknown;
+}
+
+const ShapeNode = ({ data, selected, id }: NodeProps) => {
+  const nodeData = data as ShapeNodeData;
+  const { setNodes } = useReactFlow();
+  const [showColorPicker, setShowColorPicker] = useState(false);
+
+  const {
+    shapeType = 'rectangle',
+    color = '#64748b',
+    strokeWidth = 2,
+    fill = false,
+    width = 100,
+    height = 100,
+    startX = 0,
+    startY = 0,
+    endX = 100,
+    endY = 0,
+  } = nodeData;
+
+  const onColorChange = useCallback((newColor: string) => {
+    setNodes((nds) =>
+      nds.map((node) =>
+        node.id === id
+          ? { ...node, data: { ...node.data, color: newColor } }
+          : node
+      )
+    );
+    setShowColorPicker(false);
+  }, [id, setNodes]);
+
+  const toggleFill = useCallback(() => {
+    setNodes((nds) =>
+      nds.map((node) =>
+        node.id === id
+          ? { ...node, data: { ...node.data, fill: !fill } }
+          : node
+      )
+    );
+  }, [id, setNodes, fill]);
+
+  // Render the appropriate shape
+  const shapeElement = useMemo(() => {
+    switch (shapeType) {
+      case 'rectangle':
+        return (
+          <rect
+            x={strokeWidth / 2}
+            y={strokeWidth / 2}
+            width={width - strokeWidth}
+            height={height - strokeWidth}
+            rx={4}
+            ry={4}
+            fill={fill ? `${color}20` : 'none'}
+            stroke={color}
+            strokeWidth={strokeWidth}
+          />
+        );
+
+      case 'ellipse':
+        return (
+          <ellipse
+            cx={width / 2}
+            cy={height / 2}
+            rx={(width - strokeWidth) / 2}
+            ry={(height - strokeWidth) / 2}
+            fill={fill ? `${color}20` : 'none'}
+            stroke={color}
+            strokeWidth={strokeWidth}
+          />
+        );
+
+      case 'line':
+        return (
+          <line
+            x1={startX}
+            y1={startY}
+            x2={endX}
+            y2={endY}
+            stroke={color}
+            strokeWidth={strokeWidth}
+            strokeLinecap="round"
+          />
+        );
+
+      case 'arrow':
+        // Calculate arrow head
+        const dx = endX - startX;
+        const dy = endY - startY;
+        const angle = Math.atan2(dy, dx);
+        const arrowLength = 12;
+        const arrowAngle = Math.PI / 6; // 30 degrees
+
+        const arrowX1 = endX - arrowLength * Math.cos(angle - arrowAngle);
+        const arrowY1 = endY - arrowLength * Math.sin(angle - arrowAngle);
+        const arrowX2 = endX - arrowLength * Math.cos(angle + arrowAngle);
+        const arrowY2 = endY - arrowLength * Math.sin(angle + arrowAngle);
+
+        return (
+          <g>
+            <line
+              x1={startX}
+              y1={startY}
+              x2={endX}
+              y2={endY}
+              stroke={color}
+              strokeWidth={strokeWidth}
+              strokeLinecap="round"
+            />
+            {/* Arrow head */}
+            <path
+              d={`M ${endX} ${endY} L ${arrowX1} ${arrowY1} M ${endX} ${endY} L ${arrowX2} ${arrowY2}`}
+              stroke={color}
+              strokeWidth={strokeWidth}
+              strokeLinecap="round"
+              fill="none"
+            />
+          </g>
+        );
+
+      default:
+        return null;
+    }
+  }, [shapeType, color, strokeWidth, fill, width, height, startX, startY, endX, endY]);
+
+  // Calculate SVG viewBox
+  const viewBox = useMemo(() => {
+    if (shapeType === 'line' || shapeType === 'arrow') {
+      const minX = Math.min(startX, endX) - 20;
+      const minY = Math.min(startY, endY) - 20;
+      const maxX = Math.max(startX, endX) + 20;
+      const maxY = Math.max(startY, endY) + 20;
+      return `${minX} ${minY} ${maxX - minX} ${maxY - minY}`;
+    }
+    return `0 0 ${width} ${height}`;
+  }, [shapeType, width, height, startX, startY, endX, endY]);
+
+  // Calculate SVG dimensions
+  const svgDimensions = useMemo(() => {
+    if (shapeType === 'line' || shapeType === 'arrow') {
+      const w = Math.abs(endX - startX) + 40;
+      const h = Math.abs(endY - startY) + 40;
+      return { width: Math.max(w, 40), height: Math.max(h, 40) };
+    }
+    return { width, height };
+  }, [shapeType, width, height, startX, startY, endX, endY]);
+
+  // Determine if shape should have handles (rectangles and ellipses yes, lines/arrows optional)
+  const hasHandles = shapeType === 'rectangle' || shapeType === 'ellipse';
+
+  return (
+    <div
+      className={cn(
+        'shape-node relative group',
+        selected && 'ring-2 ring-primary ring-offset-2 rounded'
+      )}
+      style={{
+        width: svgDimensions.width,
+        height: svgDimensions.height,
+      }}
+    >
+      {(shapeType === 'rectangle' || shapeType === 'ellipse') && (
+        <NodeResizer
+          isVisible={selected}
+          minWidth={30}
+          minHeight={30}
+          maxWidth={800}
+          maxHeight={600}
+          handleStyle={{ width: 8, height: 8, borderRadius: 2 }}
+          lineStyle={{ border: 0 }}
+        />
+      )}
+
+      {/* Handles for connecting shapes */}
+      {hasHandles && (
+        <>
+          <Handle
+            type="target"
+            position={Position.Top}
+            className="!w-2.5 !h-2.5 !bg-slate-400 !border-2 !border-white opacity-0 group-hover:opacity-100 transition-opacity"
+            style={{ top: -5 }}
+          />
+          <Handle
+            type="target"
+            position={Position.Left}
+            className="!w-2.5 !h-2.5 !bg-slate-400 !border-2 !border-white opacity-0 group-hover:opacity-100 transition-opacity"
+            style={{ left: -5 }}
+          />
+          <Handle
+            type="source"
+            position={Position.Right}
+            className="!w-2.5 !h-2.5 !bg-slate-400 !border-2 !border-white opacity-0 group-hover:opacity-100 transition-opacity"
+            style={{ right: -5 }}
+          />
+          <Handle
+            type="source"
+            position={Position.Bottom}
+            className="!w-2.5 !h-2.5 !bg-slate-400 !border-2 !border-white opacity-0 group-hover:opacity-100 transition-opacity"
+            style={{ bottom: -5 }}
+          />
+        </>
+      )}
+
+      <svg
+        width="100%"
+        height="100%"
+        viewBox={viewBox}
+        className="overflow-visible"
+      >
+        {shapeElement}
+      </svg>
+
+      {/* Color picker and fill toggle - appears on selection */}
+      {selected && (shapeType === 'rectangle' || shapeType === 'ellipse') && (
+        <div className="absolute -bottom-8 left-1/2 -translate-x-1/2 flex items-center gap-1 bg-white rounded-lg shadow-lg px-2 py-1 border nodrag">
+          {/* Fill toggle */}
+          <button
+            onClick={toggleFill}
+            className={cn(
+              'w-5 h-5 rounded border-2 text-[10px] font-medium transition-colors',
+              fill ? 'bg-slate-100 border-slate-300' : 'bg-white border-slate-200'
+            )}
+            title={fill ? 'Remove fill' : 'Add fill'}
+          >
+            {fill ? 'F' : 'O'}
+          </button>
+
+          {/* Color picker */}
+          <Popover open={showColorPicker} onOpenChange={setShowColorPicker}>
+            <PopoverTrigger asChild>
+              <button
+                className="w-5 h-5 rounded-full border-2 border-white shadow cursor-pointer hover:scale-110 transition-transform"
+                style={{ backgroundColor: color }}
+                title="Change color"
+              />
+            </PopoverTrigger>
+            <PopoverContent className="w-36 p-2" align="center">
+              <div className="text-xs font-medium text-muted-foreground mb-2">Color</div>
+              <div className="grid grid-cols-6 gap-1">
+                {SHAPE_COLORS.map((c) => (
+                  <button
+                    key={c.value}
+                    onClick={() => onColorChange(c.value)}
+                    className={cn(
+                      'w-5 h-5 rounded-full border-2 hover:scale-110 transition-transform',
+                      color === c.value ? 'border-slate-900' : 'border-white'
+                    )}
+                    style={{ backgroundColor: c.value }}
+                    title={c.name}
+                  />
+                ))}
+              </div>
+            </PopoverContent>
+          </Popover>
+        </div>
+      )}
+    </div>
+  );
+};
+
+export default memo(ShapeNode);

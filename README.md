@@ -1,8 +1,8 @@
 # FlowMind
 
-A visual diagram editor for AI agent architectures and software systems. Create beautiful flowcharts and architecture diagrams with an intuitive drag-and-drop interface.
+A hybrid visual diagram editor for brainstorming, flowcharts, AI agent architectures, and software systems. Create beautiful diagrams with an intuitive drag-and-drop interface and Excalidraw-style drawing tools.
 
-![FlowMind](https://img.shields.io/badge/version-0.1.0-blue.svg)
+![FlowMind](https://img.shields.io/badge/version-0.2.0-blue.svg)
 ![Next.js](https://img.shields.io/badge/Next.js-16.1.1-black.svg)
 ![React](https://img.shields.io/badge/React-19-blue.svg)
 ![TypeScript](https://img.shields.io/badge/TypeScript-5.x-blue.svg)
@@ -10,21 +10,37 @@ A visual diagram editor for AI agent architectures and software systems. Create 
 ## Features
 
 ### Core Features
-- **Drag & Drop Components** - 12 node types for AI agents and architecture diagrams
+- **24+ Node Types** - Brainstorming, Flowchart, AI Agents, and Architecture nodes
+- **Shape Drawing Tools** - Rectangle, Ellipse, Arrow, Line (Excalidraw-style)
 - **Freehand Drawing** - Sketch annotations directly on the canvas
-- **Auto-Save** - Local (IndexedDB) + Cloud (Supabase) synchronization with debouncing
+- **Auto-Save** - Local (IndexedDB) + Cloud (Supabase) synchronization
 - **Undo/Redo** - Full history with 30 states
 - **Multiple Diagrams** - Create, rename, duplicate, and delete diagrams
 
+### Node Customization
+- **Inline Color Picker** - Change node colors by clicking the color dot when selected
+- **Inline Icon Picker** - 60+ icons for GenericNode (Free Node)
+- **Editable Labels** - Click on any label to edit
+- **Descriptions** - Add descriptions that appear on hover
+- **Resizable** - Drag corners to resize nodes
+
+### Drawing Tools
+- **Select (V)** - Move and select elements
+- **Pencil (P)** - Freehand drawing
+- **Arrow (A)** - Draw arrows
+- **Rectangle (R)** - Draw rectangles with connectable handles
+- **Ellipse (O)** - Draw circles/ellipses with connectable handles
+- **Line (L)** - Draw straight lines
+
 ### Productivity
 - **Keyboard Shortcuts** - Full keyboard support (see table below)
-- **Templates** - Pre-built diagrams for common patterns (Single Agent, Multi-Agent, RAG, Microservices)
+- **Templates** - Pre-built diagrams for common patterns
 - **Snap to Grid** - Align components precisely
 - **Copy/Paste** - Duplicate nodes with their connections
 
 ### Visual/UX
 - **Custom Edge Styles** - Bezier, Step, Straight lines with colors and labels
-- **Color Customization** - Apply colors to nodes and edges
+- **Edge Label Presets** - Success (green), Warning (yellow), Error (red), Info (blue)
 - **Zoom Controls** - Visual zoom in/out with percentage display
 - **Responsive Design** - Works on desktop and mobile with collapsible sidebar
 - **Dark/Light Mode** - System theme support
@@ -34,14 +50,12 @@ A visual diagram editor for AI agent architectures and software systems. Create 
 - **SVG Export** - Vector format for scalability
 - **JSON Export/Import** - Backup and share diagrams
 
-### Learning
-- **Interactive Onboarding** - Guided tour for new users
-- **Diagram Guide** - Best practices for Frontend, Backend, Fullstack, AI Agents, and Multi-Agent systems
-
 ## Node Types
 
 | Category | Nodes | Description |
 |----------|-------|-------------|
+| **Brainstorming** | Free Node | Fully customizable - pick any icon (60+) and color |
+| **Flowchart** | Start, End, Process, Decision, Data, I/O, Condition, Action, Result, User Action, System | Professional flowchart nodes with color variants |
 | **AI Agents** | Agent, LLM, Tool, Memory, Input | Components for building AI agent systems |
 | **Architecture** | Frontend, Backend, Database, Cloud | Software architecture components |
 | **General** | User, Note, Container | General-purpose diagram elements |
@@ -56,6 +70,7 @@ A visual diagram editor for AI agent architectures and software systems. Create 
 | **State Management** | Zustand with Immer |
 | **Styling** | Tailwind CSS 4, Radix UI, shadcn/ui |
 | **Animations** | Framer Motion |
+| **Drawing** | perfect-freehand |
 | **Storage** | Supabase (cloud) + IndexedDB (local via idb-keyval) |
 | **Language** | TypeScript 5.x |
 
@@ -94,6 +109,8 @@ NEXT_PUBLIC_SUPABASE_ANON_KEY=your_supabase_anon_key
 
 ## Keyboard Shortcuts
 
+### General Shortcuts
+
 | Shortcut | Action |
 |----------|--------|
 | `Cmd/Ctrl + S` | Save diagram |
@@ -104,10 +121,21 @@ NEXT_PUBLIC_SUPABASE_ANON_KEY=your_supabase_anon_key
 | `Cmd/Ctrl + V` | Paste |
 | `Cmd/Ctrl + Z` | Undo |
 | `Cmd/Ctrl + Shift + Z` | Redo |
+| `Delete/Backspace` | Delete selected |
+
+### Drawing Tool Shortcuts
+
+| Shortcut | Tool |
+|----------|------|
+| `V` | Select (move/select) |
+| `P` | Pencil (freehand) |
+| `A` | Arrow |
+| `R` | Rectangle |
+| `O` | Ellipse |
+| `L` | Line |
 | `D` | Toggle drawing mode |
 | `C` | Toggle color picker |
 | `Escape` | Exit current mode |
-| `Delete/Backspace` | Delete selected |
 
 ## Project Structure
 
@@ -120,15 +148,20 @@ src/
 │   ├── flow/                # Flow diagram components
 │   │   ├── FlowCanvas.tsx   # Main canvas orchestrator
 │   │   ├── FlowToolbar.tsx  # Top toolbar with all controls
-│   │   ├── DrawingOverlay.tsx # Freehand drawing handler
-│   │   ├── BaseNode.tsx     # Generic node renderer
+│   │   ├── DrawingOverlay.tsx # Shape & freehand drawing
+│   │   ├── DrawingToolPicker.tsx # Tool selection dropdown
+│   │   ├── BaseNode.tsx     # AI Architecture nodes
+│   │   ├── FlowchartNode.tsx # Flowchart nodes
+│   │   ├── GenericNode.tsx  # Brainstorming nodes
+│   │   ├── ShapeNode.tsx    # Geometric shapes
+│   │   ├── StrokeNode.tsx   # Freehand drawings
 │   │   ├── CustomEdge.tsx   # Custom edge with labels
 │   │   ├── Sidebar.tsx      # Component library
-│   │   ├── DiagramManager.tsx # Diagram CRUD operations
 │   │   └── ...
 │   └── ui/                  # shadcn/ui components
 ├── config/
-│   ├── nodeTypes.ts         # Node type definitions with icons
+│   ├── nodeTypes.ts         # AI Architecture node definitions
+│   ├── flowchartNodeTypes.ts # Flowchart node definitions
 │   └── templates.ts         # Pre-built diagram templates
 ├── hooks/
 │   ├── useAutoSave.ts       # Debounced auto-save logic
@@ -138,21 +171,31 @@ src/
 │   └── ...
 ├── store/
 │   ├── flowStore.ts         # Main UI state (Zustand)
-│   ├── undoRedoStore.ts     # History state
-│   ├── syncStatusStore.ts   # Cloud sync status
-│   └── clipboardStore.ts    # Clipboard state
+│   └── ...
 ├── lib/
 │   ├── storage.ts           # IndexedDB + Supabase sync
 │   ├── export.ts            # PNG/SVG/JSON export
 │   └── supabase.ts          # Supabase client
-├── utils/
-│   └── idGenerator.ts       # Node ID generation
-└── styles/                  # Global styles
+└── utils/
+    └── idGenerator.ts       # Node ID generation
 ```
+
+## Templates
+
+Available templates:
+
+| Category | Templates |
+|----------|-----------|
+| **AI Agents** | Single Agent, Multi-Agent System, RAG Pipeline |
+| **Architecture** | Microservices, Serverless |
+| **Flowchart** | Basic Flowchart, Decision Tree |
+| **General** | Blank Canvas |
 
 ## Documentation
 
 For detailed documentation about how the project works, see [DOCS.md](./DOCS.md).
+
+For AI assistants working on this codebase, see [CLAUDE.md](./CLAUDE.md).
 
 ## Scripts
 
@@ -182,3 +225,4 @@ This project is private.
 - [Radix UI](https://www.radix-ui.com/) - Accessible primitives
 - [Zustand](https://zustand-demo.pmnd.rs/) - State management
 - [Supabase](https://supabase.com/) - Backend as a Service
+- [perfect-freehand](https://github.com/steveruizok/perfect-freehand) - Freehand drawing

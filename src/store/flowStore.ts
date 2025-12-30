@@ -3,6 +3,8 @@ import { devtools, subscribeWithSelector } from 'zustand/middleware';
 import { immer } from 'zustand/middleware/immer';
 import { Node, Edge, Viewport } from '@xyflow/react';
 
+export type DrawingTool = 'select' | 'freehand' | 'arrow' | 'rectangle' | 'ellipse' | 'line';
+
 export interface FlowState {
   // Core state
   nodes: Node[];
@@ -11,6 +13,7 @@ export interface FlowState {
 
   // UI state
   isDrawing: boolean;
+  drawingTool: DrawingTool;
   selectedColor: string;
   colorPickerOpen: boolean;
   snapToGrid: boolean;
@@ -34,6 +37,7 @@ export interface FlowState {
 
   setDrawing: (isDrawing: boolean) => void;
   toggleDrawing: () => void;
+  setDrawingTool: (tool: DrawingTool) => void;
   setSelectedColor: (color: string) => void;
   setColorPickerOpen: (open: boolean) => void;
   toggleColorPicker: () => void;
@@ -54,6 +58,7 @@ const initialState = {
   edges: [],
   viewport: { x: 0, y: 0, zoom: 1 },
   isDrawing: false,
+  drawingTool: 'freehand' as DrawingTool,
   selectedColor: '',
   colorPickerOpen: false,
   snapToGrid: true,
@@ -137,6 +142,16 @@ export const useFlowStore = create<FlowState>()(
           state.isDrawing = !state.isDrawing;
         }),
 
+        setDrawingTool: (tool) => set((state) => {
+          state.drawingTool = tool;
+          // When selecting a drawing tool (not 'select'), enable drawing mode
+          if (tool !== 'select') {
+            state.isDrawing = true;
+          } else {
+            state.isDrawing = false;
+          }
+        }),
+
         setSelectedColor: (color) => set((state) => {
           state.selectedColor = color;
         }),
@@ -195,6 +210,7 @@ export const useViewport = () => useFlowStore((s) => s.viewport);
 export const useSelectedNodes = () => useFlowStore((s) => s.nodes.filter(n => n.selected));
 export const useSelectedEdges = () => useFlowStore((s) => s.edges.filter(e => e.selected));
 export const useIsDrawing = () => useFlowStore((s) => s.isDrawing);
+export const useDrawingTool = () => useFlowStore((s) => s.drawingTool);
 export const useSelectedColor = () => useFlowStore((s) => s.selectedColor);
 export const useSnapToGrid = () => useFlowStore((s) => s.snapToGrid);
 export const useColorPickerOpen = () => useFlowStore((s) => s.colorPickerOpen);
@@ -214,6 +230,7 @@ export const useFlowActions = () => useFlowStore((s) => ({
   removeEdges: s.removeEdges,
   setDrawing: s.setDrawing,
   toggleDrawing: s.toggleDrawing,
+  setDrawingTool: s.setDrawingTool,
   setSelectedColor: s.setSelectedColor,
   setColorPickerOpen: s.setColorPickerOpen,
   toggleColorPicker: s.toggleColorPicker,

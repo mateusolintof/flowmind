@@ -12,8 +12,8 @@ import {
     ToggleGroup,
     ToggleGroupItem,
 } from '@/components/ui/toggle-group';
-import { Spline, TrendingUp, Minus, Zap, Palette, Tag } from 'lucide-react';
-import { EdgeStyleType, CustomEdgeData } from './CustomEdge';
+import { Spline, TrendingUp, Minus, Zap, Palette, Tag, Paintbrush } from 'lucide-react';
+import { EdgeStyleType, CustomEdgeData, EDGE_LABEL_PRESETS, EdgeLabelPreset } from './CustomEdge';
 
 const EDGE_COLORS = [
     { name: 'Default', value: '' },
@@ -35,6 +35,7 @@ export function EdgeStylePicker({ edgeData, onUpdate }: EdgeStylePickerProps) {
     const currentColor = edgeData.color || '';
     const currentLabel = edgeData.label || '';
     const isAnimated = edgeData.animated || false;
+    const currentLabelPreset = edgeData.labelPreset;
 
     return (
         <Popover>
@@ -133,6 +134,54 @@ export function EdgeStylePicker({ edgeData, onUpdate }: EdgeStylePickerProps) {
                             onChange={(e) => onUpdate({ label: e.target.value })}
                             className="h-8 text-xs"
                         />
+                    </div>
+
+                    {/* Label Style Presets */}
+                    <div className="space-y-2">
+                        <div className="flex items-center gap-2">
+                            <Paintbrush className="h-4 w-4 text-muted-foreground" />
+                            <Label className="text-xs">Label Style</Label>
+                        </div>
+                        <div className="flex flex-wrap gap-1.5">
+                            {/* No style option */}
+                            <button
+                                className={`px-2 py-1 rounded text-xs border transition-all ${
+                                    !currentLabelPreset
+                                        ? 'ring-2 ring-primary ring-offset-1'
+                                        : 'hover:scale-105'
+                                }`}
+                                style={{
+                                    backgroundColor: '#f1f5f9',
+                                    color: '#475569',
+                                }}
+                                onClick={() => onUpdate({ labelPreset: undefined, labelBgColor: undefined, labelTextColor: undefined })}
+                                title="Default"
+                            >
+                                Default
+                            </button>
+                            {/* Preset options */}
+                            {(Object.keys(EDGE_LABEL_PRESETS) as EdgeLabelPreset[]).map((preset) => {
+                                const presetConfig = EDGE_LABEL_PRESETS[preset];
+                                return (
+                                    <button
+                                        key={preset}
+                                        className={`px-2 py-1 rounded text-xs font-medium transition-all ${
+                                            currentLabelPreset === preset
+                                                ? 'ring-2 ring-primary ring-offset-1'
+                                                : 'hover:scale-105'
+                                        }`}
+                                        style={{
+                                            backgroundColor: presetConfig.bg,
+                                            color: presetConfig.text,
+                                        }}
+                                        onClick={() => onUpdate({ labelPreset: preset })}
+                                        title={presetConfig.label}
+                                    >
+                                        {presetConfig.label}
+                                    </button>
+                                );
+                            })}
+                        </div>
                     </div>
                 </div>
             </PopoverContent>

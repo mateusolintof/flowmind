@@ -8,7 +8,6 @@ import { Button } from '@/components/ui/button';
 import {
   Save,
   Pencil,
-  MousePointer2,
   Undo2,
   Redo2,
   Grid3X3,
@@ -23,6 +22,7 @@ import { EdgeStylePicker } from './EdgeStylePicker';
 import { ExportMenu } from './ExportMenu';
 import { TemplateGallery } from './TemplateGallery';
 import { DiagramGuide } from './DiagramGuide';
+import DrawingToolPicker from './DrawingToolPicker';
 import HelpDialog from './HelpDialog';
 import { CustomEdgeData } from './CustomEdge';
 import { FlowData } from '@/lib/export';
@@ -74,9 +74,9 @@ function FlowToolbar({
   const selectedColor = useFlowStore((s) => s.selectedColor);
   const colorPickerOpen = useFlowStore((s) => s.colorPickerOpen);
   const snapToGrid = useFlowStore((s) => s.snapToGrid);
+  const drawingTool = useFlowStore((s) => s.drawingTool);
 
   // Get actions from store
-  const setDrawing = useFlowStore((s) => s.setDrawing);
   const setColorPickerOpen = useFlowStore((s) => s.setColorPickerOpen);
   const toggleSnapToGrid = useFlowStore((s) => s.toggleSnapToGrid);
 
@@ -146,37 +146,18 @@ function FlowToolbar({
             size="sm"
             variant={snapToGrid ? 'secondary' : 'ghost'}
             onClick={toggleSnapToGrid}
-            className="rounded-none px-2 h-8"
+            className="rounded-none rounded-r-md px-2 h-8"
             title={snapToGrid ? 'Snap to Grid: ON' : 'Snap to Grid: OFF'}
             aria-label="Toggle snap to grid"
             aria-pressed={snapToGrid}
           >
             <Grid3X3 className="h-4 w-4" />
           </Button>
-          <div className="w-[1px] h-4 bg-border" />
-          <Button
-            size="sm"
-            variant={!isDrawing ? 'secondary' : 'ghost'}
-            onClick={() => setDrawing(false)}
-            className="rounded-none px-2 h-8"
-            title="Selection Mode (Esc)"
-            aria-label="Selection mode"
-            aria-pressed={!isDrawing}
-          >
-            <MousePointer2 className="h-4 w-4" />
-          </Button>
-          <Button
-            size="sm"
-            variant={isDrawing ? 'secondary' : 'ghost'}
-            onClick={() => setDrawing(true)}
-            className="rounded-none rounded-r-md px-2 h-8"
-            title="Drawing Mode (D)"
-            aria-label="Drawing mode"
-            aria-pressed={isDrawing}
-            data-onboarding="drawing-toggle"
-          >
-            <Pencil className="h-4 w-4" />
-          </Button>
+        </div>
+
+        {/* Drawing Tools Picker */}
+        <div data-onboarding="drawing-toggle">
+          <DrawingToolPicker />
         </div>
 
         {/* Edge Style Picker */}
@@ -191,10 +172,10 @@ function FlowToolbar({
         )}
 
         {/* Drawing Mode Indicator */}
-        {isDrawing && (
+        {isDrawing && drawingTool !== 'select' && (
           <div className="bg-primary text-primary-foreground px-3 py-1 rounded-full text-xs font-medium flex items-center gap-1.5">
             <Pencil className="h-3 w-3" />
-            Drawing
+            {drawingTool.charAt(0).toUpperCase() + drawingTool.slice(1)}
           </div>
         )}
       </div>

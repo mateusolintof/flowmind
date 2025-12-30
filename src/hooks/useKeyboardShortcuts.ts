@@ -38,6 +38,7 @@ export function useKeyboardShortcuts({
   const toggleDrawing = useFlowStore((s) => s.toggleDrawing);
   const setColorPickerOpen = useFlowStore((s) => s.setColorPickerOpen);
   const setDrawing = useFlowStore((s) => s.setDrawing);
+  const setDrawingTool = useFlowStore((s) => s.setDrawingTool);
   const markDirty = useFlowStore((s) => s.markDirty);
 
   // Handle undo action
@@ -159,6 +160,32 @@ export function useKeyboardShortcuts({
       if (isTyping) return;
 
       switch (e.key.toLowerCase()) {
+        // Drawing tool shortcuts
+        case 'v':
+          e.preventDefault();
+          setDrawingTool('select');
+          break;
+        case 'p':
+          e.preventDefault();
+          setDrawingTool('freehand');
+          break;
+        case 'a':
+          e.preventDefault();
+          setDrawingTool('arrow');
+          break;
+        case 'r':
+          e.preventDefault();
+          setDrawingTool('rectangle');
+          break;
+        case 'o':
+          e.preventDefault();
+          setDrawingTool('ellipse');
+          break;
+        case 'l':
+          e.preventDefault();
+          setDrawingTool('line');
+          break;
+        // Legacy toggle (now just toggles freehand)
         case 'd':
           e.preventDefault();
           toggleDrawing();
@@ -170,7 +197,7 @@ export function useKeyboardShortcuts({
         case 'escape':
           e.preventDefault();
           if (isDrawing) {
-            setDrawing(false);
+            setDrawingTool('select');
           }
           if (colorPickerOpen) {
             setColorPickerOpen(false);
@@ -195,6 +222,7 @@ export function useKeyboardShortcuts({
     toggleDrawing,
     setColorPickerOpen,
     setDrawing,
+    setDrawingTool,
   ]);
 
   return {

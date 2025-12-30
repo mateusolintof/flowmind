@@ -40,7 +40,7 @@ export function DiagramGuide() {
                     <span className="hidden sm:inline">Guide</span>
                 </Button>
             </DialogTrigger>
-            <DialogContent className="max-w-5xl max-h-[90vh] overflow-hidden flex flex-col">
+            <DialogContent className="w-[min(1100px,95vw)] max-w-none h-[85vh] overflow-hidden flex flex-col">
                 <DialogHeader className="shrink-0">
                     <DialogTitle className="flex items-center gap-2 text-xl">
                         <BookOpen className="h-5 w-5" />
@@ -52,34 +52,34 @@ export function DiagramGuide() {
                 </DialogHeader>
 
                 <Tabs defaultValue="thinking" className="flex-1 flex flex-col min-h-0">
-                    <TabsList className="grid grid-cols-3 md:grid-cols-6 w-full shrink-0 h-auto gap-1 p-1">
+                    <TabsList className="flex flex-wrap w-full shrink-0 gap-1 p-1">
                         <TabsTrigger value="thinking" className="text-xs py-2 px-2">
                             <Lightbulb className="h-3.5 w-3.5 mr-1 shrink-0" />
-                            <span className="truncate">Thinking</span>
+                            <span>Thinking</span>
                         </TabsTrigger>
                         <TabsTrigger value="frontend" className="text-xs py-2 px-2">
                             <Monitor className="h-3.5 w-3.5 mr-1 shrink-0" />
-                            <span className="truncate">Frontend</span>
+                            <span>Frontend</span>
                         </TabsTrigger>
                         <TabsTrigger value="backend" className="text-xs py-2 px-2">
                             <Server className="h-3.5 w-3.5 mr-1 shrink-0" />
-                            <span className="truncate">Backend</span>
+                            <span>Backend</span>
                         </TabsTrigger>
                         <TabsTrigger value="fullstack" className="text-xs py-2 px-2">
                             <Layers className="h-3.5 w-3.5 mr-1 shrink-0" />
-                            <span className="truncate">Fullstack</span>
+                            <span>Fullstack</span>
                         </TabsTrigger>
                         <TabsTrigger value="ai-agents" className="text-xs py-2 px-2">
                             <Bot className="h-3.5 w-3.5 mr-1 shrink-0" />
-                            <span className="truncate">AI Agents</span>
+                            <span>AI Agents</span>
                         </TabsTrigger>
                         <TabsTrigger value="multi-agent" className="text-xs py-2 px-2">
                             <Workflow className="h-3.5 w-3.5 mr-1 shrink-0" />
-                            <span className="truncate">Multi-Agent</span>
+                            <span>Multi-Agent</span>
                         </TabsTrigger>
                     </TabsList>
 
-                    <ScrollArea className="flex-1 mt-4 min-h-0">
+                    <ScrollArea className="flex-1 mt-4 min-h-0 pr-2">
                         {/* HOW TO THINK TAB */}
                         <TabsContent value="thinking" className="space-y-6 pr-4">
                             <GuideSection

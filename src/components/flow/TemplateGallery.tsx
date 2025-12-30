@@ -55,7 +55,7 @@ export function TemplateGallery({ onSelectTemplate }: TemplateGalleryProps) {
                     <span className="hidden sm:inline">Templates</span>
                 </Button>
             </DialogTrigger>
-            <DialogContent className="max-w-4xl max-h-[85vh] overflow-hidden flex flex-col">
+            <DialogContent className="w-[min(1100px,95vw)] max-w-none h-[80vh] overflow-hidden flex flex-col">
                 <DialogHeader className="shrink-0">
                     <DialogTitle className="flex items-center gap-2">
                         <LayoutTemplate className="h-5 w-5" />
@@ -68,7 +68,7 @@ export function TemplateGallery({ onSelectTemplate }: TemplateGalleryProps) {
 
                 <div className="flex flex-col md:flex-row gap-4 flex-1 min-h-0">
                     {/* Categories Sidebar */}
-                    <div className="md:w-48 shrink-0 border-b md:border-b-0 md:border-r md:pr-4 pb-3 md:pb-0">
+                    <div className="md:w-56 shrink-0 border-b md:border-b-0 md:border-r md:pr-4 pb-3 md:pb-0">
                         <div className="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-1 gap-1">
                             {CATEGORIES.map((category) => {
                                 const Icon = category.icon;
@@ -97,8 +97,8 @@ export function TemplateGallery({ onSelectTemplate }: TemplateGalleryProps) {
                     </div>
 
                     {/* Templates Grid */}
-                    <ScrollArea className="flex-1">
-                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 pr-2 md:pr-4">
+                    <ScrollArea className="flex-1 min-h-0">
+                        <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4 pr-2 md:pr-4">
                             {filteredTemplates.map((template) => (
                                 <Card
                                     key={template.id}

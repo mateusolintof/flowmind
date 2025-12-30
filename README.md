@@ -165,6 +165,9 @@ src/
 │   ├── flowchartNodeTypes.ts # Flowchart node definitions
 │   ├── nodeCatalog.ts       # Sidebar categories + combined node catalog
 │   ├── drawingTools.ts      # Drawing tool catalog + shortcuts
+│   ├── nodeColors.ts        # Shared color palettes
+│   ├── genericNode.ts       # Generic node icon catalog
+│   ├── edgeStyles.ts        # Edge styles + label presets
 │   └── templates.ts         # Pre-built diagram templates
 ├── hooks/
 │   ├── useAutoSave.ts       # Debounced auto-save logic

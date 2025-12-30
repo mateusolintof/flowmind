@@ -88,6 +88,9 @@ Key functions in `lib/storage.ts`:
 | `config/flowchartNodeTypes.ts` | Flowchart node definitions with variants |
 | `config/nodeCatalog.ts` | Sidebar categories + combined node catalog |
 | `config/drawingTools.ts` | Drawing tool catalog + shortcuts |
+| `config/nodeColors.ts` | Shared color palettes |
+| `config/genericNode.ts` | Generic node icon catalog |
+| `config/edgeStyles.ts` | Edge styles + label presets |
 | `config/templates.ts` | Pre-built diagram templates |
 
 ### Hooks

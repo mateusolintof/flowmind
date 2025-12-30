@@ -5,172 +5,15 @@ import { Handle, Position, NodeProps, NodeResizer, useReactFlow } from '@xyflow/
 import { motion } from 'framer-motion';
 import { cn } from '@/lib/utils';
 import { useFlowStore } from '@/store/flowStore';
+import { GENERIC_NODE_COLORS } from '@/config/nodeColors';
+import { GENERIC_NODE_ICONS } from '@/config/genericNode';
+import { NODE_RESIZER_HANDLE_STYLE, NODE_RESIZER_LINE_STYLE, getFlowHandleClassName } from './nodeStyles';
 import {
   Popover,
   PopoverContent,
   PopoverTrigger,
 } from '@/components/ui/popover';
-import {
-  Circle,
-  Square,
-  Star,
-  Heart,
-  Zap,
-  Target,
-  Flag,
-  Bookmark,
-  Bell,
-  Check,
-  X,
-  AlertTriangle,
-  Info,
-  HelpCircle,
-  Lightbulb,
-  Rocket,
-  Trophy,
-  Gift,
-  Coffee,
-  Music,
-  Camera,
-  Mail,
-  Phone,
-  Globe,
-  Home,
-  User,
-  Users,
-  Settings,
-  Lock,
-  Unlock,
-  Eye,
-  EyeOff,
-  Edit,
-  Trash,
-  Plus,
-  Minus,
-  Search,
-  Filter,
-  Download,
-  Upload,
-  Share,
-  Link,
-  Unlink,
-  Clipboard,
-  FileText,
-  Folder,
-  Database,
-  Cloud,
-  Server,
-  Cpu,
-  Wifi,
-  Battery,
-  Power,
-  Play,
-  Pause,
-  StopCircle,
-  RefreshCw,
-  RotateCw,
-  ArrowUp,
-  ArrowDown,
-  ArrowLeft,
-  ArrowRight,
-  ChevronUp,
-  ChevronDown,
-  ChevronLeft,
-  ChevronRight,
-  type LucideIcon,
-} from 'lucide-react';
-
-// Available icons for GenericNode
-export const GENERIC_NODE_ICONS: Record<string, LucideIcon> = {
-  circle: Circle,
-  square: Square,
-  star: Star,
-  heart: Heart,
-  zap: Zap,
-  target: Target,
-  flag: Flag,
-  bookmark: Bookmark,
-  bell: Bell,
-  check: Check,
-  x: X,
-  warning: AlertTriangle,
-  info: Info,
-  help: HelpCircle,
-  lightbulb: Lightbulb,
-  rocket: Rocket,
-  trophy: Trophy,
-  gift: Gift,
-  coffee: Coffee,
-  music: Music,
-  camera: Camera,
-  mail: Mail,
-  phone: Phone,
-  globe: Globe,
-  home: Home,
-  user: User,
-  users: Users,
-  settings: Settings,
-  lock: Lock,
-  unlock: Unlock,
-  eye: Eye,
-  eyeOff: EyeOff,
-  edit: Edit,
-  trash: Trash,
-  plus: Plus,
-  minus: Minus,
-  search: Search,
-  filter: Filter,
-  download: Download,
-  upload: Upload,
-  share: Share,
-  link: Link,
-  unlink: Unlink,
-  clipboard: Clipboard,
-  file: FileText,
-  folder: Folder,
-  database: Database,
-  cloud: Cloud,
-  server: Server,
-  cpu: Cpu,
-  wifi: Wifi,
-  battery: Battery,
-  power: Power,
-  play: Play,
-  pause: Pause,
-  stop: StopCircle,
-  refresh: RefreshCw,
-  rotate: RotateCw,
-  arrowUp: ArrowUp,
-  arrowDown: ArrowDown,
-  arrowLeft: ArrowLeft,
-  arrowRight: ArrowRight,
-  chevronUp: ChevronUp,
-  chevronDown: ChevronDown,
-  chevronLeft: ChevronLeft,
-  chevronRight: ChevronRight,
-};
-
-// Available colors
-export const GENERIC_NODE_COLORS = [
-  { name: 'Slate', value: '#64748b' },
-  { name: 'Red', value: '#ef4444' },
-  { name: 'Orange', value: '#f97316' },
-  { name: 'Amber', value: '#f59e0b' },
-  { name: 'Yellow', value: '#eab308' },
-  { name: 'Lime', value: '#84cc16' },
-  { name: 'Green', value: '#22c55e' },
-  { name: 'Emerald', value: '#10b981' },
-  { name: 'Teal', value: '#14b8a6' },
-  { name: 'Cyan', value: '#06b6d4' },
-  { name: 'Sky', value: '#0ea5e9' },
-  { name: 'Blue', value: '#3b82f6' },
-  { name: 'Indigo', value: '#6366f1' },
-  { name: 'Violet', value: '#8b5cf6' },
-  { name: 'Purple', value: '#a855f7' },
-  { name: 'Fuchsia', value: '#d946ef' },
-  { name: 'Pink', value: '#ec4899' },
-  { name: 'Rose', value: '#f43f5e' },
-];
+import { Circle } from 'lucide-react';
 
 export interface GenericNodeData {
   label: string;
@@ -246,10 +89,7 @@ const GenericNode = ({ data, selected, id }: NodeProps) => {
     markDirty();
   }, [id, setNodes, markDirty]);
 
-  const handleClassName = cn(
-    '!w-3 !h-3 !bg-slate-400 !border-2 !border-white transition-opacity',
-    selected ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'
-  );
+  const handleClassName = getFlowHandleClassName(selected);
 
   return (
     <motion.div
@@ -272,8 +112,8 @@ const GenericNode = ({ data, selected, id }: NodeProps) => {
         minHeight={60}
         maxWidth={400}
         maxHeight={300}
-        handleStyle={{ width: 8, height: 8, borderRadius: 2 }}
-        lineStyle={{ border: 0 }}
+        handleStyle={NODE_RESIZER_HANDLE_STYLE}
+        lineStyle={NODE_RESIZER_LINE_STYLE}
       />
 
       {/* Handles - all 4 sides */}

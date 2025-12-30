@@ -12,19 +12,7 @@ import {
 } from '@xyflow/react';
 import { cn } from '@/lib/utils';
 import { useFlowStore } from '@/store/flowStore';
-
-export type EdgeStyleType = 'bezier' | 'smoothstep' | 'straight';
-
-// Preset label styles for quick selection
-export const EDGE_LABEL_PRESETS = {
-    success: { bg: '#dcfce7', text: '#166534', label: 'Success' },
-    warning: { bg: '#fef3c7', text: '#92400e', label: 'Warning' },
-    error: { bg: '#fee2e2', text: '#991b1b', label: 'Error' },
-    info: { bg: '#dbeafe', text: '#1e40af', label: 'Info' },
-    neutral: { bg: '#f1f5f9', text: '#475569', label: 'Neutral' },
-} as const;
-
-export type EdgeLabelPreset = keyof typeof EDGE_LABEL_PRESETS;
+import { EDGE_LABEL_PRESETS, type EdgeLabelPreset, type EdgeStyleType } from '@/config/edgeStyles';
 
 export interface CustomEdgeData {
     label?: string;

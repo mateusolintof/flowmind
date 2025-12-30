@@ -13,17 +13,8 @@ import {
     ToggleGroupItem,
 } from '@/components/ui/toggle-group';
 import { Spline, TrendingUp, Minus, Zap, Palette, Tag, Paintbrush } from 'lucide-react';
-import { EdgeStyleType, CustomEdgeData, EDGE_LABEL_PRESETS, EdgeLabelPreset } from './CustomEdge';
-
-const EDGE_COLORS = [
-    { name: 'Default', value: '' },
-    { name: 'Blue', value: 'hsl(217, 91%, 60%)' },
-    { name: 'Green', value: 'hsl(142, 71%, 45%)' },
-    { name: 'Red', value: 'hsl(0, 84%, 60%)' },
-    { name: 'Orange', value: 'hsl(25, 95%, 53%)' },
-    { name: 'Purple', value: 'hsl(263, 70%, 50%)' },
-    { name: 'Cyan', value: 'hsl(186, 100%, 42%)' },
-];
+import { CustomEdgeData } from './CustomEdge';
+import { EDGE_COLORS, EDGE_LABEL_PRESETS, type EdgeLabelPreset, type EdgeStyleType } from '@/config/edgeStyles';
 
 interface EdgeStylePickerProps {
     edgeData: CustomEdgeData;

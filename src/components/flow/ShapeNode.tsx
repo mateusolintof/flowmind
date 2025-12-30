@@ -4,27 +4,13 @@ import { memo, useMemo, useState, useCallback } from 'react';
 import { NodeProps, NodeResizer, Handle, Position, useReactFlow } from '@xyflow/react';
 import { cn } from '@/lib/utils';
 import { useFlowStore } from '@/store/flowStore';
+import { SHAPE_COLORS } from '@/config/nodeColors';
+import { NODE_RESIZER_HANDLE_STYLE, NODE_RESIZER_LINE_STYLE } from './nodeStyles';
 import {
   Popover,
   PopoverContent,
   PopoverTrigger,
 } from '@/components/ui/popover';
-
-// Available colors for shapes
-const SHAPE_COLORS = [
-  { name: 'Slate', value: '#64748b' },
-  { name: 'Red', value: '#ef4444' },
-  { name: 'Orange', value: '#f97316' },
-  { name: 'Amber', value: '#f59e0b' },
-  { name: 'Green', value: '#22c55e' },
-  { name: 'Emerald', value: '#10b981' },
-  { name: 'Cyan', value: '#06b6d4' },
-  { name: 'Blue', value: '#3b82f6' },
-  { name: 'Indigo', value: '#6366f1' },
-  { name: 'Purple', value: '#a855f7' },
-  { name: 'Pink', value: '#ec4899' },
-  { name: 'Rose', value: '#f43f5e' },
-];
 
 export type ShapeType = 'rectangle' | 'ellipse' | 'line' | 'arrow';
 
@@ -194,6 +180,7 @@ const ShapeNode = ({ data, selected, id }: NodeProps) => {
 
   // Determine if shape should have handles (rectangles and ellipses yes, lines/arrows optional)
   const hasHandles = shapeType === 'rectangle' || shapeType === 'ellipse';
+  const shapeHandleClassName = '!w-2.5 !h-2.5 !bg-slate-400 !border-2 !border-white opacity-0 group-hover:opacity-100 transition-opacity';
 
   return (
     <div
@@ -213,8 +200,8 @@ const ShapeNode = ({ data, selected, id }: NodeProps) => {
           minHeight={30}
           maxWidth={800}
           maxHeight={600}
-          handleStyle={{ width: 8, height: 8, borderRadius: 2 }}
-          lineStyle={{ border: 0 }}
+          handleStyle={NODE_RESIZER_HANDLE_STYLE}
+          lineStyle={NODE_RESIZER_LINE_STYLE}
         />
       )}
 
@@ -224,25 +211,25 @@ const ShapeNode = ({ data, selected, id }: NodeProps) => {
           <Handle
             type="target"
             position={Position.Top}
-            className="!w-2.5 !h-2.5 !bg-slate-400 !border-2 !border-white opacity-0 group-hover:opacity-100 transition-opacity"
+            className={shapeHandleClassName}
             style={{ top: -5 }}
           />
           <Handle
             type="target"
             position={Position.Left}
-            className="!w-2.5 !h-2.5 !bg-slate-400 !border-2 !border-white opacity-0 group-hover:opacity-100 transition-opacity"
+            className={shapeHandleClassName}
             style={{ left: -5 }}
           />
           <Handle
             type="source"
             position={Position.Right}
-            className="!w-2.5 !h-2.5 !bg-slate-400 !border-2 !border-white opacity-0 group-hover:opacity-100 transition-opacity"
+            className={shapeHandleClassName}
             style={{ right: -5 }}
           />
           <Handle
             type="source"
             position={Position.Bottom}
-            className="!w-2.5 !h-2.5 !bg-slate-400 !border-2 !border-white opacity-0 group-hover:opacity-100 transition-opacity"
+            className={shapeHandleClassName}
             style={{ bottom: -5 }}
           />
         </>

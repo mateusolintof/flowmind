@@ -5,6 +5,8 @@ import { Handle, Position, NodeProps, NodeResizer, useReactFlow } from '@xyflow/
 import { motion } from 'framer-motion';
 import { cn } from '@/lib/utils';
 import { useFlowStore } from '@/store/flowStore';
+import { FLOWCHART_NODE_COLORS } from '@/config/nodeColors';
+import { NODE_RESIZER_HANDLE_STYLE, NODE_RESIZER_LINE_STYLE, getFlowHandleClassName } from './nodeStyles';
 import {
   Popover,
   PopoverContent,
@@ -17,22 +19,6 @@ import {
   type FlowchartVariant,
   type FlowchartNodeType,
 } from '@/config/flowchartNodeTypes';
-
-// Colors for inline picker
-const NODE_COLORS = [
-  { name: 'Default', value: '' },
-  { name: 'Slate', value: '#64748b' },
-  { name: 'Red', value: '#ef4444' },
-  { name: 'Orange', value: '#f97316' },
-  { name: 'Amber', value: '#f59e0b' },
-  { name: 'Green', value: '#22c55e' },
-  { name: 'Emerald', value: '#10b981' },
-  { name: 'Cyan', value: '#06b6d4' },
-  { name: 'Blue', value: '#3b82f6' },
-  { name: 'Indigo', value: '#6366f1' },
-  { name: 'Purple', value: '#a855f7' },
-  { name: 'Pink', value: '#ec4899' },
-];
 
 const animationConfig = {
   initial: { opacity: 0, scale: 0.8 },
@@ -96,10 +82,7 @@ const FlowchartNode = ({ data, type, selected, id }: NodeProps) => {
     ? { backgroundColor: `${customColor}20`, borderColor: customColor }
     : {};
 
-  const handleClassName = cn(
-    '!w-3 !h-3 !bg-slate-400 !border-2 !border-white transition-opacity',
-    selected ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'
-  );
+  const handleClassName = getFlowHandleClassName(selected);
 
   return (
     <motion.div
@@ -121,8 +104,8 @@ const FlowchartNode = ({ data, type, selected, id }: NodeProps) => {
         minHeight={60}
         maxWidth={400}
         maxHeight={300}
-        handleStyle={{ width: 8, height: 8, borderRadius: 2 }}
-        lineStyle={{ border: 0 }}
+        handleStyle={NODE_RESIZER_HANDLE_STYLE}
+        lineStyle={NODE_RESIZER_LINE_STYLE}
       />
 
       {/* Handles - all 4 sides */}
@@ -241,7 +224,7 @@ const FlowchartNode = ({ data, type, selected, id }: NodeProps) => {
           <PopoverContent className="w-40 p-2" align="end">
             <div className="text-xs font-medium text-muted-foreground mb-2">Node Color</div>
             <div className="grid grid-cols-6 gap-1">
-              {NODE_COLORS.map((c) => (
+              {FLOWCHART_NODE_COLORS.map((c) => (
                 <button
                   key={c.value || 'default'}
                   onClick={() => onColorChange(c.value)}

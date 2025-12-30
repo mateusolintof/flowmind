@@ -7,6 +7,7 @@ import { cn } from '@/lib/utils';
 import { Card } from '@/components/ui/card';
 import { motion } from 'framer-motion';
 import { useFlowStore } from '@/store/flowStore';
+import { NODE_RESIZER_HANDLE_STYLE, NODE_RESIZER_LINE_STYLE, getBaseHandleClassName } from './nodeStyles';
 
 // Pre-computed animation config (outside component for stable reference)
 const animationConfig = {
@@ -43,10 +44,7 @@ const BaseNode = ({ data, type, selected, id }: NodeProps) => {
     };
   }, [data.color]);
 
-  const handleClassName = cn(
-    'w-3 h-3 bg-muted-foreground border-2 border-background transition-opacity',
-    selected ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'
-  );
+  const handleClassName = getBaseHandleClassName(selected);
 
   return (
     <motion.div
@@ -59,8 +57,8 @@ const BaseNode = ({ data, type, selected, id }: NodeProps) => {
         minHeight={60}
         maxWidth={600}
         maxHeight={400}
-        handleStyle={{ width: 8, height: 8, borderRadius: 2 }}
-        lineStyle={{ border: 0 }}
+        handleStyle={NODE_RESIZER_HANDLE_STYLE}
+        lineStyle={NODE_RESIZER_LINE_STYLE}
       />
       <Card
         className={cn(

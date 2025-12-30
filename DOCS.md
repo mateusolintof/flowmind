@@ -63,6 +63,7 @@ Node totalmente customizavel para brainstorming livre:
 | **Handles** | 4 lados para conexoes |
 
 Arquivo: `src/components/flow/GenericNode.tsx`
+Catalogos: `src/config/genericNode.ts`, `src/config/nodeColors.ts`
 
 ### Flowchart Nodes
 
@@ -90,6 +91,7 @@ Recursos:
 
 Arquivos:
 - Config: `src/config/flowchartNodeTypes.ts`
+- Paleta: `src/config/nodeColors.ts`
 - Componente: `src/components/flow/FlowchartNode.tsx`
 
 ### AI Agents Nodes
@@ -160,6 +162,7 @@ Retangulos e elipses desenhados agora tem:
 | **Redimensionavel** | Arraste os cantos |
 
 Arquivo: `src/components/flow/ShapeNode.tsx`
+Paleta: `src/config/nodeColors.ts`
 
 ### StrokeNode (Desenho Livre)
 

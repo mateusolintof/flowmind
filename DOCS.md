@@ -573,4 +573,27 @@ Config central: `src/config/shortcuts.ts`
 
 - **FlowchartNode** tem variantes de cor pre-definidas e visual diferente
 - **BaseNode** e mais generico para AI Architecture
-- Separacao permite customizacao independente
+
+---
+
+## Design System
+
+### Identidade Visual "Premium Midnight"
+
+A versão 0.2.0 introduziu uma reformulação visual completa focada em uma estética premium e moderna.
+
+#### Paleta de Cores
+- **Primary Background**: Deep Midnight Blue (`oklch(0.18 0.04 260)`)
+- **Accent**: Metallic Gold (`oklch(0.75 0.15 85)`)
+- **Secondary**: Electric Blue & Teal para elementos de suporte
+
+#### Efeitos Visuais
+O sistema utiliza utilitários personalizados no `globals.css` para efeitos de vidro e brilho:
+
+| Utilitário | Efeito |
+|------------|--------|
+| `.glass-panel` | Fundo translúcido com `backdrop-blur-xl` e borda sutil |
+| `.glow-effect` | Sombra colorida difusa baseada na cor primária |
+| `.glow-text` | Brilho suave no texto para títulos ou destaques |
+
+Esses efeitos são aplicados na Sidebar e painéis flutuantes para garantir legibilidade sobre o canvas enquanto mantém a imersão visual.

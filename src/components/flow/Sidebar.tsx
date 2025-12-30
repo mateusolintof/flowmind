@@ -53,7 +53,7 @@ function Sidebar({ onItemSelect }: SidebarProps = {}) {
 
     return (
         <TooltipProvider delayDuration={300}>
-            <Card className="h-full w-60 border-r rounded-none bg-sidebar text-sidebar-foreground flex flex-col pointer-events-auto z-50 overflow-hidden" data-onboarding="sidebar">
+            <Card className="h-full w-60 border-r border-white/10 rounded-none bg-sidebar/60 backdrop-blur-xl text-sidebar-foreground flex flex-col pointer-events-auto z-50 overflow-hidden shadow-2xl" data-onboarding="sidebar">
                 <div className="h-12 px-4 flex items-center border-b shrink-0">
                     <span className="font-bold text-lg tracking-tight">FlowMind</span>
                 </div>

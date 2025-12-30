@@ -24,7 +24,7 @@ interface SidebarContextType {
 
 const SidebarContext = createContext<SidebarContextType>({
     isCollapsed: false,
-    setIsCollapsed: () => {},
+    setIsCollapsed: () => { },
 });
 
 export const useSidebar = () => useContext(SidebarContext);
@@ -40,7 +40,7 @@ function CollapsedSidebar() {
 
     return (
         <TooltipProvider delayDuration={200}>
-            <Card className="h-full w-12 border-r rounded-none bg-sidebar flex flex-col items-center py-2 gap-1 overflow-y-auto">
+            <Card className="h-full w-12 border-r border-white/10 rounded-none bg-sidebar/50 backdrop-blur-md flex flex-col items-center py-2 gap-1 overflow-y-auto shadow-2xl">
                 {COLLAPSED_NODE_TYPES.map((type) => {
                     const config = ALL_NODE_CONFIG[type as keyof typeof ALL_NODE_CONFIG];
                     if (!config) return null;
@@ -138,8 +138,15 @@ export function ResponsiveLayout({ children }: { children: React.ReactNode }) {
                     </div>
                 )}
                 {/* Main Content Area */}
-                <div className="flex-1 flex flex-col min-w-0">
-                    {children}
+                <div className="flex-1 flex flex-col min-w-0 bg-background/50 relative">
+                    {/* Add a subtle decorative gradient orb in the background */}
+                    <div className="absolute top-0 left-0 w-full h-full overflow-hidden pointer-events-none z-0 opacity-20">
+                        <div className="absolute top-[-10%] right-[-5%] w-[500px] h-[500px] rounded-full bg-primary/20 blur-[100px]" />
+                        <div className="absolute bottom-[-10%] left-[-5%] w-[400px] h-[400px] rounded-full bg-secondary/20 blur-[100px]" />
+                    </div>
+                    <div className="relative z-10 flex-1 flex flex-col">
+                        {children}
+                    </div>
                 </div>
             </main>
         </SidebarContext.Provider>

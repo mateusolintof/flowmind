@@ -44,7 +44,8 @@ A hybrid visual diagram editor for brainstorming, flowcharts, AI agent architect
 - **Zoom Controls** - Visual zoom in/out with percentage display
 - **Unsaved Indicator** - Dot next to the diagram name when there are pending changes
 - **Responsive Design** - Works on desktop and mobile with collapsible sidebar
-- **Dark/Light Mode** - System theme support
+- **Premium UI** - "Midnight Blue & Gold" theme with Glassmorphism effects
+- **Dark/Light Mode** - System theme support (Optimized for Dark Mode)
 
 ### Export/Import
 - **PNG Export** - High-resolution image export

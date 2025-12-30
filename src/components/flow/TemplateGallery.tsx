@@ -55,7 +55,7 @@ export function TemplateGallery({ onSelectTemplate }: TemplateGalleryProps) {
                     <span className="hidden sm:inline">Templates</span>
                 </Button>
             </DialogTrigger>
-            <DialogContent className="w-[min(1100px,95vw)] max-w-none h-[80vh] overflow-hidden flex flex-col">
+            <DialogContent className="sm:!max-w-[min(1100px,95vw)] h-[80vh] overflow-hidden flex flex-col">
                 <DialogHeader className="shrink-0">
                     <DialogTitle className="flex items-center gap-2">
                         <LayoutTemplate className="h-5 w-5" />

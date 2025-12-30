@@ -1,4 +1,4 @@
-import { getNodesBounds, getViewportForBounds } from '@xyflow/react';
+import { getNodesBounds, getViewportForBounds, type Node } from '@xyflow/react';
 import type { FlowData } from '@/types/diagram';
 
 export type { FlowData } from '@/types/diagram';

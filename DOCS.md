@@ -417,7 +417,7 @@ Templates disponiveis:
 - **Flowchart**: Basic Flowchart, Decision Tree
 - **General**: Blank Canvas
 
-UI (web): modais de Templates e Guide usam altura fixa com scroll interno para evitar quebra de layout.
+UI (web): Templates e Guide abrem em modal fullscreen (com scroll interno) para evitar quebra de layout em desktop.
 
 ---
 

@@ -55,7 +55,7 @@ export function TemplateGallery({ onSelectTemplate }: TemplateGalleryProps) {
                     <span className="hidden sm:inline">Templates</span>
                 </Button>
             </DialogTrigger>
-            <DialogContent className="sm:!max-w-[min(1100px,95vw)] h-[80vh] overflow-hidden flex flex-col">
+            <DialogContent variant="fullscreen" className="overflow-hidden flex flex-col">
                 <DialogHeader className="shrink-0">
                     <DialogTitle className="flex items-center gap-2">
                         <LayoutTemplate className="h-5 w-5" />
@@ -98,7 +98,7 @@ export function TemplateGallery({ onSelectTemplate }: TemplateGalleryProps) {
 
                     {/* Templates Grid */}
                     <ScrollArea className="flex-1 min-h-0">
-                        <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4 pr-2 md:pr-4">
+                        <div className="grid grid-cols-[repeat(auto-fill,minmax(280px,1fr))] gap-4 pr-2 md:pr-4">
                             {filteredTemplates.map((template) => (
                                 <Card
                                     key={template.id}

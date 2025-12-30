@@ -40,7 +40,7 @@ export function DiagramGuide() {
                     <span className="hidden sm:inline">Guide</span>
                 </Button>
             </DialogTrigger>
-            <DialogContent className="sm:!max-w-[min(1100px,95vw)] h-[85vh] overflow-hidden flex flex-col">
+            <DialogContent variant="fullscreen" className="overflow-hidden flex flex-col">
                 <DialogHeader className="shrink-0">
                     <DialogTitle className="flex items-center gap-2 text-xl">
                         <BookOpen className="h-5 w-5" />

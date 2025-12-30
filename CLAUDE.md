@@ -87,6 +87,7 @@ Key functions in `lib/storage.ts`:
 | `config/nodeTypes.ts` | AI Architecture node definitions |
 | `config/flowchartNodeTypes.ts` | Flowchart node definitions with variants |
 | `config/nodeCatalog.ts` | Sidebar categories + combined node catalog |
+| `config/drawingTools.ts` | Drawing tool catalog + shortcuts |
 | `config/templates.ts` | Pre-built diagram templates |
 
 ### Hooks
@@ -165,9 +166,9 @@ export const useDrawingTool = () => useFlowStore((s) => s.drawingTool);
 ### Adding a New Drawing Tool
 
 1. Add to `DrawingTool` type in `flowStore.ts`
-2. Add icon and config to `DrawingToolPicker.tsx`
+2. Add icon and config to `config/drawingTools.ts`
 3. Handle in `DrawingOverlay.tsx` drawing logic
-4. Add keyboard shortcut in `useKeyboardShortcuts.ts`
+4. Add keyboard shortcut in `useKeyboardShortcuts.ts` (if not already covered by config)
 
 ### Adding a New Template
 

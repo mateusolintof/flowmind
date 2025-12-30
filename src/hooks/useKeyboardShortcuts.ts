@@ -7,6 +7,7 @@ import { useUndoRedo } from './useUndoRedo';
 import { useClipboard } from './useClipboard';
 import { generateNodeId } from '@/utils/idGenerator';
 import { toast } from 'sonner';
+import { DRAWING_TOOL_SHORTCUTS } from '@/config/drawingTools';
 
 interface UseKeyboardShortcutsProps {
   nodes: Node[];
@@ -158,32 +159,16 @@ export function useKeyboardShortcuts({
       // Single key shortcuts (only when not typing)
       if (isTyping) return;
 
-      switch (e.key.toLowerCase()) {
-        // Drawing tool shortcuts
-        case 'v':
-          e.preventDefault();
-          setDrawingTool('select');
-          break;
-        case 'p':
-          e.preventDefault();
-          setDrawingTool('freehand');
-          break;
-        case 'a':
-          e.preventDefault();
-          setDrawingTool('arrow');
-          break;
-        case 'r':
-          e.preventDefault();
-          setDrawingTool('rectangle');
-          break;
-        case 'o':
-          e.preventDefault();
-          setDrawingTool('ellipse');
-          break;
-        case 'l':
-          e.preventDefault();
-          setDrawingTool('line');
-          break;
+      const key = e.key.toLowerCase();
+      const tool = DRAWING_TOOL_SHORTCUTS[key];
+
+      if (tool) {
+        e.preventDefault();
+        setDrawingTool(tool);
+        return;
+      }
+
+      switch (key) {
         // Legacy toggle (now just toggles freehand)
         case 'd':
           e.preventDefault();

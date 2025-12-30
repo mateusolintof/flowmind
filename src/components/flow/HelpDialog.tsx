@@ -11,6 +11,7 @@ import {
 import { Button } from '@/components/ui/button';
 import { HelpCircle, PlayCircle } from 'lucide-react';
 import { useOnboarding } from '@/hooks/useOnboarding';
+import { DRAWING_TOOLS } from '@/config/drawingTools';
 
 export default function HelpDialog() {
     const { startTour, resetTour } = useOnboarding();
@@ -61,12 +62,11 @@ export default function HelpDialog() {
                         <div className="space-y-2">
                             <h3 className="font-semibold text-sm">Drawing Tools</h3>
                             <ul className="text-sm text-muted-foreground list-disc pl-4 space-y-1">
-                                <li><strong>Select (V):</strong> Move and select items.</li>
-                                <li><strong>Pencil (P):</strong> Freehand drawing.</li>
-                                <li><strong>Arrow (A):</strong> Draw arrows.</li>
-                                <li><strong>Rectangle (R):</strong> Draw rectangles.</li>
-                                <li><strong>Ellipse (O):</strong> Draw circles/ellipses.</li>
-                                <li><strong>Line (L):</strong> Draw straight lines.</li>
+                                {DRAWING_TOOLS.map((tool) => (
+                                    <li key={tool.tool}>
+                                        <strong>{tool.label} ({tool.shortcut}):</strong> {tool.description}.
+                                    </li>
+                                ))}
                             </ul>
                         </div>
                         <div className="space-y-2">
@@ -99,12 +99,11 @@ export default function HelpDialog() {
                     <div className="space-y-2 border-t pt-4">
                         <h3 className="font-semibold text-sm">Drawing Tool Shortcuts</h3>
                         <div className="grid grid-cols-3 gap-2 text-xs text-muted-foreground">
-                            <div className="p-2 border rounded bg-muted/50"><kbd className="font-mono bg-background px-1 rounded">V</kbd> Select</div>
-                            <div className="p-2 border rounded bg-muted/50"><kbd className="font-mono bg-background px-1 rounded">P</kbd> Pencil</div>
-                            <div className="p-2 border rounded bg-muted/50"><kbd className="font-mono bg-background px-1 rounded">A</kbd> Arrow</div>
-                            <div className="p-2 border rounded bg-muted/50"><kbd className="font-mono bg-background px-1 rounded">R</kbd> Rectangle</div>
-                            <div className="p-2 border rounded bg-muted/50"><kbd className="font-mono bg-background px-1 rounded">O</kbd> Ellipse</div>
-                            <div className="p-2 border rounded bg-muted/50"><kbd className="font-mono bg-background px-1 rounded">L</kbd> Line</div>
+                            {DRAWING_TOOLS.map((tool) => (
+                                <div key={tool.tool} className="p-2 border rounded bg-muted/50">
+                                    <kbd className="font-mono bg-background px-1 rounded">{tool.shortcut}</kbd> {tool.label}
+                                </div>
+                            ))}
                             <div className="p-2 border rounded bg-muted/50"><kbd className="font-mono bg-background px-1 rounded">D</kbd> Toggle Draw</div>
                             <div className="p-2 border rounded bg-muted/50"><kbd className="font-mono bg-background px-1 rounded">C</kbd> Colors</div>
                             <div className="p-2 border rounded bg-muted/50"><kbd className="font-mono bg-background px-1 rounded">Esc</kbd> Exit Mode</div>

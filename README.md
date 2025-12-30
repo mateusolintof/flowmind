@@ -164,6 +164,7 @@ src/
 │   ├── nodeTypes.ts         # AI Architecture node definitions
 │   ├── flowchartNodeTypes.ts # Flowchart node definitions
 │   ├── nodeCatalog.ts       # Sidebar categories + combined node catalog
+│   ├── drawingTools.ts      # Drawing tool catalog + shortcuts
 │   └── templates.ts         # Pre-built diagram templates
 ├── hooks/
 │   ├── useAutoSave.ts       # Debounced auto-save logic

@@ -14,7 +14,6 @@ export interface FlowState {
   snapToGrid: boolean;
 
   // Dirty state (used for auto-save + unload warning)
-  isDirty: boolean;
   dirtyCounter: number;
 
   // Diagram metadata
@@ -45,7 +44,6 @@ const initialState = {
   selectedColor: '',
   colorPickerOpen: false,
   snapToGrid: true,
-  isDirty: false,
   dirtyCounter: 0,
   currentDiagramId: null,
   currentDiagramName: 'Loading...',
@@ -100,12 +98,10 @@ export const useFlowStore = create<FlowState>()(
 
         // Dirty state
         markDirty: () => set((state) => {
-          state.isDirty = true;
           state.dirtyCounter += 1;
         }),
 
         markClean: () => set((state) => {
-          state.isDirty = false;
           state.dirtyCounter = 0;
         }),
 
@@ -128,7 +124,6 @@ export const useDrawingTool = () => useFlowStore((s) => s.drawingTool);
 export const useSelectedColor = () => useFlowStore((s) => s.selectedColor);
 export const useSnapToGrid = () => useFlowStore((s) => s.snapToGrid);
 export const useColorPickerOpen = () => useFlowStore((s) => s.colorPickerOpen);
-export const useIsDirty = () => useFlowStore((s) => s.isDirty);
 export const useDirtyCounter = () => useFlowStore((s) => s.dirtyCounter);
 export const useCurrentDiagramId = () => useFlowStore((s) => s.currentDiagramId);
 export const useCurrentDiagramName = () => useFlowStore((s) => s.currentDiagramName);

@@ -146,6 +146,7 @@ Dropdown com 6 ferramentas:
 | Line | `L` | Desenhar linhas retas |
 
 Arquivo: `src/components/flow/DrawingToolPicker.tsx`
+Config: `src/config/drawingTools.ts`
 
 ### ShapeNodes (Formas Geometricas)
 

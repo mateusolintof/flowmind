@@ -15,70 +15,17 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from '@/components/ui/tooltip';
-import {
-  MousePointer2,
-  Pencil,
-  ArrowRight,
-  Square,
-  Circle,
-  Minus,
-  ChevronDown,
-} from 'lucide-react';
-import { useFlowStore, useDrawingTool, useIsDrawing, type DrawingTool } from '@/store/flowStore';
+import { ChevronDown } from 'lucide-react';
+import { useFlowStore, useDrawingTool, useIsDrawing } from '@/store/flowStore';
 import { cn } from '@/lib/utils';
-
-interface ToolConfig {
-  icon: React.ComponentType<{ className?: string }>;
-  label: string;
-  shortcut: string;
-  description: string;
-}
-
-const TOOLS: Record<DrawingTool, ToolConfig> = {
-  select: {
-    icon: MousePointer2,
-    label: 'Select',
-    shortcut: 'V',
-    description: 'Select and move elements',
-  },
-  freehand: {
-    icon: Pencil,
-    label: 'Freehand',
-    shortcut: 'P',
-    description: 'Draw freehand strokes',
-  },
-  arrow: {
-    icon: ArrowRight,
-    label: 'Arrow',
-    shortcut: 'A',
-    description: 'Draw arrows',
-  },
-  rectangle: {
-    icon: Square,
-    label: 'Rectangle',
-    shortcut: 'R',
-    description: 'Draw rectangles',
-  },
-  ellipse: {
-    icon: Circle,
-    label: 'Ellipse',
-    shortcut: 'O',
-    description: 'Draw circles and ellipses',
-  },
-  line: {
-    icon: Minus,
-    label: 'Line',
-    shortcut: 'L',
-    description: 'Draw straight lines',
-  },
-};
+import { DRAWING_TOOLS, DRAWING_TOOL_MAP } from '@/config/drawingTools';
 
 function DrawingToolPicker() {
   const drawingTool = useDrawingTool();
   const isDrawing = useIsDrawing();
   const setDrawingTool = useFlowStore((s) => s.setDrawingTool);
 
-  const currentTool = TOOLS[drawingTool];
+  const currentTool = DRAWING_TOOL_MAP[drawingTool];
   const CurrentIcon = currentTool.icon;
 
   return (
@@ -112,35 +59,16 @@ function DrawingToolPicker() {
         <DropdownMenuSeparator />
 
         {/* Select tool */}
-        <DropdownMenuItem
-          onClick={() => setDrawingTool('select')}
-          className={cn(
-            'gap-3 cursor-pointer',
-            drawingTool === 'select' && 'bg-accent'
-          )}
-        >
-          <MousePointer2 className="h-4 w-4" />
-          <div className="flex-1">
-            <div className="font-medium text-sm">Select</div>
-            <div className="text-xs text-muted-foreground">Select and move elements</div>
-          </div>
-          <kbd className="text-[10px] bg-muted px-1.5 py-0.5 rounded">V</kbd>
-        </DropdownMenuItem>
-
-        <DropdownMenuSeparator />
-
-        {/* Drawing tools */}
-        {(Object.entries(TOOLS) as [DrawingTool, ToolConfig][])
-          .filter(([key]) => key !== 'select')
-          .map(([key, tool]) => {
-            const Icon = tool.icon;
-            return (
+        {DRAWING_TOOLS.map((tool, index) => {
+          const Icon = tool.icon;
+          const isSelected = drawingTool === tool.tool;
+          return (
+            <div key={tool.tool}>
               <DropdownMenuItem
-                key={key}
-                onClick={() => setDrawingTool(key)}
+                onClick={() => setDrawingTool(tool.tool)}
                 className={cn(
                   'gap-3 cursor-pointer',
-                  drawingTool === key && 'bg-accent'
+                  isSelected && 'bg-accent'
                 )}
               >
                 <Icon className="h-4 w-4" />
@@ -150,8 +78,10 @@ function DrawingToolPicker() {
                 </div>
                 <kbd className="text-[10px] bg-muted px-1.5 py-0.5 rounded">{tool.shortcut}</kbd>
               </DropdownMenuItem>
-            );
-          })}
+              {index === 0 && <DropdownMenuSeparator />}
+            </div>
+          );
+        })}
       </DropdownMenuContent>
     </DropdownMenu>
   );

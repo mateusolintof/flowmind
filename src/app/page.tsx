@@ -1,6 +1,6 @@
 'use client';
 
-import { DnDProvider } from '@/hooks/useDnD';
+import { DnDProvider } from '@/hooks/drawing/useDnD';
 import { ResponsiveLayout } from '@/components/flow/ResponsiveLayout';
 import FlowCanvas from '@/components/flow/FlowCanvas';
 

@@ -21,11 +21,11 @@ import {
 } from '@xyflow/react';
 import '@xyflow/react/dist/style.css';
 
-import { useDnD } from '@/hooks/useDnD';
-import { generateNodeId, resetIdCounter } from '@/utils/idGenerator';
-import { useAutoSave } from '@/hooks/useAutoSave';
-import { useUndoRedo } from '@/hooks/useUndoRedo';
-import { useKeyboardShortcuts } from '@/hooks/useKeyboardShortcuts';
+import { useDnD } from '@/hooks/drawing/useDnD';
+import { generateNodeId, resetIdCounter } from '@/utils/diagram/idGenerator';
+import { useAutoSave } from '@/hooks/storage/useAutoSave';
+import { useUndoRedo } from '@/hooks/diagrams/useUndoRedo';
+import { useKeyboardShortcuts } from '@/hooks/diagrams/useKeyboardShortcuts';
 import { useFlowStore } from '@/store/flowStore';
 import { migrateLegacyStorage, loadDiagramById, listDiagrams, Diagram } from '@/lib/storage';
 import { toast } from 'sonner';
@@ -41,7 +41,7 @@ import DrawingOverlay from './DrawingOverlay';
 import { ZoomControls } from './ZoomControls';
 import { NODE_CONFIG } from '@/config/nodeTypes';
 import { FLOWCHART_NODE_CONFIG } from '@/config/flowchartNodeTypes';
-import { exportAsPng, FlowData } from '@/lib/export';
+import { exportAsPng, FlowData } from '@/lib/diagram';
 import { DiagramTemplate } from '@/config/templates';
 
 const initialNodes: Node[] = [

@@ -2,7 +2,7 @@
 
 import { memo } from 'react';
 import { NodeProps } from '@xyflow/react';
-import { getSvgPathFromStroke } from '@/utils/getSvgPathFromStroke';
+import { getSvgPathFromStroke } from '@/utils/drawing/getSvgPathFromStroke';
 
 const StrokeNode = ({ data, selected }: NodeProps) => {
     const path = getSvgPathFromStroke(data.points as number[][]);

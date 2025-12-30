@@ -18,7 +18,7 @@ import {
     ChevronDown,
 } from 'lucide-react';
 import { Node, Edge, Viewport } from '@xyflow/react';
-import { exportAsPng, exportAsSvg, exportAsJson, importFromJson, FlowData } from '@/lib/export';
+import { exportAsPng, exportAsSvg, exportAsJson, importFromJson, FlowData } from '@/lib/diagram';
 import { toast } from 'sonner';
 
 interface ExportMenuProps {

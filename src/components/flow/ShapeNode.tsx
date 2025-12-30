@@ -6,29 +6,12 @@ import { cn } from '@/lib/utils';
 import { useFlowStore } from '@/store/flowStore';
 import { SHAPE_COLORS } from '@/config/nodeColors';
 import { NODE_RESIZER_HANDLE_STYLE, NODE_RESIZER_LINE_STYLE } from './nodeStyles';
+import type { ShapeNodeData } from '@/types/flowNodes';
 import {
   Popover,
   PopoverContent,
   PopoverTrigger,
 } from '@/components/ui/popover';
-
-export type ShapeType = 'rectangle' | 'ellipse' | 'line' | 'arrow';
-
-export interface ShapeNodeData {
-  shapeType: ShapeType;
-  color?: string;
-  strokeWidth?: number;
-  fill?: boolean;
-  width?: number;
-  height?: number;
-  // For line/arrow
-  startX?: number;
-  startY?: number;
-  endX?: number;
-  endY?: number;
-  // Index signature for React Flow compatibility
-  [key: string]: unknown;
-}
 
 const ShapeNode = ({ data, selected, id }: NodeProps) => {
   const nodeData = data as ShapeNodeData;

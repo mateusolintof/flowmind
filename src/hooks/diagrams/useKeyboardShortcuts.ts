@@ -5,9 +5,10 @@ import { Node, Edge } from '@xyflow/react';
 import { useFlowStore } from '@/store/flowStore';
 import { useUndoRedo } from './useUndoRedo';
 import { useClipboard } from './useClipboard';
-import { generateNodeId } from '@/utils/idGenerator';
+import { generateNodeId } from '@/utils/diagram/idGenerator';
 import { toast } from 'sonner';
 import { DRAWING_TOOL_SHORTCUTS } from '@/config/drawingTools';
+import { COMMAND_SHORTCUTS, type CommandAction } from '@/config/shortcuts';
 
 interface UseKeyboardShortcutsProps {
   nodes: Node[];
@@ -119,39 +120,25 @@ export function useKeyboardShortcuts({
 
       // Cmd/Ctrl shortcuts (work even when typing)
       if (e.metaKey || e.ctrlKey) {
-        switch (e.key.toLowerCase()) {
-          case 'z':
-            e.preventDefault();
-            if (e.shiftKey) {
-              handleRedo();
-            } else {
-              handleUndo();
-            }
-            break;
-          case 's':
-            e.preventDefault();
-            onSave();
-            break;
-          case 'e':
-            e.preventDefault();
-            onExport();
-            break;
-          case 'd':
-            e.preventDefault();
-            handleDuplicate();
-            break;
-          case 'c':
-            e.preventDefault();
-            handleCopy();
-            break;
-          case 'x':
-            e.preventDefault();
-            handleCut();
-            break;
-          case 'v':
-            e.preventDefault();
-            handlePaste();
-            break;
+        const actionMap: Record<CommandAction, () => void> = {
+          undo: handleUndo,
+          redo: handleRedo,
+          save: onSave,
+          export: onExport,
+          duplicate: handleDuplicate,
+          copy: handleCopy,
+          cut: handleCut,
+          paste: handlePaste,
+        };
+
+        const key = e.key.toLowerCase();
+        const shortcut = COMMAND_SHORTCUTS.find((entry) =>
+          entry.key === key && (!!entry.shift === e.shiftKey)
+        );
+
+        if (shortcut) {
+          e.preventDefault();
+          actionMap[shortcut.action]?.();
         }
         return;
       }

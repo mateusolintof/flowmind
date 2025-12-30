@@ -336,7 +336,7 @@ interface ClipboardState {
 
 ```
 +-----------------------------------------------------+
-|                     storage.ts                       |
+|                     storage/                         |
 +-----------------------------------------------------+
 |                                                      |
 |  +-------------+         +---------------------+     |
@@ -490,6 +490,8 @@ Exporta/importa estado completo:
 ---
 
 ## Atalhos de Teclado
+
+Config central: `src/config/shortcuts.ts`
 
 ### Atalhos Gerais (Cmd/Ctrl + tecla)
 

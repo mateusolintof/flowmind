@@ -8,20 +8,13 @@ import { useFlowStore } from '@/store/flowStore';
 import { GENERIC_NODE_COLORS } from '@/config/nodeColors';
 import { GENERIC_NODE_ICONS } from '@/config/genericNode';
 import { NODE_RESIZER_HANDLE_STYLE, NODE_RESIZER_LINE_STYLE, getFlowHandleClassName } from './nodeStyles';
+import type { GenericNodeData } from '@/types/flowNodes';
 import {
   Popover,
   PopoverContent,
   PopoverTrigger,
 } from '@/components/ui/popover';
 import { Circle } from 'lucide-react';
-
-export interface GenericNodeData {
-  label: string;
-  description?: string;
-  icon?: string;
-  color?: string;
-  [key: string]: unknown;
-}
 
 const animationConfig = {
   initial: { opacity: 0, scale: 0.8 },

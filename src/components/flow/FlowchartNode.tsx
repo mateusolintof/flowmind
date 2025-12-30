@@ -15,10 +15,10 @@ import {
 import {
   FLOWCHART_NODE_CONFIG,
   FLOWCHART_VARIANTS,
-  type FlowchartNodeData,
   type FlowchartVariant,
   type FlowchartNodeType,
 } from '@/config/flowchartNodeTypes';
+import type { FlowchartNodeData } from '@/types/flowNodes';
 
 const animationConfig = {
   initial: { opacity: 0, scale: 0.8 },

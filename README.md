@@ -168,22 +168,35 @@ src/
 │   ├── nodeColors.ts        # Shared color palettes
 │   ├── genericNode.ts       # Generic node icon catalog
 │   ├── edgeStyles.ts        # Edge styles + label presets
+│   ├── shortcuts.ts         # Keyboard shortcut catalog
 │   └── templates.ts         # Pre-built diagram templates
 ├── hooks/
-│   ├── useAutoSave.ts       # Debounced auto-save logic
-│   ├── useUndoRedo.ts       # Undo/redo with Zustand
-│   ├── useClipboard.ts      # Copy/cut/paste operations
-│   ├── useKeyboardShortcuts.ts # All keyboard handlers
+│   ├── diagrams/            # Diagram editing hooks
+│   │   ├── useUndoRedo.ts
+│   │   ├── useClipboard.ts
+│   │   └── useKeyboardShortcuts.ts
+│   ├── storage/             # Storage/sync hooks
+│   │   ├── useAutoSave.ts
+│   │   └── useSyncStatus.ts
+│   ├── drawing/             # Drawing/drag hooks
+│   │   └── useDnD.tsx
 │   └── ...
+├── types/
+│   └── flowNodes.ts         # Shared node data types
 ├── store/
 │   ├── flowStore.ts         # Main UI state (Zustand)
 │   └── ...
 ├── lib/
-│   ├── storage.ts           # IndexedDB + Supabase sync
-│   ├── export.ts            # PNG/SVG/JSON export
-│   └── supabase.ts          # Supabase client
+│   ├── storage/             # IndexedDB + Supabase sync
+│   │   ├── index.ts         # Diagram CRUD + sync
+│   │   └── supabase.ts      # Supabase client
+│   └── diagram/             # Diagram export helpers
+│       └── index.ts
 └── utils/
-    └── idGenerator.ts       # Node ID generation
+    ├── diagram/
+    │   └── idGenerator.ts   # Node ID generation
+    └── drawing/
+        └── getSvgPathFromStroke.ts
 ```
 
 ## Templates

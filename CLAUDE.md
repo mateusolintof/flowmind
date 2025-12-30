@@ -59,7 +59,7 @@ Two-tier storage with offline-first approach:
 1. **IndexedDB** (via idb-keyval) - Primary local storage
 2. **Supabase** - Cloud sync for backup and cross-device access
 
-Key functions in `lib/storage.ts`:
+Key functions in `lib/storage`:
 - `saveDiagramState()` - Save nodes/edges/viewport
 - `loadDiagramState()` - Load diagram data
 - `syncToCloud()` - Sync to Supabase
@@ -91,17 +91,25 @@ Key functions in `lib/storage.ts`:
 | `config/nodeColors.ts` | Shared color palettes |
 | `config/genericNode.ts` | Generic node icon catalog |
 | `config/edgeStyles.ts` | Edge styles + label presets |
+| `config/shortcuts.ts` | Keyboard shortcut catalog |
 | `config/templates.ts` | Pre-built diagram templates |
+
+### Types
+
+| File | Purpose |
+|------|---------|
+| `types/flowNodes.ts` | Shared node data types |
 
 ### Hooks
 
 | File | Purpose |
 |------|---------|
-| `useKeyboardShortcuts.ts` | All keyboard handlers |
-| `useAutoSave.ts` | Debounced auto-save logic |
-| `useUndoRedo.ts` | Undo/redo with snapshots |
-| `useClipboard.ts` | Copy/cut/paste |
-| `useDnD.ts` | Drag-and-drop context |
+| `hooks/diagrams/useKeyboardShortcuts.ts` | All keyboard handlers |
+| `hooks/diagrams/useUndoRedo.ts` | Undo/redo with snapshots |
+| `hooks/diagrams/useClipboard.ts` | Copy/cut/paste |
+| `hooks/storage/useAutoSave.ts` | Debounced auto-save logic |
+| `hooks/storage/useSyncStatus.ts` | Sync/online status |
+| `hooks/drawing/useDnD.tsx` | Drag-and-drop context |
 
 ## Code Conventions
 
@@ -171,7 +179,7 @@ export const useDrawingTool = () => useFlowStore((s) => s.drawingTool);
 1. Add to `DrawingTool` type in `flowStore.ts`
 2. Add icon and config to `config/drawingTools.ts`
 3. Handle in `DrawingOverlay.tsx` drawing logic
-4. Add keyboard shortcut in `useKeyboardShortcuts.ts` (if not already covered by config)
+4. Add keyboard shortcut in `hooks/diagrams/useKeyboardShortcuts.ts` (if not already covered by config)
 
 ### Adding a New Template
 
@@ -254,8 +262,8 @@ src/
 │   ├── flow/      # Diagram-specific components
 │   └── ui/        # shadcn/ui components
 ├── config/        # Node types, templates
-├── hooks/         # Custom React hooks
+├── hooks/         # Custom React hooks (domain folders)
 ├── store/         # Zustand stores
-├── lib/           # Utilities (storage, export, supabase)
-└── utils/         # Small utilities
+├── lib/           # Utilities (storage, diagram)
+└── utils/         # Small utilities (diagram, drawing)
 ```

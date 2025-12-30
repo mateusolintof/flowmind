@@ -3,9 +3,9 @@
 import { memo, useState, useCallback, useMemo } from 'react';
 import { Node, Edge, useReactFlow } from '@xyflow/react';
 import { useFlowStore, useDrawingTool } from '@/store/flowStore';
-import { useUndoRedo } from '@/hooks/useUndoRedo';
-import { generateNodeId } from '@/utils/idGenerator';
-import type { ShapeNodeData } from './ShapeNode';
+import { useUndoRedo } from '@/hooks/diagrams/useUndoRedo';
+import { generateNodeId } from '@/utils/diagram/idGenerator';
+import type { ShapeNodeData } from '@/types/flowNodes';
 
 interface DrawingOverlayProps {
   nodes: Node[];

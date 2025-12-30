@@ -1,6 +1,6 @@
 'use client';
 
-import { useSyncStatus, SyncStatus } from '@/hooks/useSyncStatus';
+import { useSyncStatus, SyncStatus } from '@/hooks/storage/useSyncStatus';
 import { Cloud, CloudOff, Loader2, CheckCircle2, AlertCircle } from 'lucide-react';
 import {
     Tooltip,

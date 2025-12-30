@@ -8,6 +8,7 @@ import { Card } from '@/components/ui/card';
 import { motion } from 'framer-motion';
 import { useFlowStore } from '@/store/flowStore';
 import { NODE_RESIZER_HANDLE_STYLE, NODE_RESIZER_LINE_STYLE, getBaseHandleClassName } from './nodeStyles';
+import type { BaseNodeData } from '@/types/flowNodes';
 
 // Pre-computed animation config (outside component for stable reference)
 const animationConfig = {
@@ -17,6 +18,7 @@ const animationConfig = {
 };
 
 const BaseNode = ({ data, type, selected, id }: NodeProps) => {
+  const nodeData = data as BaseNodeData;
   const config = NODE_CONFIG[type as NodeType] || NODE_CONFIG.note;
   const Icon = config.icon;
   const { setNodes } = useReactFlow();
@@ -37,12 +39,12 @@ const BaseNode = ({ data, type, selected, id }: NodeProps) => {
 
   // Memoized style object to prevent re-renders
   const cardStyle = useMemo(() => {
-    if (!data.color) return undefined;
+    if (!nodeData.color) return undefined;
     return {
-      borderColor: data.color as string,
-      backgroundColor: `${data.color}20`, // 20 = ~12% opacity in hex
+      borderColor: nodeData.color as string,
+      backgroundColor: `${nodeData.color}20`, // 20 = ~12% opacity in hex
     };
-  }, [data.color]);
+  }, [nodeData.color]);
 
   const handleClassName = getBaseHandleClassName(selected);
 
@@ -83,7 +85,7 @@ const BaseNode = ({ data, type, selected, id }: NodeProps) => {
           <Icon className="h-8 w-8 opacity-80 shrink-0" />
           <textarea
             className="text-sm font-medium text-center bg-transparent border-none resize-none focus:outline-hidden w-full h-full nodrag cursor-text"
-            value={(data.label as string) || ''}
+            value={(nodeData.label as string) || ''}
             onChange={onLabelChange}
             placeholder="Label..."
             style={{ color: 'inherit' }}

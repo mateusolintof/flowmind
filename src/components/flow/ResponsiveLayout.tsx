@@ -13,7 +13,7 @@ import {
 import { Menu } from 'lucide-react';
 import Sidebar from './Sidebar';
 import OnboardingTour from './OnboardingTour';
-import { useDnD } from '@/hooks/useDnD';
+import { useDnD } from '@/hooks/drawing/useDnD';
 import { ALL_NODE_CONFIG, COLLAPSED_NODE_TYPES } from '@/config/nodeCatalog';
 
 // Context for sidebar state

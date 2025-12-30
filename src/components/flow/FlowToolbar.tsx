@@ -25,7 +25,7 @@ import { DiagramGuide } from './DiagramGuide';
 import DrawingToolPicker from './DrawingToolPicker';
 import HelpDialog from './HelpDialog';
 import { CustomEdgeData } from './CustomEdge';
-import { FlowData } from '@/lib/export';
+import { FlowData } from '@/lib/diagram';
 import { DiagramTemplate } from '@/config/templates';
 
 interface FlowToolbarProps {

@@ -12,6 +12,7 @@ import { Button } from '@/components/ui/button';
 import { HelpCircle, PlayCircle } from 'lucide-react';
 import { useOnboarding } from '@/hooks/useOnboarding';
 import { DRAWING_TOOLS } from '@/config/drawingTools';
+import { GENERAL_SHORTCUTS, MODE_SHORTCUTS } from '@/config/shortcuts';
 
 export default function HelpDialog() {
     const { startTour, resetTour } = useOnboarding();
@@ -84,15 +85,11 @@ export default function HelpDialog() {
                     <div className="space-y-2 border-t pt-4">
                         <h3 className="font-semibold text-sm">General Shortcuts</h3>
                         <div className="grid grid-cols-3 gap-2 text-xs text-muted-foreground">
-                            <div className="p-2 border rounded bg-muted/50"><kbd className="font-mono bg-background px-1 rounded">Cmd+S</kbd> Save</div>
-                            <div className="p-2 border rounded bg-muted/50"><kbd className="font-mono bg-background px-1 rounded">Cmd+E</kbd> Export</div>
-                            <div className="p-2 border rounded bg-muted/50"><kbd className="font-mono bg-background px-1 rounded">Cmd+D</kbd> Duplicate</div>
-                            <div className="p-2 border rounded bg-muted/50"><kbd className="font-mono bg-background px-1 rounded">Cmd+C</kbd> Copy</div>
-                            <div className="p-2 border rounded bg-muted/50"><kbd className="font-mono bg-background px-1 rounded">Cmd+X</kbd> Cut</div>
-                            <div className="p-2 border rounded bg-muted/50"><kbd className="font-mono bg-background px-1 rounded">Cmd+V</kbd> Paste</div>
-                            <div className="p-2 border rounded bg-muted/50"><kbd className="font-mono bg-background px-1 rounded">Cmd+Z</kbd> Undo</div>
-                            <div className="p-2 border rounded bg-muted/50"><kbd className="font-mono bg-background px-1 rounded">Cmd+Shift+Z</kbd> Redo</div>
-                            <div className="p-2 border rounded bg-muted/50"><kbd className="font-mono bg-background px-1 rounded">Del</kbd> Delete</div>
+                            {GENERAL_SHORTCUTS.map((shortcut) => (
+                                <div key={shortcut.display} className="p-2 border rounded bg-muted/50">
+                                    <kbd className="font-mono bg-background px-1 rounded">{shortcut.display}</kbd> {shortcut.label}
+                                </div>
+                            ))}
                         </div>
                     </div>
 
@@ -104,9 +101,11 @@ export default function HelpDialog() {
                                     <kbd className="font-mono bg-background px-1 rounded">{tool.shortcut}</kbd> {tool.label}
                                 </div>
                             ))}
-                            <div className="p-2 border rounded bg-muted/50"><kbd className="font-mono bg-background px-1 rounded">D</kbd> Toggle Draw</div>
-                            <div className="p-2 border rounded bg-muted/50"><kbd className="font-mono bg-background px-1 rounded">C</kbd> Colors</div>
-                            <div className="p-2 border rounded bg-muted/50"><kbd className="font-mono bg-background px-1 rounded">Esc</kbd> Exit Mode</div>
+                            {MODE_SHORTCUTS.map((shortcut) => (
+                                <div key={shortcut.display} className="p-2 border rounded bg-muted/50">
+                                    <kbd className="font-mono bg-background px-1 rounded">{shortcut.display}</kbd> {shortcut.label}
+                                </div>
+                            ))}
                         </div>
                     </div>
 

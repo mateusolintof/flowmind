@@ -146,16 +146,6 @@ export const FLOWCHART_NODE_CONFIG: Record<string, FlowchartNodeConfig> = {
 export type FlowchartNodeType = keyof typeof FLOWCHART_NODE_CONFIG;
 
 // Data structure for flowchart nodes
-export interface FlowchartNodeData {
-  label: string;
-  description?: string;
-  icon?: string;
-  variant?: FlowchartVariant;
-  color?: string; // Optional custom color override
-  // Index signature for React Flow compatibility
-  [key: string]: unknown;
-}
-
 // Icon map for dynamic icon rendering
 export const FLOWCHART_ICON_MAP: Record<string, LucideIcon> = {
   Play,

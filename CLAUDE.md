@@ -1,4 +1,4 @@
-# CLAUDE.md - AI Assistant Context
+# AGENTS.md - AI Assistant Context
 
 This file provides context for AI assistants working on the FlowMind codebase.
 

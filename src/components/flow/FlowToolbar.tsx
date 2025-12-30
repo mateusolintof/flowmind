@@ -75,35 +75,38 @@ function FlowToolbar({
   const colorPickerOpen = useFlowStore((s) => s.colorPickerOpen);
   const snapToGrid = useFlowStore((s) => s.snapToGrid);
   const drawingTool = useFlowStore((s) => s.drawingTool);
+  const dirtyCounter = useFlowStore((s) => s.dirtyCounter);
+  const isDirty = dirtyCounter > 0;
 
   // Get actions from store
   const setColorPickerOpen = useFlowStore((s) => s.setColorPickerOpen);
   const toggleSnapToGrid = useFlowStore((s) => s.toggleSnapToGrid);
 
   return (
-    <div className="h-12 border-b bg-background flex items-center px-2 gap-2 shrink-0 z-10">
+    <div className="min-h-12 border-b bg-background flex flex-wrap md:flex-nowrap items-center px-2 py-2 md:py-0 gap-2 shrink-0 z-10">
       {/* Left Section: Sidebar Toggle + Diagram Selector */}
-      <div className="flex items-center gap-2">
+      <div className="flex items-center gap-2 shrink-0">
         <Button
           size="sm"
           variant="ghost"
           onClick={() => setIsCollapsed(!isCollapsed)}
-          className="h-8 w-8 p-0"
+          className="h-8 w-8 p-0 hidden md:inline-flex"
           title={isCollapsed ? 'Show Sidebar' : 'Hide Sidebar'}
           aria-label={isCollapsed ? 'Show sidebar' : 'Hide sidebar'}
         >
           {isCollapsed ? <PanelLeft className="h-4 w-4" /> : <PanelLeftClose className="h-4 w-4" />}
         </Button>
-        <div className="w-[1px] h-6 bg-border" />
+        <div className="w-[1px] h-6 bg-border hidden md:block" />
         <DiagramManager
           currentDiagramId={currentDiagramId}
           currentDiagramName={currentDiagramName}
+          isDirty={isDirty}
           onDiagramChange={onDiagramChange}
         />
       </div>
 
       {/* Center Section: Tools */}
-      <div className="flex-1 flex items-center justify-center gap-2">
+      <div className="flex-1 flex flex-wrap items-center justify-center gap-2">
         {/* Undo/Redo */}
         <div className="bg-muted/50 border rounded-md flex items-center">
           <Button
@@ -181,11 +184,13 @@ function FlowToolbar({
       </div>
 
       {/* Right Section: Actions */}
-      <div className="flex items-center gap-2">
+      <div className="flex items-center gap-2 flex-wrap justify-end">
         <TemplateGallery onSelectTemplate={onSelectTemplate} />
         <DiagramGuide />
-        <div className="w-[1px] h-6 bg-border" />
-        <SyncStatusIndicator />
+        <div className="w-[1px] h-6 bg-border hidden sm:block" />
+        <div className="hidden sm:flex">
+          <SyncStatusIndicator />
+        </div>
         <Button
           size="sm"
           variant="outline"
@@ -194,7 +199,8 @@ function FlowToolbar({
           title="Save (Cmd+S)"
           aria-label="Save diagram"
         >
-          <Save className="h-3.5 w-3.5" /> Save
+          <Save className="h-3.5 w-3.5" />
+          <span className="hidden sm:inline">Save</span>
         </Button>
         <ExportMenu
           nodes={nodes}

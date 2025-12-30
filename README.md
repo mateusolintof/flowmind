@@ -42,6 +42,7 @@ A hybrid visual diagram editor for brainstorming, flowcharts, AI agent architect
 - **Custom Edge Styles** - Bezier, Step, Straight lines with colors and labels
 - **Edge Label Presets** - Success (green), Warning (yellow), Error (red), Info (blue)
 - **Zoom Controls** - Visual zoom in/out with percentage display
+- **Unsaved Indicator** - Dot next to the diagram name when there are pending changes
 - **Responsive Design** - Works on desktop and mobile with collapsible sidebar
 - **Dark/Light Mode** - System theme support
 
@@ -162,6 +163,7 @@ src/
 ├── config/
 │   ├── nodeTypes.ts         # AI Architecture node definitions
 │   ├── flowchartNodeTypes.ts # Flowchart node definitions
+│   ├── nodeCatalog.ts       # Sidebar categories + combined node catalog
 │   └── templates.ts         # Pre-built diagram templates
 ├── hooks/
 │   ├── useAutoSave.ts       # Debounced auto-save logic

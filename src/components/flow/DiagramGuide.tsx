@@ -35,9 +35,9 @@ export function DiagramGuide() {
     return (
         <Dialog open={open} onOpenChange={setOpen}>
             <DialogTrigger asChild>
-                <Button variant="outline" size="sm" className="gap-2 bg-background h-8">
+                <Button variant="outline" size="sm" className="gap-2 bg-background h-8" aria-label="Open guide">
                     <BookOpen className="h-4 w-4" />
-                    Guide
+                    <span className="hidden sm:inline">Guide</span>
                 </Button>
             </DialogTrigger>
             <DialogContent className="max-w-5xl max-h-[90vh] overflow-hidden flex flex-col">

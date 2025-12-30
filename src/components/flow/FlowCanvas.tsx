@@ -9,13 +9,15 @@ import {
   useEdgesState,
   MiniMap,
   Background,
-  Connection,
-  Edge,
+  type Connection,
+  type Edge,
   BackgroundVariant,
   useReactFlow,
-  Node,
-  getNodesBounds,
-  getViewportForBounds,
+  type Node,
+  type NodeTypes,
+  type EdgeTypes,
+  type NodeChange,
+  type EdgeChange,
 } from '@xyflow/react';
 import '@xyflow/react/dist/style.css';
 
@@ -39,7 +41,7 @@ import DrawingOverlay from './DrawingOverlay';
 import { ZoomControls } from './ZoomControls';
 import { NODE_CONFIG } from '@/config/nodeTypes';
 import { FLOWCHART_NODE_CONFIG } from '@/config/flowchartNodeTypes';
-import { FlowData } from '@/lib/export';
+import { exportAsPng, FlowData } from '@/lib/export';
 import { DiagramTemplate } from '@/config/templates';
 
 const initialNodes: Node[] = [
@@ -57,16 +59,17 @@ function Flow() {
   const [edges, setEdges, onEdgesChange] = useEdgesState<Edge>([]);
 
   const { type } = useDnD();
-  const { undo, redo, takeSnapshot, canUndo, canRedo } = useUndoRedo();
+  const { undo, takeSnapshot, canUndo, canRedo } = useUndoRedo();
   const { setViewport, getNodes, getViewport, screenToFlowPosition } = useReactFlow();
 
   // Get state from store
   const isDrawing = useFlowStore((s) => s.isDrawing);
   const selectedColor = useFlowStore((s) => s.selectedColor);
   const snapToGrid = useFlowStore((s) => s.snapToGrid);
-  const isDirty = useFlowStore((s) => s.isDirty);
+  const dirtyCounter = useFlowStore((s) => s.dirtyCounter);
   const currentDiagramId = useFlowStore((s) => s.currentDiagramId);
   const currentDiagramName = useFlowStore((s) => s.currentDiagramName);
+  const isDirty = dirtyCounter > 0;
 
   // Get actions from store
   const setSelectedColor = useFlowStore((s) => s.setSelectedColor);
@@ -75,7 +78,7 @@ function Flow() {
   const setCurrentDiagram = useFlowStore((s) => s.setCurrentDiagram);
 
   // Auto-save with debouncing and change detection
-  const { save } = useAutoSave(currentDiagramId, isDirty);
+  const { save } = useAutoSave(currentDiagramId, dirtyCounter);
 
   // Color change handler
   const onColorChange = useCallback((color: string) => {
@@ -99,8 +102,7 @@ function Flow() {
   // Manual save handler
   const handleSave = useCallback(async () => {
     await save();
-    markClean();
-  }, [save, markClean]);
+  }, [save]);
 
   // Export handler
   const onExport = useCallback(async () => {
@@ -109,49 +111,12 @@ function Flow() {
     const nodes = getNodes();
     if (nodes.length === 0) return;
 
-    const nodesBounds = getNodesBounds(nodes);
-    const imageWidth = nodesBounds.width || 1024;
-    const imageHeight = nodesBounds.height || 768;
-
-    const transform = getViewportForBounds(
-      nodesBounds,
-      imageWidth,
-      imageHeight,
-      0.5,
-      2,
-      0.1
-    );
-
-    const { toPng } = await import('html-to-image');
-
     try {
-      const dataUrl = await toPng(reactFlowWrapper.current, {
-        backgroundColor: '#ffffff',
-        width: imageWidth * 2,
-        height: imageHeight * 2,
-        style: {
-          width: `${imageWidth}px`,
-          height: `${imageHeight}px`,
-          transform: `translate(${transform.x}px, ${transform.y}px) scale(${transform.zoom})`,
-        },
-      });
-      const a = document.createElement('a');
-      a.setAttribute('download', 'flowmind-diagram.png');
-      a.setAttribute('href', dataUrl);
-      a.click();
+      await exportAsPng(reactFlowWrapper.current, nodes);
       toast.success('Diagram exported successfully');
     } catch (err) {
       console.error('Export failed', err);
-      try {
-        const dataUrl = await toPng(reactFlowWrapper.current, { backgroundColor: '#fff' });
-        const a = document.createElement('a');
-        a.setAttribute('download', 'flowmind-snapshot.png');
-        a.setAttribute('href', dataUrl);
-        a.click();
-        toast.success('Snapshot exported');
-      } catch (fallbackErr) {
-        toast.error('Export failed');
-      }
+      toast.error('Export failed');
     }
   }, [getNodes]);
 
@@ -236,21 +201,9 @@ function Flow() {
     return () => window.removeEventListener('beforeunload', handleBeforeUnload);
   }, [isDirty]);
 
-  // Fix React Flow background pointer events
-  useEffect(() => {
-    const style = document.createElement('style');
-    style.textContent = `
-      .react-flow__background { pointer-events: none !important; }
-      .react-flow__background * { pointer-events: none !important; }
-      .react-flow__panel { pointer-events: auto !important; z-index: 5 !important; }
-    `;
-    document.head.appendChild(style);
-    return () => { document.head.removeChild(style); };
-  }, []);
-
   // Define nodeTypes
-  const nodeTypes = useMemo(() => {
-    const types: Record<string, any> = {
+  const nodeTypes = useMemo<NodeTypes>(() => {
+    const types: NodeTypes = {
       stroke: StrokeNode,
       shape: ShapeNode,
       generic: GenericNode,
@@ -267,7 +220,7 @@ function Flow() {
   }, []);
 
   // Define edgeTypes
-  const edgeTypes = useMemo(() => ({
+  const edgeTypes = useMemo<EdgeTypes>(() => ({
     custom: CustomEdge,
   }), []);
 
@@ -384,21 +337,31 @@ function Flow() {
   }, [undo, nodes, edges, setNodes, setEdges, markDirty]);
 
   // Change handlers with snapshot for delete
-  const handleNodesChange = useCallback((changes: any[]) => {
+  const handleNodesChange = useCallback((changes: NodeChange<Node>[]) => {
     const hasDelete = changes.some((c) => c.type === 'remove');
     if (hasDelete) {
       takeSnapshot(nodes, edges);
+    }
+
+    const hasMeaningfulChange = changes.some((c) => c.type !== 'select');
+    if (hasMeaningfulChange) {
+      markDirty();
     }
     onNodesChange(changes);
-  }, [nodes, edges, takeSnapshot, onNodesChange]);
+  }, [nodes, edges, takeSnapshot, markDirty, onNodesChange]);
 
-  const handleEdgesChange = useCallback((changes: any[]) => {
+  const handleEdgesChange = useCallback((changes: EdgeChange<Edge>[]) => {
     const hasDelete = changes.some((c) => c.type === 'remove');
     if (hasDelete) {
       takeSnapshot(nodes, edges);
     }
+
+    const hasMeaningfulChange = changes.some((c) => c.type !== 'select');
+    if (hasMeaningfulChange) {
+      markDirty();
+    }
     onEdgesChange(changes);
-  }, [nodes, edges, takeSnapshot, onEdgesChange]);
+  }, [nodes, edges, takeSnapshot, markDirty, onEdgesChange]);
 
   return (
     <div className="flex-1 h-full w-full flex flex-col" data-onboarding="canvas">
@@ -442,6 +405,7 @@ function Flow() {
           onDrop={onDrop}
           onDragOver={onDragOver}
           onNodeDragStart={onNodeDragStart}
+          onMoveEnd={markDirty}
           fitView
           panOnDrag={!isDrawing}
           selectionOnDrag={!isDrawing}

@@ -1,15 +1,15 @@
 'use client';
 
 import { memo, useState, useCallback, useMemo } from 'react';
-import { Node, useReactFlow } from '@xyflow/react';
-import { useFlowStore, useDrawingTool, type DrawingTool } from '@/store/flowStore';
+import { Node, Edge, useReactFlow } from '@xyflow/react';
+import { useFlowStore, useDrawingTool } from '@/store/flowStore';
 import { useUndoRedo } from '@/hooks/useUndoRedo';
 import { generateNodeId } from '@/utils/idGenerator';
 import type { ShapeNodeData } from './ShapeNode';
 
 interface DrawingOverlayProps {
   nodes: Node[];
-  edges: any[];
+  edges: Edge[];
   setNodes: (fn: (nodes: Node[]) => Node[]) => void;
 }
 

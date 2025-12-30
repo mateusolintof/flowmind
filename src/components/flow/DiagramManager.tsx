@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useCallback } from 'react';
 import { Button } from '@/components/ui/button';
 import {
     DropdownMenu,
@@ -46,7 +46,6 @@ import {
     renameDiagram,
     deleteDiagram,
     duplicateDiagram,
-    getCurrentDiagramId,
     setCurrentDiagramId,
 } from '@/lib/storage';
 import { cn } from '@/lib/utils';
@@ -55,6 +54,7 @@ import { toast } from 'sonner';
 interface DiagramManagerProps {
     currentDiagramId: string | null;
     currentDiagramName: string;
+    isDirty?: boolean;
     onDiagramChange: (diagramId: string) => void;
     onDiagramsUpdate?: () => void;
 }
@@ -62,6 +62,7 @@ interface DiagramManagerProps {
 export function DiagramManager({
     currentDiagramId,
     currentDiagramName,
+    isDirty,
     onDiagramChange,
     onDiagramsUpdate,
 }: DiagramManagerProps) {
@@ -81,10 +82,6 @@ export function DiagramManager({
         const list = await listDiagrams();
         setDiagrams(list);
     }, []);
-
-    useEffect(() => {
-        loadDiagrams();
-    }, [loadDiagrams]);
 
     const handleCreateNew = async () => {
         const diagram = await createDiagram();
@@ -167,15 +164,32 @@ export function DiagramManager({
 
     return (
         <>
-            <DropdownMenu open={isOpen} onOpenChange={setIsOpen}>
+            <DropdownMenu
+                open={isOpen}
+                onOpenChange={(open) => {
+                    setIsOpen(open);
+                    if (open) {
+                        void loadDiagrams();
+                    }
+                }}
+            >
                 <DropdownMenuTrigger asChild>
                     <Button
                         variant="ghost"
                         size="sm"
-                        className="gap-2 max-w-[200px] h-8"
+                        className="gap-2 max-w-[160px] sm:max-w-[220px] h-8"
+                        title={isDirty ? `${currentDiagramName} (unsaved changes)` : currentDiagramName}
                     >
                         <FileText className="h-4 w-4 shrink-0" />
-                        <span className="truncate">{currentDiagramName}</span>
+                        <span className="flex items-center gap-1 min-w-0">
+                            {isDirty && (
+                                <span
+                                    className="h-1.5 w-1.5 rounded-full bg-amber-500"
+                                    aria-label="Unsaved changes"
+                                />
+                            )}
+                            <span className="truncate">{currentDiagramName}</span>
+                        </span>
                         <ChevronDown className="h-3 w-3 shrink-0 opacity-50" />
                     </Button>
                 </DropdownMenuTrigger>

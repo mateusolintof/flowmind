@@ -1,6 +1,7 @@
 import { useEffect, useCallback, useRef } from 'react';
 import { useReactFlow } from '@xyflow/react';
 import { saveDiagramById } from '@/lib/storage';
+import { useFlowStore } from '@/store/flowStore';
 
 const DEBOUNCE_MS = 2000; // Debounce saves by 2 seconds
 const AUTO_SAVE_INTERVAL_MS = 60000; // Auto-save every 60 seconds (increased from 30s)
@@ -8,36 +9,29 @@ const AUTO_SAVE_INTERVAL_MS = 60000; // Auto-save every 60 seconds (increased fr
 /**
  * Hook for auto-saving with debouncing and change detection.
  * - Debounces saves to avoid excessive writes
- * - Only saves when there are actual changes (hash comparison)
+ * - Saves until the diagram is clean (dirty counter returns to 0)
  * - Saves on visibility change (tab switch)
  * - Manual save always works regardless of debounce
  */
-export const useAutoSave = (currentDiagramId: string | null, isDirty: boolean) => {
+export const useAutoSave = (currentDiagramId: string | null, dirtyCounter: number) => {
   const { getNodes, getEdges, getViewport } = useReactFlow();
+  const markClean = useFlowStore((s) => s.markClean);
 
   const debounceRef = useRef<NodeJS.Timeout | null>(null);
-  const lastSaveHashRef = useRef<string>('');
   const isSavingRef = useRef(false);
+  const dirtyCounterRef = useRef(dirtyCounter);
 
-  // Compute a simple hash for change detection
-  const computeHash = useCallback(() => {
-    const nodes = getNodes();
-    const edges = getEdges();
-    const viewport = getViewport();
-    // Simple hash based on counts and viewport
-    return `${nodes.length}-${edges.length}-${viewport.x.toFixed(1)}-${viewport.y.toFixed(1)}-${viewport.zoom.toFixed(2)}`;
-  }, [getNodes, getEdges, getViewport]);
+  useEffect(() => {
+    dirtyCounterRef.current = dirtyCounter;
+  }, [dirtyCounter]);
 
   // Internal save function
-  const saveInternal = useCallback(async (showToast = false, force = false) => {
+  const saveInternal = useCallback(async (showToast = false) => {
     if (!currentDiagramId) return;
     if (isSavingRef.current) return; // Prevent concurrent saves
 
-    // Skip if no changes (unless forced)
-    if (!force && !isDirty) return;
-
-    const currentHash = computeHash();
-    if (!force && currentHash === lastSaveHashRef.current) return;
+    const dirtyAtStart = dirtyCounterRef.current;
+    if (dirtyAtStart === 0) return;
 
     isSavingRef.current = true;
 
@@ -49,11 +43,23 @@ export const useAutoSave = (currentDiagramId: string | null, isDirty: boolean) =
         updatedAt: Date.now(),
       };
       await saveDiagramById(currentDiagramId, flow, showToast);
-      lastSaveHashRef.current = currentHash;
     } finally {
       isSavingRef.current = false;
     }
-  }, [currentDiagramId, isDirty, computeHash, getNodes, getEdges, getViewport]);
+
+    // If nothing changed while we were saving, we can clear the dirty state.
+    if (dirtyCounterRef.current === dirtyAtStart) {
+      markClean();
+    } else {
+      // Changes happened while saving; schedule another pass.
+      if (debounceRef.current) {
+        clearTimeout(debounceRef.current);
+      }
+      debounceRef.current = setTimeout(() => {
+        void saveInternal(false);
+      }, DEBOUNCE_MS);
+    }
+  }, [currentDiagramId, getNodes, getEdges, getViewport, markClean]);
 
   // Debounced auto-save
   const debouncedSave = useCallback(() => {
@@ -62,7 +68,7 @@ export const useAutoSave = (currentDiagramId: string | null, isDirty: boolean) =
     }
 
     debounceRef.current = setTimeout(() => {
-      saveInternal(false, false);
+      void saveInternal(false);
     }, DEBOUNCE_MS);
   }, [saveInternal]);
 
@@ -73,12 +79,12 @@ export const useAutoSave = (currentDiagramId: string | null, isDirty: boolean) =
       clearTimeout(debounceRef.current);
       debounceRef.current = null;
     }
-    await saveInternal(true, true);
+    await saveInternal(true);
   }, [saveInternal]);
 
   // Trigger debounced save when dirty changes
   useEffect(() => {
-    if (isDirty && currentDiagramId) {
+    if (dirtyCounter > 0 && currentDiagramId) {
       debouncedSave();
     }
 
@@ -87,35 +93,38 @@ export const useAutoSave = (currentDiagramId: string | null, isDirty: boolean) =
         clearTimeout(debounceRef.current);
       }
     };
-  }, [isDirty, currentDiagramId, debouncedSave]);
+  }, [dirtyCounter, currentDiagramId, debouncedSave]);
 
   // Periodic save check (only if dirty)
   useEffect(() => {
     const interval = setInterval(() => {
-      if (isDirty && currentDiagramId) {
-        saveInternal(false, false);
+      if (dirtyCounterRef.current > 0 && currentDiagramId) {
+        void saveInternal(false);
       }
     }, AUTO_SAVE_INTERVAL_MS);
 
     return () => clearInterval(interval);
-  }, [isDirty, currentDiagramId, saveInternal]);
+  }, [currentDiagramId, saveInternal]);
 
   // Save on visibility change (tab switch)
   useEffect(() => {
     const handleVisibilityChange = () => {
-      if (document.visibilityState === 'hidden' && isDirty && currentDiagramId) {
+      if (document.visibilityState === 'hidden' && currentDiagramId) {
         // Immediate save when tab is hidden
-        saveInternal(false, true);
+        void saveInternal(false);
       }
     };
 
     document.addEventListener('visibilitychange', handleVisibilityChange);
     return () => document.removeEventListener('visibilitychange', handleVisibilityChange);
-  }, [isDirty, currentDiagramId, saveInternal]);
+  }, [currentDiagramId, saveInternal]);
 
-  // Reset hash when diagram changes
+  // Reset debounce when diagram changes
   useEffect(() => {
-    lastSaveHashRef.current = '';
+    if (debounceRef.current) {
+      clearTimeout(debounceRef.current);
+      debounceRef.current = null;
+    }
   }, [currentDiagramId]);
 
   return { save };

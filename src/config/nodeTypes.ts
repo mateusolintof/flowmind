@@ -2,7 +2,6 @@ import {
     Bot,
     Brain,
     Database,
-    Globe,
     HardDrive,
     Layout,
     MessageSquare,

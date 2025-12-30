@@ -6,6 +6,7 @@ import { NODE_CONFIG, NodeType } from '@/config/nodeTypes';
 import { cn } from '@/lib/utils';
 import { Card } from '@/components/ui/card';
 import { motion } from 'framer-motion';
+import { useFlowStore } from '@/store/flowStore';
 
 // Pre-computed animation config (outside component for stable reference)
 const animationConfig = {
@@ -18,6 +19,7 @@ const BaseNode = ({ data, type, selected, id }: NodeProps) => {
   const config = NODE_CONFIG[type as NodeType] || NODE_CONFIG.note;
   const Icon = config.icon;
   const { setNodes } = useReactFlow();
+  const markDirty = useFlowStore((s) => s.markDirty);
 
   // Memoized callback to prevent re-renders
   const onLabelChange = useCallback((e: React.ChangeEvent<HTMLTextAreaElement>) => {
@@ -29,7 +31,8 @@ const BaseNode = ({ data, type, selected, id }: NodeProps) => {
           : node
       )
     );
-  }, [id, setNodes]);
+    markDirty();
+  }, [id, setNodes, markDirty]);
 
   // Memoized style object to prevent re-renders
   const cardStyle = useMemo(() => {
@@ -39,6 +42,11 @@ const BaseNode = ({ data, type, selected, id }: NodeProps) => {
       backgroundColor: `${data.color}20`, // 20 = ~12% opacity in hex
     };
   }, [data.color]);
+
+  const handleClassName = cn(
+    'w-3 h-3 bg-muted-foreground border-2 border-background transition-opacity',
+    selected ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'
+  );
 
   return (
     <motion.div
@@ -56,7 +64,7 @@ const BaseNode = ({ data, type, selected, id }: NodeProps) => {
       />
       <Card
         className={cn(
-          'h-full min-w-[150px] min-h-[80px] shadow-sm border-2 transition-all flex flex-col',
+          'group h-full min-w-[150px] min-h-[80px] shadow-sm border-2 transition-all flex flex-col',
           !data.color && config.color,
           selected ? 'ring-2 ring-ring border-primary' : 'hover:border-primary/50'
         )}
@@ -65,12 +73,12 @@ const BaseNode = ({ data, type, selected, id }: NodeProps) => {
         <Handle
           type="target"
           position={Position.Top}
-          className="w-3 h-3 bg-muted-foreground border-2 border-background"
+          className={handleClassName}
         />
         <Handle
           type="target"
           position={Position.Left}
-          className="w-3 h-3 bg-muted-foreground border-2 border-background"
+          className={handleClassName}
         />
 
         <div className="flex flex-col items-center justify-center p-4 gap-2 h-full w-full">
@@ -90,12 +98,12 @@ const BaseNode = ({ data, type, selected, id }: NodeProps) => {
         <Handle
           type="source"
           position={Position.Right}
-          className="w-3 h-3 bg-muted-foreground border-2 border-background"
+          className={handleClassName}
         />
         <Handle
           type="source"
           position={Position.Bottom}
-          className="w-3 h-3 bg-muted-foreground border-2 border-background"
+          className={handleClassName}
         />
       </Card>
     </motion.div>

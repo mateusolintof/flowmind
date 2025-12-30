@@ -11,10 +11,10 @@ import {
     TooltipTrigger,
 } from '@/components/ui/tooltip';
 import { Menu } from 'lucide-react';
-import { Bot, Brain, Wrench, Database as MemoryIcon, MessageSquare, Monitor, Server, Database, Cloud, User, StickyNote, Square } from 'lucide-react';
 import Sidebar from './Sidebar';
 import OnboardingTour from './OnboardingTour';
 import { useDnD } from '@/hooks/useDnD';
+import { ALL_NODE_CONFIG, COLLAPSED_NODE_TYPES } from '@/config/nodeCatalog';
 
 // Context for sidebar state
 interface SidebarContextType {
@@ -29,22 +29,6 @@ const SidebarContext = createContext<SidebarContextType>({
 
 export const useSidebar = () => useContext(SidebarContext);
 
-// Mini icons for collapsed sidebar
-const MINI_ICONS = [
-    { type: 'agent', icon: Bot, label: 'Agent' },
-    { type: 'llm', icon: Brain, label: 'LLM' },
-    { type: 'tool', icon: Wrench, label: 'Tool' },
-    { type: 'memory', icon: MemoryIcon, label: 'Memory' },
-    { type: 'input', icon: MessageSquare, label: 'Input' },
-    { type: 'frontend', icon: Monitor, label: 'Frontend' },
-    { type: 'backend', icon: Server, label: 'Backend' },
-    { type: 'database', icon: Database, label: 'Database' },
-    { type: 'cloud', icon: Cloud, label: 'Cloud' },
-    { type: 'user', icon: User, label: 'User' },
-    { type: 'note', icon: StickyNote, label: 'Note' },
-    { type: 'container', icon: Square, label: 'Group' },
-];
-
 function CollapsedSidebar() {
     const { setType } = useDnD();
 
@@ -57,24 +41,29 @@ function CollapsedSidebar() {
     return (
         <TooltipProvider delayDuration={200}>
             <Card className="h-full w-12 border-r rounded-none bg-sidebar flex flex-col items-center py-2 gap-1 overflow-y-auto">
-                {MINI_ICONS.map(({ type, icon: Icon, label }) => (
-                    <Tooltip key={type}>
-                        <TooltipTrigger asChild>
-                            <div
-                                className="w-9 h-9 flex items-center justify-center rounded-md cursor-grab hover:bg-accent transition-colors"
-                                onDragStart={(e) => onDragStart(e, type)}
-                                draggable
-                                role="button"
-                                aria-label={`Drag ${label}`}
-                            >
-                                <Icon className="h-4 w-4 text-muted-foreground" />
-                            </div>
-                        </TooltipTrigger>
-                        <TooltipContent side="right">
-                            <p className="text-xs">{label}</p>
-                        </TooltipContent>
-                    </Tooltip>
-                ))}
+                {COLLAPSED_NODE_TYPES.map((type) => {
+                    const config = ALL_NODE_CONFIG[type as keyof typeof ALL_NODE_CONFIG];
+                    if (!config) return null;
+                    const Icon = config.icon;
+                    return (
+                        <Tooltip key={type}>
+                            <TooltipTrigger asChild>
+                                <div
+                                    className="w-9 h-9 flex items-center justify-center rounded-md cursor-grab hover:bg-accent transition-colors"
+                                    onDragStart={(e) => onDragStart(e, type)}
+                                    draggable
+                                    role="button"
+                                    aria-label={`Drag ${config.label}`}
+                                >
+                                    <Icon className="h-4 w-4 text-muted-foreground" />
+                                </div>
+                            </TooltipTrigger>
+                            <TooltipContent side="right">
+                                <p className="text-xs">{config.label}</p>
+                            </TooltipContent>
+                        </Tooltip>
+                    );
+                })}
             </Card>
         </TooltipProvider>
     );

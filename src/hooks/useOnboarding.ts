@@ -77,19 +77,25 @@ const STORAGE_KEY = 'flowmind-onboarding-completed';
 export function useOnboarding() {
     const [isActive, setIsActive] = useState(false);
     const [currentStep, setCurrentStep] = useState(0);
-    const [hasCompleted, setHasCompleted] = useState(true); // Default true to avoid flash
+    const [hasCompleted, setHasCompleted] = useState(() => {
+        if (typeof window === 'undefined') return true;
+        return Boolean(localStorage.getItem(STORAGE_KEY));
+    });
 
     // Check if onboarding was completed
     useEffect(() => {
-        const completed = localStorage.getItem(STORAGE_KEY);
-        if (!completed) {
-            setHasCompleted(false);
-            // Auto-start onboarding for new users after a short delay
-            const timer = setTimeout(() => {
-                setIsActive(true);
-            }, 1000);
-            return () => clearTimeout(timer);
-        }
+        if (hasCompleted) return;
+        // Auto-start onboarding for new users after a short delay
+        const timer = window.setTimeout(() => {
+            setIsActive(true);
+        }, 1000);
+        return () => window.clearTimeout(timer);
+    }, [hasCompleted]);
+
+    const completeTour = useCallback(() => {
+        setIsActive(false);
+        setHasCompleted(true);
+        localStorage.setItem(STORAGE_KEY, 'true');
     }, []);
 
     const startTour = useCallback(() => {
@@ -98,28 +104,20 @@ export function useOnboarding() {
     }, []);
 
     const nextStep = useCallback(() => {
-        if (currentStep < ONBOARDING_STEPS.length - 1) {
-            setCurrentStep((prev) => prev + 1);
-        } else {
+        setCurrentStep((prev) => {
+            if (prev < ONBOARDING_STEPS.length - 1) return prev + 1;
             completeTour();
-        }
-    }, [currentStep]);
+            return prev;
+        });
+    }, [completeTour]);
 
     const prevStep = useCallback(() => {
-        if (currentStep > 0) {
-            setCurrentStep((prev) => prev - 1);
-        }
-    }, [currentStep]);
+        setCurrentStep((prev) => Math.max(prev - 1, 0));
+    }, []);
 
     const skipTour = useCallback(() => {
         completeTour();
-    }, []);
-
-    const completeTour = useCallback(() => {
-        setIsActive(false);
-        setHasCompleted(true);
-        localStorage.setItem(STORAGE_KEY, 'true');
-    }, []);
+    }, [completeTour]);
 
     const resetTour = useCallback(() => {
         localStorage.removeItem(STORAGE_KEY);

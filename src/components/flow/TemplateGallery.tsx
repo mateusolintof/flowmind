@@ -50,9 +50,9 @@ export function TemplateGallery({ onSelectTemplate }: TemplateGalleryProps) {
     return (
         <Dialog open={open} onOpenChange={setOpen}>
             <DialogTrigger asChild>
-                <Button variant="outline" size="sm" className="gap-2 bg-background h-8">
+                <Button variant="outline" size="sm" className="gap-2 bg-background h-8" aria-label="Open templates">
                     <LayoutTemplate className="h-4 w-4" />
-                    Templates
+                    <span className="hidden sm:inline">Templates</span>
                 </Button>
             </DialogTrigger>
             <DialogContent className="max-w-4xl max-h-[85vh] overflow-hidden flex flex-col">
@@ -66,10 +66,10 @@ export function TemplateGallery({ onSelectTemplate }: TemplateGalleryProps) {
                     </DialogDescription>
                 </DialogHeader>
 
-                <div className="flex gap-4 flex-1 min-h-0">
+                <div className="flex flex-col md:flex-row gap-4 flex-1 min-h-0">
                     {/* Categories Sidebar */}
-                    <div className="w-48 shrink-0 border-r pr-4 overflow-y-auto">
-                        <div className="space-y-1">
+                    <div className="md:w-48 shrink-0 border-b md:border-b-0 md:border-r md:pr-4 pb-3 md:pb-0">
+                        <div className="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-1 gap-1">
                             {CATEGORIES.map((category) => {
                                 const Icon = category.icon;
                                 const count = category.id === 'all'
@@ -98,7 +98,7 @@ export function TemplateGallery({ onSelectTemplate }: TemplateGalleryProps) {
 
                     {/* Templates Grid */}
                     <ScrollArea className="flex-1">
-                        <div className="grid grid-cols-2 gap-4 pr-4">
+                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 pr-2 md:pr-4">
                             {filteredTemplates.map((template) => (
                                 <Card
                                     key={template.id}
@@ -122,7 +122,9 @@ export function TemplateGallery({ onSelectTemplate }: TemplateGalleryProps) {
                                     {/* Info */}
                                     <div className="flex items-start justify-between gap-2">
                                         <div className="min-w-0 flex-1">
-                                            <h3 className="font-medium text-sm truncate">{template.name}</h3>
+                                            <h3 className="font-medium text-sm leading-snug line-clamp-2">
+                                                {template.name}
+                                            </h3>
                                             <p className="text-xs text-muted-foreground mt-0.5 line-clamp-2">
                                                 {template.description}
                                             </p>
@@ -214,7 +216,7 @@ const TemplatePreview = memo(function TemplatePreview({ template }: { template: 
                     y1={line.y1}
                     x2={line.x2}
                     y2={line.y2}
-                    stroke="hsl(var(--muted-foreground))"
+                    stroke="var(--muted-foreground)"
                     strokeWidth={1}
                     opacity={0.4}
                 />
@@ -229,8 +231,8 @@ const TemplatePreview = memo(function TemplatePreview({ template }: { template: 
                     width={60}
                     height={30}
                     rx={4}
-                    fill="hsl(var(--card))"
-                    stroke="hsl(var(--border))"
+                    fill="var(--card)"
+                    stroke="var(--border)"
                     strokeWidth={1}
                 />
             ))}

@@ -57,7 +57,8 @@ export async function exportAsPng(
         });
 
         downloadDataUrl(dataUrl, `${filename}.png`);
-    } catch (error) {
+    } catch (err) {
+        console.error('PNG export failed, falling back to snapshot', err);
         // Fallback to simple screenshot
         const dataUrl = await toPng(element, { backgroundColor: '#fff' });
         downloadDataUrl(dataUrl, `${filename}-snapshot.png`);
@@ -105,7 +106,8 @@ export async function exportAsSvg(
         });
 
         downloadDataUrl(dataUrl, `${filename}.svg`);
-    } catch (error) {
+    } catch (err) {
+        console.error('SVG export failed, falling back to snapshot', err);
         // Fallback to simple screenshot
         const dataUrl = await toSvg(element, { backgroundColor: '#fff' });
         downloadDataUrl(dataUrl, `${filename}-snapshot.svg`);

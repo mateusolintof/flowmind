@@ -11,6 +11,7 @@ import {
     useReactFlow,
 } from '@xyflow/react';
 import { cn } from '@/lib/utils';
+import { useFlowStore } from '@/store/flowStore';
 
 export type EdgeStyleType = 'bezier' | 'smoothstep' | 'straight';
 
@@ -49,11 +50,12 @@ const CustomEdge = memo(({
 }: EdgeProps) => {
     const edgeData = data as CustomEdgeData | undefined;
     const { setEdges } = useReactFlow();
+    const markDirty = useFlowStore((s) => s.markDirty);
     const [isEditing, setIsEditing] = useState(false);
     const [editValue, setEditValue] = useState('');
 
     const styleType = edgeData?.styleType || 'bezier';
-    const color = edgeData?.color || 'hsl(var(--muted-foreground))';
+    const color = edgeData?.color || 'var(--muted-foreground)';
     const label = edgeData?.label || '';
     const animated = edgeData?.animated || false;
 
@@ -85,8 +87,9 @@ const CustomEdge = memo(({
                     : edge
             )
         );
+        markDirty();
         setIsEditing(false);
-    }, [id, editValue, setEdges]);
+    }, [id, editValue, setEdges, markDirty]);
 
     // Handle key press
     const handleKeyDown = useCallback((e: React.KeyboardEvent) => {
@@ -141,7 +144,7 @@ const CustomEdge = memo(({
 
     // Memoize style object to prevent re-renders
     const edgeStyle = useMemo(() => ({
-        stroke: selected ? 'hsl(var(--primary))' : color,
+        stroke: selected ? 'var(--primary)' : color,
         strokeWidth: selected ? 2.5 : 1.5,
     }), [selected, color]);
 

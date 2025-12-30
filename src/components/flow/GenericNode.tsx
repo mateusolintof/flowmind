@@ -4,6 +4,7 @@ import { memo, useCallback, useState } from 'react';
 import { Handle, Position, NodeProps, NodeResizer, useReactFlow } from '@xyflow/react';
 import { motion } from 'framer-motion';
 import { cn } from '@/lib/utils';
+import { useFlowStore } from '@/store/flowStore';
 import {
   Popover,
   PopoverContent,
@@ -188,6 +189,7 @@ const animationConfig = {
 const GenericNode = ({ data, selected, id }: NodeProps) => {
   const nodeData = data as GenericNodeData;
   const { setNodes } = useReactFlow();
+  const markDirty = useFlowStore((s) => s.markDirty);
 
   const [isEditing, setIsEditing] = useState(false);
   const [isEditingDesc, setIsEditingDesc] = useState(false);
@@ -206,7 +208,8 @@ const GenericNode = ({ data, selected, id }: NodeProps) => {
           : node
       )
     );
-  }, [id, setNodes]);
+    markDirty();
+  }, [id, setNodes, markDirty]);
 
   const onDescriptionChange = useCallback((e: React.ChangeEvent<HTMLTextAreaElement>) => {
     setNodes((nds) =>
@@ -216,7 +219,8 @@ const GenericNode = ({ data, selected, id }: NodeProps) => {
           : node
       )
     );
-  }, [id, setNodes]);
+    markDirty();
+  }, [id, setNodes, markDirty]);
 
   const onIconChange = useCallback((newIcon: string) => {
     setNodes((nds) =>
@@ -227,7 +231,8 @@ const GenericNode = ({ data, selected, id }: NodeProps) => {
       )
     );
     setShowIconPicker(false);
-  }, [id, setNodes]);
+    markDirty();
+  }, [id, setNodes, markDirty]);
 
   const onColorChange = useCallback((newColor: string) => {
     setNodes((nds) =>
@@ -238,7 +243,13 @@ const GenericNode = ({ data, selected, id }: NodeProps) => {
       )
     );
     setShowColorPicker(false);
-  }, [id, setNodes]);
+    markDirty();
+  }, [id, setNodes, markDirty]);
+
+  const handleClassName = cn(
+    '!w-3 !h-3 !bg-slate-400 !border-2 !border-white transition-opacity',
+    selected ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'
+  );
 
   return (
     <motion.div
@@ -269,22 +280,22 @@ const GenericNode = ({ data, selected, id }: NodeProps) => {
       <Handle
         type="target"
         position={Position.Top}
-        className="!w-3 !h-3 !bg-slate-400 !border-2 !border-white"
+        className={handleClassName}
       />
       <Handle
         type="target"
         position={Position.Left}
-        className="!w-3 !h-3 !bg-slate-400 !border-2 !border-white"
+        className={handleClassName}
       />
       <Handle
         type="source"
         position={Position.Right}
-        className="!w-3 !h-3 !bg-slate-400 !border-2 !border-white"
+        className={handleClassName}
       />
       <Handle
         type="source"
         position={Position.Bottom}
-        className="!w-3 !h-3 !bg-slate-400 !border-2 !border-white"
+        className={handleClassName}
       />
 
       {/* Content */}

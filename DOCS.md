@@ -125,6 +125,9 @@ Arquivos:
 | `note` | Nota ou comentario |
 | `container` | Agrupador visual |
 
+Catalogo e categorias do Sidebar ficam centralizados em:
+- `src/config/nodeCatalog.ts`
+
 ---
 
 ## Ferramentas de Desenho
@@ -179,7 +182,7 @@ Arquivo: `src/components/flow/StrokeNode.tsx`
 1. Usuario arrasta componente da Sidebar
 2. Solta no Canvas na posicao desejada
 3. Um novo node e criado com ID unico
-4. Estado e marcado como "dirty" (nao salvo)
+4. Contador de mudancas (dirtyCounter) e incrementado
 5. Auto-save dispara apos 2 segundos de inatividade
 
 ### 3. Conectando Componentes
@@ -211,6 +214,7 @@ Arquivo: `src/components/flow/StrokeNode.tsx`
 - Primeiro salva no IndexedDB (local)
 - Depois sincroniza com Supabase (cloud)
 - Indicador mostra status: idle -> syncing -> synced/error
+- Nome do diagrama mostra ponto quando ha mudancas nao salvas
 
 ---
 
@@ -277,7 +281,7 @@ interface FlowState {
   selectedColor: string;     // Cor selecionada
   colorPickerOpen: boolean;  // Color picker aberto
   snapToGrid: boolean;       // Snap to grid ativo
-  isDirty: boolean;          // Ha mudancas nao salvas
+  dirtyCounter: number;      // Contador de mudancas (isDirty = dirtyCounter > 0)
 
   // Diagram Metadata
   currentDiagramId: string | null;
@@ -440,15 +444,15 @@ Maximo de 30 estados para evitar consumo excessivo de memoria.
 ### Logica de Debouncing
 
 ```
-[Mudanca] -> [Espera 2s] -> [Verifica isDirty] -> [Salva]
+[Mudanca] -> [Espera 2s] -> [Verifica dirtyCounter>0] -> [Salva]
                 ^
         [Nova mudanca cancela timer anterior]
 ```
 
 ### Eventos que Disparam Save
 
-1. **Debounced (2s)** - Apos qualquer mudanca com isDirty=true
-2. **Periodico (60s)** - Verifica e salva se isDirty=true
+1. **Debounced (2s)** - Apos qualquer mudanca com dirtyCounter>0
+2. **Periodico (60s)** - Verifica e salva se dirtyCounter>0
 3. **Visibility Change** - Salva imediatamente ao mudar de aba
 4. **Manual** - Cmd+S ou botao Save
 

@@ -12,59 +12,8 @@ import {
     TooltipProvider,
     TooltipTrigger,
 } from '@/components/ui/tooltip';
-import { NODE_CONFIG, NodeType } from '@/config/nodeTypes';
-import { FLOWCHART_NODE_CONFIG, type FlowchartNodeType } from '@/config/flowchartNodeTypes';
-import { Search, X, Sparkles } from 'lucide-react';
-
-// Config for special nodes not in the standard configs
-const SPECIAL_NODE_CONFIG = {
-    generic: {
-        label: 'Free Node',
-        icon: Sparkles,
-        tooltip: 'Fully customizable node - pick any icon and color',
-        category: 'brainstorming' as const,
-    },
-} as const;
-
-// Combined config for all node types
-const ALL_NODE_CONFIG = { ...NODE_CONFIG, ...FLOWCHART_NODE_CONFIG, ...SPECIAL_NODE_CONFIG };
-type AllNodeType = NodeType | FlowchartNodeType | keyof typeof SPECIAL_NODE_CONFIG;
-
-// Module-level constant - never recreated
-const ALL_CATEGORIES = [
-    {
-        name: 'Brainstorming',
-        items: ['generic'] as AllNodeType[]
-    },
-    {
-        name: 'Flowchart',
-        items: [
-            'flowchart-start',
-            'flowchart-end',
-            'flowchart-process',
-            'flowchart-decision',
-            'flowchart-data',
-            'flowchart-io',
-            'flowchart-condition',
-            'flowchart-action',
-            'flowchart-result',
-            'flowchart-user',
-            'flowchart-system',
-        ] as AllNodeType[]
-    },
-    {
-        name: 'AI Agents',
-        items: ['agent', 'llm', 'tool', 'memory', 'input'] as AllNodeType[]
-    },
-    {
-        name: 'Architecture',
-        items: ['frontend', 'backend', 'database', 'cloud'] as AllNodeType[]
-    },
-    {
-        name: 'General',
-        items: ['user', 'note', 'container'] as AllNodeType[]
-    }
-] as const;
+import { Search, X } from 'lucide-react';
+import { ALL_NODE_CONFIG, NODE_CATEGORIES } from '@/config/nodeCatalog';
 
 interface SidebarProps {
     onItemSelect?: () => void;
@@ -83,10 +32,10 @@ function Sidebar({ onItemSelect }: SidebarProps = {}) {
 
     // Filter categories and items based on search query
     const categories = useMemo(() => {
-        if (!searchQuery.trim()) return ALL_CATEGORIES;
+        if (!searchQuery.trim()) return NODE_CATEGORIES;
 
         const query = searchQuery.toLowerCase();
-        return ALL_CATEGORIES
+        return NODE_CATEGORIES
             .map((cat) => ({
                 ...cat,
                 items: cat.items.filter((nodeType) => {
@@ -119,8 +68,10 @@ function Sidebar({ onItemSelect }: SidebarProps = {}) {
                         />
                         {searchQuery && (
                             <button
+                                type="button"
                                 onClick={() => setSearchQuery('')}
                                 className="absolute right-2.5 top-2 h-4 w-4 text-muted-foreground hover:text-foreground"
+                                aria-label="Clear search"
                             >
                                 <X className="h-4 w-4" />
                             </button>
@@ -134,7 +85,7 @@ function Sidebar({ onItemSelect }: SidebarProps = {}) {
                                 <h3 className="mb-3 text-xs font-medium text-muted-foreground uppercase tracking-wider">
                                     {cat.name}
                                 </h3>
-                                <div className="grid grid-cols-2 gap-2">
+                                <div className="grid grid-cols-2 gap-2 auto-rows-[1fr]">
                                     {cat.items.map((nodeType) => {
                                         const config = ALL_NODE_CONFIG[nodeType as keyof typeof ALL_NODE_CONFIG];
                                         if (!config) return null;
@@ -143,7 +94,7 @@ function Sidebar({ onItemSelect }: SidebarProps = {}) {
                                             <Tooltip key={nodeType}>
                                                 <TooltipTrigger asChild>
                                                     <div
-                                                        className="flex flex-col items-center justify-center gap-2 p-3 text-xs border rounded-md cursor-grab hover:bg-accent hover:text-accent-foreground transition-colors bg-card"
+                                                        className="group flex h-full min-h-[72px] flex-col items-center justify-center gap-2 rounded-md border bg-card p-3 text-xs transition-colors hover:bg-accent hover:text-accent-foreground cursor-grab"
                                                         onDragStart={(event) => onDragStart(event, nodeType)}
                                                         draggable
                                                         role="button"
@@ -151,7 +102,9 @@ function Sidebar({ onItemSelect }: SidebarProps = {}) {
                                                         tabIndex={0}
                                                     >
                                                         <Icon className="h-6 w-6 stroke-1" aria-hidden="true" />
-                                                        <span className="text-[10px] font-medium text-center leading-none">{config.label}</span>
+                                                        <span className="text-[11px] font-medium text-center leading-tight line-clamp-2">
+                                                            {config.label}
+                                                        </span>
                                                     </div>
                                                 </TooltipTrigger>
                                                 <TooltipContent side="right" className="max-w-[200px]">

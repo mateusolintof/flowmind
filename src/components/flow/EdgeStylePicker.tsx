@@ -112,7 +112,7 @@ export function EdgeStylePicker({ edgeData, onUpdate }: EdgeStylePickerProps) {
                                             : 'hover:scale-110'
                                     }`}
                                     style={{
-                                        backgroundColor: color.value || 'hsl(var(--muted-foreground))',
+                                        backgroundColor: color.value || 'var(--muted-foreground)',
                                     }}
                                     onClick={() => onUpdate({ color: color.value })}
                                     title={color.name}

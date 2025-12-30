@@ -11,7 +11,7 @@ import {
 } from '@/components/ui/dropdown-menu';
 import {
     Download,
-    Image,
+    Image as ImageIcon,
     FileCode2,
     FileJson,
     Upload,
@@ -43,7 +43,8 @@ export function ExportMenu({
         try {
             await exportAsPng(reactFlowWrapper.current, nodes);
             toast.success('Exported as PNG');
-        } catch (error) {
+        } catch (err) {
+            console.error('Failed to export PNG', err);
             toast.error('Failed to export PNG');
         }
     };
@@ -53,7 +54,8 @@ export function ExportMenu({
         try {
             await exportAsSvg(reactFlowWrapper.current, nodes);
             toast.success('Exported as SVG');
-        } catch (error) {
+        } catch (err) {
+            console.error('Failed to export SVG', err);
             toast.error('Failed to export SVG');
         }
     };
@@ -62,7 +64,8 @@ export function ExportMenu({
         try {
             exportAsJson({ nodes, edges, viewport });
             toast.success('Exported as JSON');
-        } catch (error) {
+        } catch (err) {
+            console.error('Failed to export JSON', err);
             toast.error('Failed to export JSON');
         }
     };
@@ -103,15 +106,16 @@ export function ExportMenu({
                         variant="outline"
                         className="gap-2 bg-background h-8"
                         title="Export/Import (Cmd+E)"
+                        aria-label="Export options"
                     >
                         <Download className="h-4 w-4" />
-                        Export
+                        <span className="hidden sm:inline">Export</span>
                         <ChevronDown className="h-3 w-3 opacity-50" />
                     </Button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end" className="w-48">
                     <DropdownMenuItem onClick={handleExportPng} className="gap-2 cursor-pointer">
-                        <Image className="h-4 w-4" />
+                        <ImageIcon className="h-4 w-4" />
                         Export as PNG
                     </DropdownMenuItem>
                     <DropdownMenuItem onClick={handleExportSvg} className="gap-2 cursor-pointer">

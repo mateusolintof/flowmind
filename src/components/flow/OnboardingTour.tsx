@@ -140,11 +140,6 @@ export default function OnboardingTour() {
     const [targetRect, setTargetRect] = useState<DOMRect | null>(null);
     const [tooltipPosition, setTooltipPosition] = useState<TooltipPosition | null>(null);
     const tooltipRef = useRef<HTMLDivElement>(null);
-    const [mounted, setMounted] = useState(false);
-
-    useEffect(() => {
-        setMounted(true);
-    }, []);
 
     // Find and track target element
     useEffect(() => {
@@ -190,7 +185,7 @@ export default function OnboardingTour() {
         setTooltipPosition(position);
     }, [targetRect, step]);
 
-    if (!mounted || !isActive || !step) return null;
+    if (!isActive || !step) return null;
 
     const isFirstStep = currentStep === 0;
     const isLastStep = currentStep === totalSteps - 1;

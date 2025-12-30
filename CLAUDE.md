@@ -86,6 +86,7 @@ Key functions in `lib/storage.ts`:
 |------|---------|
 | `config/nodeTypes.ts` | AI Architecture node definitions |
 | `config/flowchartNodeTypes.ts` | Flowchart node definitions with variants |
+| `config/nodeCatalog.ts` | Sidebar categories + combined node catalog |
 | `config/templates.ts` | Pre-built diagram templates |
 
 ### Hooks
@@ -159,7 +160,7 @@ export const useDrawingTool = () => useFlowStore((s) => s.drawingTool);
 1. Define config in appropriate file (`nodeTypes.ts` or `flowchartNodeTypes.ts`)
 2. Create component if needed (or reuse existing)
 3. Register in `FlowCanvas.tsx` nodeTypes memo
-4. Add to `Sidebar.tsx` categories
+4. Add to `config/nodeCatalog.ts` categories
 
 ### Adding a New Drawing Tool
 

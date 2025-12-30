@@ -37,7 +37,6 @@ export function useKeyboardShortcuts({
   const colorPickerOpen = useFlowStore((s) => s.colorPickerOpen);
   const toggleDrawing = useFlowStore((s) => s.toggleDrawing);
   const setColorPickerOpen = useFlowStore((s) => s.setColorPickerOpen);
-  const setDrawing = useFlowStore((s) => s.setDrawing);
   const setDrawingTool = useFlowStore((s) => s.setDrawingTool);
   const markDirty = useFlowStore((s) => s.markDirty);
 
@@ -109,7 +108,7 @@ export function useKeyboardShortcuts({
       markDirty();
       toast.success(`${pastedCount} node${pastedCount > 1 ? 's' : ''} pasted`);
     }
-  }, [takeSnapshot, paste, setNodes, setEdges, markDirty]);
+  }, [takeSnapshot, nodes, edges, paste, setNodes, setEdges, markDirty]);
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -221,7 +220,6 @@ export function useKeyboardShortcuts({
     colorPickerOpen,
     toggleDrawing,
     setColorPickerOpen,
-    setDrawing,
     setDrawingTool,
   ]);
 

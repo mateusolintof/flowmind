@@ -3,6 +3,7 @@
 import { memo, useMemo, useState, useCallback } from 'react';
 import { NodeProps, NodeResizer, Handle, Position, useReactFlow } from '@xyflow/react';
 import { cn } from '@/lib/utils';
+import { useFlowStore } from '@/store/flowStore';
 import {
   Popover,
   PopoverContent,
@@ -46,6 +47,7 @@ export interface ShapeNodeData {
 const ShapeNode = ({ data, selected, id }: NodeProps) => {
   const nodeData = data as ShapeNodeData;
   const { setNodes } = useReactFlow();
+  const markDirty = useFlowStore((s) => s.markDirty);
   const [showColorPicker, setShowColorPicker] = useState(false);
 
   const {
@@ -70,7 +72,8 @@ const ShapeNode = ({ data, selected, id }: NodeProps) => {
       )
     );
     setShowColorPicker(false);
-  }, [id, setNodes]);
+    markDirty();
+  }, [id, setNodes, markDirty]);
 
   const toggleFill = useCallback(() => {
     setNodes((nds) =>
@@ -80,7 +83,8 @@ const ShapeNode = ({ data, selected, id }: NodeProps) => {
           : node
       )
     );
-  }, [id, setNodes, fill]);
+    markDirty();
+  }, [id, setNodes, fill, markDirty]);
 
   // Render the appropriate shape
   const shapeElement = useMemo(() => {

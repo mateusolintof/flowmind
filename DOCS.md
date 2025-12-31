@@ -598,8 +598,21 @@ O sistema utiliza utilitários personalizados no `globals.css` para efeitos de v
 
 Esses efeitos são aplicados na Sidebar e painéis flutuantes para garantir legibilidade sobre o canvas enquanto mantém a imersão visual.
 
-### Arquitetura de Tema
-O projeto utiliza `next-themes` para gerenciamento robusto de temas (Light, Dark, System).
-- **Light Mode (Default)**: Paleta "Porcelain & Navy" para clareza e foco em produtividade.
-- **Dark Mode**: Paleta "Midnight Blue & Gold" para uma experiência visual premium e imersiva.
-- **Tipografia**: Fonte **Outfit** aplicada globalmente em títulos para consistência de marca, complementando a fonte Geist do Next.js.
+### Arquitetura de Tema (Primitive vs Semantic)
+O projeto adota uma arquitetura CSS robusta (DRY) dividida em duas camadas no `globals.css`:
+
+1.  **Primitives (`--p-*`)**:
+    - Definições puras de cor, independentes de contexto.
+    - Ex: `--p-light-bg`, `--p-dark-bg`, `--p-light-primary`.
+    - Fonte única de verdade para as paletas "Porcelain" e "Midnight".
+
+2.  **Semantics**:
+    - Variáveis de sistema (`--background`, `--foreground`) que apenas referenciam as Primitives.
+    - `:root` mapeia para Primitives Light.
+    - `.dark` mapeia para Primitives Dark.
+
+#### Tema Híbrido (Canvas Light)
+Para garantir a melhor experiência de desenho, o canvas utiliza um **Tema Híbrido**:
+- A interface (Sidebars, Toolbars) obedece ao tema do usuário (Light/Dark).
+- A área de desenho (`FlowCanvas`) utiliza a classe `.canvas-light-mode`.
+- Esta classe re-mapeia as variáveis semânticas para as **Primitives Light**, garantindo que o "papel" seja sempre branco, mesmo no Dark Mode, sem duplicação de códigos de cor.

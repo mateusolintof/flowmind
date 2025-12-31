@@ -387,7 +387,7 @@ function Flow() {
       />
 
       {/* Canvas Area - Always Light (Hybrid Theme) */}
-      <div className="flex-1 relative force-light-theme bg-background" ref={reactFlowWrapper}>
+      <div className="flex-1 relative canvas-light-mode bg-background" ref={reactFlowWrapper}>
         {/* Drawing Overlay */}
         <DrawingOverlay nodes={nodes} edges={edges} setNodes={setNodes} />
 

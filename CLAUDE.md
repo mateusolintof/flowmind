@@ -64,6 +64,20 @@ Key functions in `lib/storage`:
 - `loadDiagramState()` - Load diagram data
 - `syncToCloud()` - Sync to Supabase
 
+### 5. Design System & Theming
+
+The project uses a robust theming system built on `next-themes` and Tailwind CSS v4 variables:
+
+- **Theme Provider**: Wraps the app in `src/app/layout.tsx` to handle Light/Dark/System preference.
+- **Palettes**:
+  - **Light (Default)**: "Porcelain & Navy" (`:root` variables) - Optimized for clarity.
+  - **Dark**: "Midnight Blue & Gold" (`.dark` class) - Premium, immersive look.
+- **Typography**:
+  - **Headings**: `Outfit` (Google Font) for brand personality.
+  - **Body**: `Geist` for readability and code.
+- **Global Styles**: Defined in `src/app/globals.css` with single source of truth for variables.
+- **Effects**: Utility classes like `@utility glass-panel` and `@utility glow-effect` used for UI depth.
+
 ## Important Files
 
 ### Components

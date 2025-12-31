@@ -12,6 +12,7 @@ import {
 } from '@/components/ui/tooltip';
 import { Menu } from 'lucide-react';
 import Image from 'next/image';
+import { ModeToggle } from '@/components/ui/mode-toggle';
 import Sidebar from './Sidebar';
 import OnboardingTour from './OnboardingTour';
 import { useDnD } from '@/hooks/drawing/useDnD';
@@ -117,7 +118,10 @@ export function ResponsiveLayout({ children }: { children: React.ReactNode }) {
                         </Sheet>
                         <div className="flex items-center gap-2">
                             <Image src="/logo.png" alt="FlowMind Logo" width={24} height={24} className="w-6 h-6 object-contain" />
-                            <span className="font-bold text-base">FlowMind</span>
+                            <span className="font-bold text-base font-[family-name:var(--font-outfit)]">FlowMind</span>
+                        </div>
+                        <div className="ml-auto">
+                            <ModeToggle />
                         </div>
                     </div>
                     {/* Canvas */}

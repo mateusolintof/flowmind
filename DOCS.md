@@ -599,4 +599,7 @@ O sistema utiliza utilitários personalizados no `globals.css` para efeitos de v
 Esses efeitos são aplicados na Sidebar e painéis flutuantes para garantir legibilidade sobre o canvas enquanto mantém a imersão visual.
 
 ### Arquitetura de Tema
-O projeto adota uma abordagem **Dark-First**. As variáveis de cor do tema Premium são definidas diretamente no seletor `:root` em `src/app/globals.css`, funcionando como a única fonte de verdade para a estilização. Isso garante consistência visual e elimina duplicidade de código entre modos de sistema.
+O projeto utiliza `next-themes` para gerenciamento robusto de temas (Light, Dark, System).
+- **Light Mode (Default)**: Paleta "Porcelain & Navy" para clareza e foco em produtividade.
+- **Dark Mode**: Paleta "Midnight Blue & Gold" para uma experiência visual premium e imersiva.
+- **Tipografia**: Fonte **Outfit** aplicada globalmente em títulos para consistência de marca, complementando a fonte Geist do Next.js.

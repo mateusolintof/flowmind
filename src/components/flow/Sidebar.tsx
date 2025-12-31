@@ -16,6 +16,7 @@ import { Search, X } from 'lucide-react';
 import { ALL_NODE_CONFIG, NODE_CATEGORIES } from '@/config/nodeCatalog';
 
 import Image from 'next/image';
+import { ModeToggle } from '@/components/ui/mode-toggle';
 
 interface SidebarProps {
     onItemSelect?: () => void;
@@ -56,9 +57,14 @@ function Sidebar({ onItemSelect }: SidebarProps = {}) {
     return (
         <TooltipProvider delayDuration={300}>
             <Card className="h-full w-60 border-r border-white/10 rounded-none bg-sidebar/60 backdrop-blur-xl text-sidebar-foreground flex flex-col pointer-events-auto z-50 overflow-hidden shadow-2xl" data-onboarding="sidebar">
-                <div className="h-12 px-4 flex items-center border-b shrink-0 gap-2">
-                    <Image src="/logo.png" alt="FlowMind Logo" width={24} height={24} className="w-6 h-6 object-contain" />
-                    <span className="font-bold text-lg tracking-tight">FlowMind</span>
+                <div className="h-14 px-4 flex items-center justify-between border-b border-white/10 shrink-0 gap-2">
+                    <div className="flex items-center gap-2">
+                        <Image src="/logo.png" alt="FlowMind Logo" width={28} height={28} className="w-7 h-7 object-contain drop-shadow-md" />
+                        <span className="font-bold text-lg tracking-tight font-[family-name:var(--font-outfit)] bg-clip-text text-transparent bg-gradient-to-r from-foreground to-foreground/70">
+                            FlowMind
+                        </span>
+                    </div>
+                    <ModeToggle />
                 </div>
                 <div className="p-3" data-onboarding="search">
                     <div className="relative">

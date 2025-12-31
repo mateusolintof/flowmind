@@ -7,7 +7,56 @@
 }
 
 :root {
-  /* Premium Midnight Blue & Gold Palette - Applied as Default */
+  /* Premium Light Mode (Porcelain & Navy) */
+  --background: oklch(0.99 0.005 260);
+  /* Porcelain White */
+  --foreground: oklch(0.20 0.03 260);
+  /* Deep Navy Grey */
+  --card: oklch(1 0 0);
+  /* Pure White */
+  --card-foreground: oklch(0.20 0.03 260);
+  --popover: oklch(1 0 0);
+  --popover-foreground: oklch(0.20 0.03 260);
+  --primary: oklch(0.25 0.05 260);
+  /* Midnight Blue (for high contrast text/actions) */
+  --primary-foreground: oklch(0.98 0.01 260);
+  --secondary: oklch(0.96 0.01 260);
+  /* Light Cool Grey */
+  --secondary-foreground: oklch(0.25 0.05 260);
+  --muted: oklch(0.96 0.01 260);
+  --muted-foreground: oklch(0.55 0.02 260);
+  --accent: oklch(0.96 0.01 260);
+  --accent-foreground: oklch(0.25 0.05 260);
+  --destructive: oklch(0.577 0.245 27.325);
+  --destructive-foreground: oklch(0.98 0 0);
+  --border: oklch(0.92 0.01 260);
+  --input: oklch(0.92 0.01 260);
+  --ring: oklch(0.25 0.05 260);
+  /* Navy Ring */
+  --chart-1: oklch(0.25 0.05 260);
+  /* Navy */
+  --chart-2: oklch(0.75 0.15 85);
+  /* Gold */
+  --chart-3: oklch(0.4 0.15 200);
+  /* Teal */
+  --chart-4: oklch(0.6 0.18 250);
+  /* Blue */
+  --chart-5: oklch(0.8 0.10 85);
+  /* Light Gold */
+  --radius: 0.625rem;
+  --sidebar: oklch(0.98 0.01 260);
+  /* Off-white sidebar */
+  --sidebar-foreground: oklch(0.20 0.03 260);
+  --sidebar-primary: oklch(0.25 0.05 260);
+  --sidebar-primary-foreground: oklch(0.98 0.01 260);
+  --sidebar-accent: oklch(0.95 0.01 260);
+  --sidebar-accent-foreground: oklch(0.25 0.05 260);
+  --sidebar-border: oklch(0.90 0.01 260);
+  --sidebar-ring: oklch(0.25 0.05 260);
+}
+
+.dark {
+  /* Premium Midnight Blue & Gold Palette */
   --background: oklch(0.18 0.04 260);
   /* Deep Midnight Blue */
   --foreground: oklch(0.95 0.01 260);
@@ -47,7 +96,6 @@
   /* Cyan */
   --chart-5: oklch(0.8 0.10 85);
   /* Light Gold */
-  --radius: 0.625rem;
   --sidebar: oklch(0.15 0.04 260);
   /* Darker sidebar */
   --sidebar-foreground: oklch(0.95 0.01 260);
@@ -58,8 +106,6 @@
   --sidebar-border: oklch(0.30 0.06 260);
   --sidebar-ring: oklch(0.75 0.15 85);
 }
-
-
 
 @theme inline {
   --color-background: var(--background);
@@ -106,7 +152,17 @@
   }
 
   body {
-    @apply bg-background text-foreground;
+    @apply bg-background text-foreground font-sans;
+  }
+
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6 {
+    font-family: var(--font-outfit), sans-serif;
+    @apply tracking-tight;
   }
 }
 
@@ -127,6 +183,7 @@ svg.react-flow__background>* {
 
 .react-flow__panel>* {
   pointer-events: auto !important;
+  position: relative !important;
 }
 
 /* Premium Effects Utilities */

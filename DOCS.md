@@ -597,3 +597,6 @@ O sistema utiliza utilitários personalizados no `globals.css` para efeitos de v
 | `.glow-text` | Brilho suave no texto para títulos ou destaques |
 
 Esses efeitos são aplicados na Sidebar e painéis flutuantes para garantir legibilidade sobre o canvas enquanto mantém a imersão visual.
+
+### Arquitetura de Tema
+O projeto adota uma abordagem **Dark-First**. As variáveis de cor do tema Premium são definidas diretamente no seletor `:root` em `src/app/globals.css`, funcionando como a única fonte de verdade para a estilização. Isso garante consistência visual e elimina duplicidade de código entre modos de sistema.

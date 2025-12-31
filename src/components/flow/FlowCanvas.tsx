@@ -386,8 +386,8 @@ function Flow() {
         onImport={handleImport}
       />
 
-      {/* Canvas Area */}
-      <div className="flex-1 relative" ref={reactFlowWrapper}>
+      {/* Canvas Area - Always Light (Hybrid Theme) */}
+      <div className="flex-1 relative force-light-theme" ref={reactFlowWrapper}>
         {/* Drawing Overlay */}
         <DrawingOverlay nodes={nodes} edges={edges} setNodes={setNodes} />
 

@@ -75,7 +75,11 @@ The project uses a robust theming system built on `next-themes` and Tailwind CSS
 - **Typography**:
   - **Headings**: `Outfit` (Google Font) for brand personality.
   - **Body**: `Geist` for readability and code.
-- **Global Styles**: Defined in `src/app/globals.css` with single source of truth for variables.
+- **Global Styles**: Defined in `src/app/globals.css` using a **Primitive vs Semantic** architecture:
+  - **Primitives**: `--p-light-*` and `--p-dark-*` (definitions).
+  - **Semantics**: Standard shadcn vars (`--background`) mapped to primitives.
+  - **Do NOT hardcode colors**. Always use semantic variables.
+- **Hybrid Canvas**: The `.canvas-light-mode` utility class forces light primitives on the canvas container, even in dark mode.
 - **Effects**: Utility classes like `@utility glass-panel` and `@utility glow-effect` used for UI depth.
 
 ## Important Files

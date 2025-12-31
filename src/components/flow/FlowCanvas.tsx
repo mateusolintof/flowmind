@@ -387,7 +387,7 @@ function Flow() {
       />
 
       {/* Canvas Area - Always Light (Hybrid Theme) */}
-      <div className="flex-1 relative force-light-theme" ref={reactFlowWrapper}>
+      <div className="flex-1 relative force-light-theme bg-background" ref={reactFlowWrapper}>
         {/* Drawing Overlay */}
         <DrawingOverlay nodes={nodes} edges={edges} setNodes={setNodes} />
 
@@ -412,9 +412,15 @@ function Flow() {
           nodesDraggable={!isDrawing}
           snapToGrid={snapToGrid}
           snapGrid={[12, 12]}
-          className="bg-background"
+          className="!bg-transparent"
         >
-          <Background variant={BackgroundVariant.Dots} gap={12} size={1} style={{ pointerEvents: 'none' }} />
+          <Background
+            variant={BackgroundVariant.Dots}
+            gap={12}
+            size={1}
+            color="#C7C7C7" /* Explicit light-grey for visibility on white */
+            style={{ pointerEvents: 'none' }}
+          />
 
           {/* Zoom Controls - Bottom Left */}
           <div className="absolute left-4 bottom-4 z-10" data-onboarding="zoom-controls">

@@ -113,7 +113,7 @@ export function ResponsiveLayout({ children }: { children: React.ReactNode }) {
                                 </Button>
                             </SheetTrigger>
                             <SheetContent side="left" className="p-0 w-64">
-                                <Sidebar onItemSelect={() => setIsOpen(false)} />
+                                <Sidebar onItemSelect={() => setIsOpen(false)} showModeToggle={false} />
                             </SheetContent>
                         </Sheet>
                         <div className="flex items-center gap-2">

@@ -20,9 +20,10 @@ import { ModeToggle } from '@/components/ui/mode-toggle';
 
 interface SidebarProps {
     onItemSelect?: () => void;
+    showModeToggle?: boolean;
 }
 
-function Sidebar({ onItemSelect }: SidebarProps = {}) {
+function Sidebar({ onItemSelect, showModeToggle = true }: SidebarProps = {}) {
     const { setType } = useDnD();
     const [searchQuery, setSearchQuery] = useState('');
 
@@ -64,7 +65,7 @@ function Sidebar({ onItemSelect }: SidebarProps = {}) {
                             FlowMind
                         </span>
                     </div>
-                    <ModeToggle />
+                    {showModeToggle ? <ModeToggle /> : null}
                 </div>
                 <div className="p-3" data-onboarding="search">
                     <div className="relative">

@@ -42,7 +42,7 @@ import DrawingOverlay from './DrawingOverlay';
 import { ZoomControls } from './ZoomControls';
 import { NODE_CONFIG } from '@/config/nodeTypes';
 import { FLOWCHART_NODE_CONFIG, type FlowchartNodeType } from '@/config/flowchartNodeTypes';
-import { exportAsPng, FlowData } from '@/lib/diagram';
+import { exportAsPng, FlowData, applyAutoLayout } from '@/lib/diagram';
 import { DiagramTemplate } from '@/config/templates';
 import { DiscoveryPanel } from '@/components/discovery';
 
@@ -147,23 +147,43 @@ function Flow() {
   }, [nodes, edges, takeSnapshot, setNodes, setEdges, markDirty, fitView]);
 
   // AI Discovery diagram generation handler
-  const handleAIDiagramGenerated = useCallback((newNodes: unknown[], newEdges: unknown[]) => {
+  const handleAIDiagramGenerated = useCallback(async (newNodes: unknown[], newEdges: unknown[]) => {
     takeSnapshot(nodes, edges);
-    // Cast and validate the nodes/edges from AI
-    const typedNodes = (newNodes as Node[]).map((node) => ({
-      ...node,
-      id: generateNodeId(),
-    }));
+
+    // Generate new IDs for nodes and create ID mapping for edges
+    const idMap = new Map<string, string>();
+    const typedNodes = (newNodes as Node[]).map((node) => {
+      const newId = generateNodeId();
+      idMap.set(node.id, newId);
+      return {
+        ...node,
+        id: newId,
+      };
+    });
+
+    // Update edge references to new IDs
     const typedEdges = (newEdges as Edge[]).map((edge, i) => ({
       ...edge,
       id: `ai-edge-${i}`,
+      source: idMap.get(edge.source) || edge.source,
+      target: idMap.get(edge.target) || edge.target,
     }));
-    setNodes((nds) => [...nds, ...typedNodes]);
+
+    // Apply auto-layout for better visual organization
+    const layoutedNodes = await applyAutoLayout(typedNodes, typedEdges, {
+      direction: 'TB',
+      nodeWidth: 180,
+      nodeHeight: 80,
+      rankSep: 100,
+      nodeSep: 60,
+    });
+
+    setNodes((nds) => [...nds, ...layoutedNodes]);
     setEdges((eds) => [...eds, ...typedEdges]);
-    resetIdCounter([...nodes, ...typedNodes]);
+    resetIdCounter([...nodes, ...layoutedNodes]);
     markDirty();
     // Fit view to show the new diagram
-    setTimeout(() => fitView({ padding: 0.2 }), 50);
+    setTimeout(() => fitView({ padding: 0.2 }), 100);
   }, [nodes, edges, takeSnapshot, setNodes, setEdges, markDirty, fitView]);
 
   // Load diagram by ID

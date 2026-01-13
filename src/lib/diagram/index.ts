@@ -199,3 +199,72 @@ function downloadDataUrl(dataUrl: string, filename: string): void {
     link.href = dataUrl;
     link.click();
 }
+
+/**
+ * Apply auto-layout to nodes using Dagre algorithm
+ * Returns nodes with updated positions for a hierarchical layout
+ */
+export async function applyAutoLayout(
+    nodes: Node[],
+    edges: { source: string; target: string }[],
+    options: {
+        direction?: 'TB' | 'BT' | 'LR' | 'RL';
+        nodeWidth?: number;
+        nodeHeight?: number;
+        rankSep?: number;
+        nodeSep?: number;
+    } = {}
+): Promise<Node[]> {
+    // Lazy load dagre to reduce bundle size
+    const dagre = await import('dagre');
+
+    const {
+        direction = 'TB',
+        nodeWidth = 180,
+        nodeHeight = 80,
+        rankSep = 80,
+        nodeSep = 50,
+    } = options;
+
+    const dagreGraph = new dagre.graphlib.Graph();
+    dagreGraph.setDefaultEdgeLabel(() => ({}));
+
+    // Configure the graph
+    dagreGraph.setGraph({
+        rankdir: direction,
+        ranksep: rankSep,
+        nodesep: nodeSep,
+    });
+
+    // Add nodes to the graph
+    nodes.forEach((node) => {
+        dagreGraph.setNode(node.id, {
+            width: nodeWidth,
+            height: nodeHeight,
+        });
+    });
+
+    // Add edges to the graph
+    edges.forEach((edge) => {
+        dagreGraph.setEdge(edge.source, edge.target);
+    });
+
+    // Run the layout algorithm
+    dagre.layout(dagreGraph);
+
+    // Apply the calculated positions to nodes
+    return nodes.map((node) => {
+        const nodeWithPosition = dagreGraph.node(node.id);
+        if (nodeWithPosition) {
+            return {
+                ...node,
+                position: {
+                    // Dagre returns center positions, we need top-left
+                    x: nodeWithPosition.x - nodeWidth / 2,
+                    y: nodeWithPosition.y - nodeHeight / 2,
+                },
+            };
+        }
+        return node;
+    });
+}

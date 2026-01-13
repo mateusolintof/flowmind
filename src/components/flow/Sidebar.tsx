@@ -12,7 +12,9 @@ import {
     TooltipProvider,
     TooltipTrigger,
 } from '@/components/ui/tooltip';
-import { Search, X } from 'lucide-react';
+import { Search, X, SparklesIcon } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { useDiscoveryStore } from '@/store/discoveryStore';
 import { ALL_NODE_CONFIG, NODE_CATEGORIES } from '@/config/nodeCatalog';
 
 import Image from 'next/image';
@@ -26,6 +28,7 @@ interface SidebarProps {
 function Sidebar({ onItemSelect, showModeToggle = true }: SidebarProps = {}) {
     const { setType } = useDnD();
     const [searchQuery, setSearchQuery] = useState('');
+    const openDiscovery = useDiscoveryStore((s) => s.open);
 
     // Memoized drag handler
     const onDragStart = useCallback((event: React.DragEvent, nodeType: string) => {
@@ -88,6 +91,17 @@ function Sidebar({ onItemSelect, showModeToggle = true }: SidebarProps = {}) {
                         )}
                     </div>
                 </div>
+                <div className="px-3 pb-3">
+                    <Button
+                        onClick={openDiscovery}
+                        className="w-full gap-2 bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70"
+                        data-onboarding="ai-discovery"
+                    >
+                        <SparklesIcon className="h-4 w-4" />
+                        AI Discovery
+                    </Button>
+                </div>
+                <Separator />
                 <ScrollArea className="flex-1 min-h-0">
                     <div className="p-4 gap-6 flex flex-col pb-2">
                         {categories.map((cat) => (

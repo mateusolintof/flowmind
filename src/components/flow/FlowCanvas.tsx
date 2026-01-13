@@ -44,6 +44,7 @@ import { NODE_CONFIG } from '@/config/nodeTypes';
 import { FLOWCHART_NODE_CONFIG, type FlowchartNodeType } from '@/config/flowchartNodeTypes';
 import { exportAsPng, FlowData } from '@/lib/diagram';
 import { DiagramTemplate } from '@/config/templates';
+import { DiscoveryPanel } from '@/components/discovery';
 
 const initialNodes: Node[] = [
   {
@@ -142,6 +143,26 @@ function Flow() {
     markDirty();
     toast.success(`Template "${template.name}" loaded`);
     // Ajustar viewport para mostrar todos os nodes do template
+    setTimeout(() => fitView({ padding: 0.2 }), 50);
+  }, [nodes, edges, takeSnapshot, setNodes, setEdges, markDirty, fitView]);
+
+  // AI Discovery diagram generation handler
+  const handleAIDiagramGenerated = useCallback((newNodes: unknown[], newEdges: unknown[]) => {
+    takeSnapshot(nodes, edges);
+    // Cast and validate the nodes/edges from AI
+    const typedNodes = (newNodes as Node[]).map((node) => ({
+      ...node,
+      id: generateNodeId(),
+    }));
+    const typedEdges = (newEdges as Edge[]).map((edge, i) => ({
+      ...edge,
+      id: `ai-edge-${i}`,
+    }));
+    setNodes((nds) => [...nds, ...typedNodes]);
+    setEdges((eds) => [...eds, ...typedEdges]);
+    resetIdCounter([...nodes, ...typedNodes]);
+    markDirty();
+    // Fit view to show the new diagram
     setTimeout(() => fitView({ padding: 0.2 }), 50);
   }, [nodes, edges, takeSnapshot, setNodes, setEdges, markDirty, fitView]);
 
@@ -457,6 +478,9 @@ function Flow() {
           </div>
         </ReactFlow>
       </div>
+
+      {/* AI Discovery Panel */}
+      <DiscoveryPanel onDiagramGenerated={handleAIDiagramGenerated} />
     </div>
   );
 }

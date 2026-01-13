@@ -9,6 +9,7 @@ import {
   useEdgesState,
   MiniMap,
   Background,
+  SelectionMode,
   type Connection,
   type Edge,
   BackgroundVariant,
@@ -409,6 +410,10 @@ function Flow() {
           fitView
           panOnDrag={!isDrawing}
           selectionOnDrag={!isDrawing}
+          selectionMode={SelectionMode.Partial}
+          selectNodesOnDrag={!isDrawing}
+          multiSelectionKeyCode="Shift"
+          deleteKeyCode={['Backspace', 'Delete']}
           nodesDraggable={!isDrawing}
           snapToGrid={snapToGrid}
           snapGrid={[12, 12]}

@@ -5,7 +5,8 @@ import { NodeProps } from '@xyflow/react';
 import { getSvgPathFromStroke } from '@/utils/drawing/getSvgPathFromStroke';
 
 const StrokeNode = ({ data, selected }: NodeProps) => {
-    const path = getSvgPathFromStroke(data.points as number[][]);
+    const strokeWidth = (data.strokeWidth as number) || 4;
+    const path = getSvgPathFromStroke(data.points as number[][], { size: strokeWidth });
 
     return (
         <div

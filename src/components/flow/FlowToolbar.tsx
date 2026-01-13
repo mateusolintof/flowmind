@@ -23,6 +23,7 @@ import { ExportMenu } from './ExportMenu';
 import { TemplateGallery } from './TemplateGallery';
 import { DiagramGuide } from './DiagramGuide';
 import DrawingToolPicker from './DrawingToolPicker';
+import StrokeWidthPicker from './StrokeWidthPicker';
 import HelpDialog from './HelpDialog';
 import { CustomEdgeData } from './CustomEdge';
 import { FlowData } from '@/lib/diagram';
@@ -162,6 +163,9 @@ function FlowToolbar({
         <div data-onboarding="drawing-toggle">
           <DrawingToolPicker />
         </div>
+
+        {/* Stroke Width Picker - visible when drawing */}
+        <StrokeWidthPicker />
 
         {/* Edge Style Picker */}
         {selectedEdge && (

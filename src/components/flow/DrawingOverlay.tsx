@@ -2,9 +2,10 @@
 
 import { memo, useState, useCallback, useMemo } from 'react';
 import { Node, Edge, useReactFlow } from '@xyflow/react';
-import { useFlowStore, useDrawingTool } from '@/store/flowStore';
+import { useFlowStore, useDrawingTool, useStrokeWidth } from '@/store/flowStore';
 import { useUndoRedo } from '@/hooks/diagrams/useUndoRedo';
 import { generateNodeId } from '@/utils/diagram/idGenerator';
+import { getSvgPathFromStroke } from '@/utils/drawing/getSvgPathFromStroke';
 import type { ShapeNodeData } from '@/types/flowNodes';
 
 interface DrawingOverlayProps {
@@ -33,29 +34,28 @@ function DrawingOverlay({ nodes, edges, setNodes }: DrawingOverlayProps) {
   const selectedColor = useFlowStore((s) => s.selectedColor);
   const markDirty = useFlowStore((s) => s.markDirty);
   const drawingTool = useDrawingTool();
+  const strokeWidth = useStrokeWidth();
 
   // Local state for current drawing
   const [isDrawingProcess, setIsDrawingProcess] = useState(false);
   const [currentStroke, setCurrentStroke] = useState<number[][]>([]);
   const [shapeState, setShapeState] = useState<DrawingState | null>(null);
+  const [cursorPos, setCursorPos] = useState<{ x: number; y: number } | null>(null);
 
-  // Get cursor style based on tool
+  // Hide default cursor when drawing (we show custom cursor indicator)
   const cursorStyle = useMemo(() => {
-    switch (drawingTool) {
-      case 'select':
-        return 'default';
-      case 'freehand':
-        return 'crosshair';
-      case 'arrow':
-      case 'line':
-        return 'crosshair';
-      case 'rectangle':
-      case 'ellipse':
-        return 'crosshair';
-      default:
-        return 'crosshair';
-    }
+    if (drawingTool === 'select') return 'default';
+    return 'none'; // Hide cursor, we show custom indicator
   }, [drawingTool]);
+
+  // Track cursor for custom indicator
+  const onMouseMove = useCallback((e: React.MouseEvent) => {
+    setCursorPos({ x: e.clientX, y: e.clientY });
+  }, []);
+
+  const onMouseLeave = useCallback(() => {
+    setCursorPos(null);
+  }, []);
 
   const onPointerDown = useCallback((e: React.PointerEvent) => {
     if (!isDrawing || drawingTool === 'select') return;
@@ -117,6 +117,7 @@ function DrawingOverlay({ nodes, edges, setNodes }: DrawingOverlayProps) {
         data: {
           points: relativePoints,
           color: selectedColor || '#64748b',
+          strokeWidth: strokeWidth,
         },
         style: { width: maxX - minX, height: maxY - minY, zIndex: 1000 },
         draggable: true,
@@ -191,7 +192,7 @@ function DrawingOverlay({ nodes, edges, setNodes }: DrawingOverlayProps) {
     }
 
     markDirty();
-  }, [isDrawing, isDrawingProcess, drawingTool, screenToFlowPosition, currentStroke, selectedColor, setNodes, markDirty, shapeState]);
+  }, [isDrawing, isDrawingProcess, drawingTool, screenToFlowPosition, currentStroke, selectedColor, strokeWidth, setNodes, markDirty, shapeState]);
 
   // Render preview for shapes during drawing
   const renderShapePreview = useMemo(() => {
@@ -285,32 +286,77 @@ function DrawingOverlay({ nodes, edges, setNodes }: DrawingOverlayProps) {
     }
   }, [isDrawingProcess, shapeState, drawingTool, selectedColor]);
 
+  // Render freehand preview during drawing
+  const renderFreehandPreview = useMemo(() => {
+    if (!isDrawingProcess || drawingTool !== 'freehand' || currentStroke.length < 2) {
+      return null;
+    }
+    const path = getSvgPathFromStroke(currentStroke, { size: strokeWidth });
+    const color = selectedColor || '#64748b';
+    return (
+      <svg className="absolute inset-0 pointer-events-none overflow-visible w-full h-full">
+        <path d={path} fill={color} fillOpacity={0.6} />
+      </svg>
+    );
+  }, [isDrawingProcess, drawingTool, currentStroke, selectedColor, strokeWidth]);
+
+  // Render cursor indicator with color and size
+  const renderCursorIndicator = useMemo(() => {
+    if (!cursorPos || drawingTool === 'select') return null;
+    const color = selectedColor || '#64748b';
+    const size = drawingTool === 'freehand' ? strokeWidth + 4 : 12;
+    return (
+      <div
+        className="fixed pointer-events-none z-[100] rounded-full border-2 border-white shadow-md"
+        style={{
+          left: cursorPos.x,
+          top: cursorPos.y,
+          width: size,
+          height: size,
+          backgroundColor: color,
+          transform: 'translate(-50%, -50%)',
+          opacity: 0.8,
+        }}
+      />
+    );
+  }, [cursorPos, drawingTool, selectedColor, strokeWidth]);
+
   if (!isDrawing || drawingTool === 'select') {
     return null;
   }
 
   return (
-    <div
-      className="absolute inset-0 z-50 transition-colors"
-      onPointerDown={onPointerDown}
-      onPointerMove={onPointerMove}
-      onPointerUp={onPointerUp}
-      onPointerLeave={onPointerUp}
-      style={{
-        pointerEvents: 'auto',
-        cursor: cursorStyle,
-      }}
-    >
-      {/* SVG overlay for shape preview */}
-      {isDrawingProcess && shapeState && (
-        <svg
-          className="absolute inset-0 w-full h-full pointer-events-none"
-          style={{ overflow: 'visible' }}
-        >
-          {renderShapePreview}
-        </svg>
-      )}
-    </div>
+    <>
+      {/* Custom cursor indicator */}
+      {renderCursorIndicator}
+
+      <div
+        className="absolute inset-0 z-50 transition-colors"
+        onPointerDown={onPointerDown}
+        onPointerMove={onPointerMove}
+        onPointerUp={onPointerUp}
+        onPointerLeave={onPointerUp}
+        onMouseMove={onMouseMove}
+        onMouseLeave={onMouseLeave}
+        style={{
+          pointerEvents: 'auto',
+          cursor: cursorStyle,
+        }}
+      >
+        {/* SVG overlay for shape preview */}
+        {isDrawingProcess && shapeState && (
+          <svg
+            className="absolute inset-0 w-full h-full pointer-events-none"
+            style={{ overflow: 'visible' }}
+          >
+            {renderShapePreview}
+          </svg>
+        )}
+
+        {/* Freehand preview */}
+        {renderFreehandPreview}
+      </div>
+    </>
   );
 }
 

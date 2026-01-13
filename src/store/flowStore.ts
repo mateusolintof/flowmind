@@ -10,6 +10,7 @@ export interface FlowState {
   drawingTool: DrawingTool;
   lastNonSelectTool: DrawingTool;
   selectedColor: string;
+  strokeWidth: number;
   colorPickerOpen: boolean;
   snapToGrid: boolean;
 
@@ -24,6 +25,7 @@ export interface FlowState {
   toggleDrawing: () => void;
   setDrawingTool: (tool: DrawingTool) => void;
   setSelectedColor: (color: string) => void;
+  setStrokeWidth: (width: number) => void;
   setColorPickerOpen: (open: boolean) => void;
   toggleColorPicker: () => void;
   setSnapToGrid: (snap: boolean) => void;
@@ -42,6 +44,7 @@ const initialState = {
   drawingTool: 'select' as DrawingTool,
   lastNonSelectTool: 'freehand' as DrawingTool,
   selectedColor: '',
+  strokeWidth: 4,
   colorPickerOpen: false,
   snapToGrid: true,
   dirtyCounter: 0,
@@ -78,6 +81,10 @@ export const useFlowStore = create<FlowState>()(
 
         setSelectedColor: (color) => set((state) => {
           state.selectedColor = color;
+        }),
+
+        setStrokeWidth: (width) => set((state) => {
+          state.strokeWidth = width;
         }),
 
         setColorPickerOpen: (open) => set((state) => {
@@ -122,6 +129,7 @@ export const useFlowStore = create<FlowState>()(
 export const useIsDrawing = () => useFlowStore((s) => s.isDrawing);
 export const useDrawingTool = () => useFlowStore((s) => s.drawingTool);
 export const useSelectedColor = () => useFlowStore((s) => s.selectedColor);
+export const useStrokeWidth = () => useFlowStore((s) => s.strokeWidth);
 export const useSnapToGrid = () => useFlowStore((s) => s.snapToGrid);
 export const useColorPickerOpen = () => useFlowStore((s) => s.colorPickerOpen);
 export const useDirtyCounter = () => useFlowStore((s) => s.dirtyCounter);
@@ -133,6 +141,7 @@ export const useFlowActions = () => useFlowStore((s) => ({
   toggleDrawing: s.toggleDrawing,
   setDrawingTool: s.setDrawingTool,
   setSelectedColor: s.setSelectedColor,
+  setStrokeWidth: s.setStrokeWidth,
   setColorPickerOpen: s.setColorPickerOpen,
   toggleColorPicker: s.toggleColorPicker,
   setSnapToGrid: s.setSnapToGrid,

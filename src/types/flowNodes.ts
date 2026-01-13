@@ -39,3 +39,11 @@ export interface FlowchartNodeData {
   color?: string;
   [key: string]: unknown;
 }
+
+export interface StrokeNodeData {
+  points: number[][];
+  color?: string;
+  strokeWidth?: number;
+  opacity?: number;
+  [key: string]: unknown;
+}

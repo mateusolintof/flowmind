@@ -2,6 +2,21 @@
 
 This file provides context for AI assistants working on the FlowMind codebase.
 
+## IMPORTANT: Development Roadmap
+
+**Before starting any new feature development, consult the `ROADMAP.md` file in the project root.**
+
+The roadmap contains:
+- Strategic positioning and decisions
+- Prioritized milestones (M0-M8)
+- Detailed task descriptions with checkboxes
+- File dependencies and modifications
+- Verification steps for each milestone
+
+**Current Priority:** AI Discovery Flow (Milestones M0-M3)
+
+---
+
 ## Project Overview
 
 FlowMind is a hybrid visual diagram editor built with Next.js 16, React 19, and @xyflow/react. It supports:

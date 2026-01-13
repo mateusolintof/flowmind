@@ -61,7 +61,7 @@ function Flow() {
 
   const { type } = useDnD();
   const { undo, takeSnapshot, canUndo, canRedo } = useUndoRedo();
-  const { setViewport, getNodes, getViewport, screenToFlowPosition } = useReactFlow();
+  const { setViewport, getNodes, getViewport, screenToFlowPosition, fitView } = useReactFlow();
 
   // Get state from store
   const isDrawing = useFlowStore((s) => s.isDrawing);
@@ -141,7 +141,9 @@ function Flow() {
     resetIdCounter(template.nodes || []);
     markDirty();
     toast.success(`Template "${template.name}" loaded`);
-  }, [nodes, edges, takeSnapshot, setNodes, setEdges, markDirty]);
+    // Ajustar viewport para mostrar todos os nodes do template
+    setTimeout(() => fitView({ padding: 0.2 }), 50);
+  }, [nodes, edges, takeSnapshot, setNodes, setEdges, markDirty, fitView]);
 
   // Load diagram by ID
   const loadDiagram = useCallback(async (diagramId: string) => {

@@ -88,11 +88,11 @@ const FlowchartNode = ({ data, type, selected, id }: NodeProps) => {
     <motion.div
       {...animationConfig}
       className={cn(
-        'relative px-4 py-3 rounded-xl border-2 shadow-lg backdrop-blur-sm',
-        'min-w-[180px] max-w-[280px]',
+        'relative px-3 py-2.5 rounded-xl border-2 shadow-lg backdrop-blur-sm',
+        'h-full w-full overflow-hidden',
         !customColor && styles.bg,
         !customColor && styles.border,
-        'hover:shadow-xl hover:scale-[1.02] transition-all duration-200',
+        'hover:shadow-xl transition-all duration-200',
         'cursor-pointer group',
         selected && 'ring-2 ring-ring ring-offset-2'
       )}
@@ -110,21 +110,25 @@ const FlowchartNode = ({ data, type, selected, id }: NodeProps) => {
 
       {/* Handles - all 4 sides */}
       <Handle
+        id="target-top"
         type="target"
         position={Position.Top}
         className={handleClassName}
       />
       <Handle
+        id="target-left"
         type="target"
         position={Position.Left}
         className={handleClassName}
       />
       <Handle
+        id="source-right"
         type="source"
         position={Position.Right}
         className={handleClassName}
       />
       <Handle
+        id="source-bottom"
         type="source"
         position={Position.Bottom}
         className={handleClassName}

@@ -192,24 +192,28 @@ const ShapeNode = ({ data, selected, id }: NodeProps) => {
       {hasHandles && (
         <>
           <Handle
+            id="target-top"
             type="target"
             position={Position.Top}
             className={shapeHandleClassName}
             style={{ top: -5 }}
           />
           <Handle
+            id="target-left"
             type="target"
             position={Position.Left}
             className={shapeHandleClassName}
             style={{ left: -5 }}
           />
           <Handle
+            id="source-right"
             type="source"
             position={Position.Right}
             className={shapeHandleClassName}
             style={{ right: -5 }}
           />
           <Handle
+            id="source-bottom"
             type="source"
             position={Position.Bottom}
             className={shapeHandleClassName}

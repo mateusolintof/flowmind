@@ -64,43 +64,47 @@ const BaseNode = ({ data, type, selected, id }: NodeProps) => {
       />
       <Card
         className={cn(
-          'group h-full min-w-[150px] min-h-[80px] shadow-sm border-2 transition-all flex flex-col',
+          'group h-full w-full shadow-sm border-2 transition-all flex flex-col overflow-hidden',
           !data.color && config.color,
           selected ? 'ring-2 ring-ring border-primary' : 'hover:border-primary/50'
         )}
         style={cardStyle}
       >
         <Handle
+          id="target-top"
           type="target"
           position={Position.Top}
           className={handleClassName}
         />
         <Handle
+          id="target-left"
           type="target"
           position={Position.Left}
           className={handleClassName}
         />
 
-        <div className="flex flex-col items-center justify-center p-4 gap-2 h-full w-full">
-          <Icon className="h-8 w-8 opacity-80 shrink-0" />
+        <div className="flex flex-col items-center justify-center p-3 gap-1.5 h-full w-full overflow-hidden">
+          <Icon className="h-6 w-6 opacity-80 shrink-0" />
           <textarea
-            className="text-sm font-medium text-center bg-transparent border-none resize-none focus:outline-hidden w-full h-full nodrag cursor-text"
+            className="text-sm font-medium text-center bg-transparent border-none resize-none focus:outline-hidden w-full flex-1 nodrag cursor-text overflow-hidden"
             value={(nodeData.label as string) || ''}
             onChange={onLabelChange}
             placeholder="Label..."
             style={{ color: 'inherit' }}
           />
-          <span className="text-[10px] text-muted-foreground mt-1 capitalize">
+          <span className="text-[9px] text-muted-foreground capitalize shrink-0">
             {type?.replace('-', ' ')}
           </span>
         </div>
 
         <Handle
+          id="source-right"
           type="source"
           position={Position.Right}
           className={handleClassName}
         />
         <Handle
+          id="source-bottom"
           type="source"
           position={Position.Bottom}
           className={handleClassName}

@@ -41,7 +41,7 @@ import FlowToolbar from './FlowToolbar';
 import DrawingOverlay from './DrawingOverlay';
 import { ZoomControls } from './ZoomControls';
 import { NODE_CONFIG } from '@/config/nodeTypes';
-import { FLOWCHART_NODE_CONFIG } from '@/config/flowchartNodeTypes';
+import { FLOWCHART_NODE_CONFIG, type FlowchartNodeType } from '@/config/flowchartNodeTypes';
 import { exportAsPng, FlowData } from '@/lib/diagram';
 import { DiagramTemplate } from '@/config/templates';
 
@@ -275,14 +275,26 @@ function Flow() {
       y: event.clientY,
     });
 
+    // Build node data - include variant for flowchart nodes
+    const nodeData: Record<string, unknown> = {
+      label: `${type.charAt(0).toUpperCase() + type.slice(1)}`,
+      color: selectedColor,
+    };
+
+    // For flowchart nodes, get variant and label from config
+    if (type.startsWith('flowchart-')) {
+      const config = FLOWCHART_NODE_CONFIG[type as FlowchartNodeType];
+      if (config) {
+        nodeData.variant = config.variant;
+        nodeData.label = config.label;
+      }
+    }
+
     const newNode = {
       id: generateNodeId(),
       type,
       position,
-      data: {
-        label: `${type.charAt(0).toUpperCase() + type.slice(1)}`,
-        color: selectedColor,
-      },
+      data: nodeData,
     };
 
     setNodes((nds) => nds.concat(newNode));

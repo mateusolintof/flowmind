@@ -56,7 +56,7 @@ const BaseNode = ({ data, type, selected, id }: NodeProps) => {
       <NodeResizer
         isVisible={selected}
         minWidth={100}
-        minHeight={60}
+        minHeight={120}
         maxWidth={600}
         maxHeight={400}
         handleStyle={NODE_RESIZER_HANDLE_STYLE}

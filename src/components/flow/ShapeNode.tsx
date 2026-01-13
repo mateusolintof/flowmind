@@ -5,6 +5,7 @@ import { NodeProps, NodeResizer, Handle, Position, useReactFlow } from '@xyflow/
 import { cn } from '@/lib/utils';
 import { useFlowStore } from '@/store/flowStore';
 import { SHAPE_COLORS } from '@/config/nodeColors';
+import { SHAPE_PADDING, MIN_SHAPE_SIZE, ARROW_HEAD_LENGTH, ARROW_HEAD_ANGLE } from '@/config/drawingConstants';
 import { NODE_RESIZER_HANDLE_STYLE, NODE_RESIZER_LINE_STYLE } from './nodeStyles';
 import type { ShapeNodeData } from '@/types/flowNodes';
 import {
@@ -104,13 +105,11 @@ const ShapeNode = ({ data, selected, id }: NodeProps) => {
         const dx = endX - startX;
         const dy = endY - startY;
         const angle = Math.atan2(dy, dx);
-        const arrowLength = 12;
-        const arrowAngle = Math.PI / 6; // 30 degrees
 
-        const arrowX1 = endX - arrowLength * Math.cos(angle - arrowAngle);
-        const arrowY1 = endY - arrowLength * Math.sin(angle - arrowAngle);
-        const arrowX2 = endX - arrowLength * Math.cos(angle + arrowAngle);
-        const arrowY2 = endY - arrowLength * Math.sin(angle + arrowAngle);
+        const arrowX1 = endX - ARROW_HEAD_LENGTH * Math.cos(angle - ARROW_HEAD_ANGLE);
+        const arrowY1 = endY - ARROW_HEAD_LENGTH * Math.sin(angle - ARROW_HEAD_ANGLE);
+        const arrowX2 = endX - ARROW_HEAD_LENGTH * Math.cos(angle + ARROW_HEAD_ANGLE);
+        const arrowY2 = endY - ARROW_HEAD_LENGTH * Math.sin(angle + ARROW_HEAD_ANGLE);
 
         return (
           <g>
@@ -142,10 +141,10 @@ const ShapeNode = ({ data, selected, id }: NodeProps) => {
   // Calculate SVG viewBox
   const viewBox = useMemo(() => {
     if (shapeType === 'line' || shapeType === 'arrow') {
-      const minX = Math.min(startX, endX) - 20;
-      const minY = Math.min(startY, endY) - 20;
-      const maxX = Math.max(startX, endX) + 20;
-      const maxY = Math.max(startY, endY) + 20;
+      const minX = Math.min(startX, endX) - SHAPE_PADDING;
+      const minY = Math.min(startY, endY) - SHAPE_PADDING;
+      const maxX = Math.max(startX, endX) + SHAPE_PADDING;
+      const maxY = Math.max(startY, endY) + SHAPE_PADDING;
       return `${minX} ${minY} ${maxX - minX} ${maxY - minY}`;
     }
     return `0 0 ${width} ${height}`;
@@ -154,9 +153,9 @@ const ShapeNode = ({ data, selected, id }: NodeProps) => {
   // Calculate SVG dimensions
   const svgDimensions = useMemo(() => {
     if (shapeType === 'line' || shapeType === 'arrow') {
-      const w = Math.abs(endX - startX) + 40;
-      const h = Math.abs(endY - startY) + 40;
-      return { width: Math.max(w, 40), height: Math.max(h, 40) };
+      const w = Math.abs(endX - startX) + SHAPE_PADDING * 2;
+      const h = Math.abs(endY - startY) + SHAPE_PADDING * 2;
+      return { width: Math.max(w, SHAPE_PADDING * 2), height: Math.max(h, SHAPE_PADDING * 2) };
     }
     return { width, height };
   }, [shapeType, width, height, startX, startY, endX, endY]);
@@ -179,8 +178,8 @@ const ShapeNode = ({ data, selected, id }: NodeProps) => {
       {(shapeType === 'rectangle' || shapeType === 'ellipse') && (
         <NodeResizer
           isVisible={selected}
-          minWidth={30}
-          minHeight={30}
+          minWidth={MIN_SHAPE_SIZE}
+          minHeight={MIN_SHAPE_SIZE}
           maxWidth={800}
           maxHeight={600}
           handleStyle={NODE_RESIZER_HANDLE_STYLE}

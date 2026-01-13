@@ -6,6 +6,7 @@ import { useFlowStore, useDrawingTool, useStrokeWidth } from '@/store/flowStore'
 import { useUndoRedo } from '@/hooks/diagrams/useUndoRedo';
 import { generateNodeId } from '@/utils/diagram/idGenerator';
 import { getSvgPathFromStroke } from '@/utils/drawing/getSvgPathFromStroke';
+import { SHAPE_PADDING, MIN_SHAPE_SIZE } from '@/config/drawingConstants';
 import type { ShapeNodeData } from '@/types/flowNodes';
 
 interface DrawingOverlayProps {
@@ -152,10 +153,10 @@ function DrawingOverlay({ nodes, edges, setNodes }: DrawingOverlayProps) {
           color: selectedColor || '#64748b',
           strokeWidth: 2,
           fill: false,
-          width: Math.max(width, 30),
-          height: Math.max(height, 30),
+          width: Math.max(width, MIN_SHAPE_SIZE),
+          height: Math.max(height, MIN_SHAPE_SIZE),
         };
-        nodeStyle = { width: Math.max(width, 30), height: Math.max(height, 30) };
+        nodeStyle = { width: Math.max(width, MIN_SHAPE_SIZE), height: Math.max(height, MIN_SHAPE_SIZE) };
       } else {
         // Line or arrow - use relative coordinates
         const relStartX = startX - minX;
@@ -167,21 +168,21 @@ function DrawingOverlay({ nodes, edges, setNodes }: DrawingOverlayProps) {
           shapeType: drawingTool as 'line' | 'arrow',
           color: selectedColor || '#64748b',
           strokeWidth: 2,
-          startX: relStartX + 20, // Add padding
-          startY: relStartY + 20,
-          endX: relEndX + 20,
-          endY: relEndY + 20,
+          startX: relStartX + SHAPE_PADDING,
+          startY: relStartY + SHAPE_PADDING,
+          endX: relEndX + SHAPE_PADDING,
+          endY: relEndY + SHAPE_PADDING,
         };
         nodeStyle = {
-          width: Math.max(width, 40) + 40,
-          height: Math.max(height, 40) + 40
+          width: Math.max(width, SHAPE_PADDING * 2) + SHAPE_PADDING * 2,
+          height: Math.max(height, SHAPE_PADDING * 2) + SHAPE_PADDING * 2
         };
       }
 
       const newNode: Node = {
         id: generateNodeId(),
         type: 'shape',
-        position: { x: minX - 20, y: minY - 20 },
+        position: { x: minX - SHAPE_PADDING, y: minY - SHAPE_PADDING },
         data: nodeData,
         style: { ...nodeStyle, zIndex: 1000 },
         draggable: true,

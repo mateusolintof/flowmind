@@ -41,7 +41,7 @@ import FlowToolbar from './FlowToolbar';
 import DrawingOverlay from './DrawingOverlay';
 import { ZoomControls } from './ZoomControls';
 import { NODE_CONFIG } from '@/config/nodeTypes';
-import { FLOWCHART_NODE_CONFIG } from '@/config/flowchartNodeTypes';
+import { FLOWCHART_NODE_CONFIG, type FlowchartNodeType } from '@/config/flowchartNodeTypes';
 import { exportAsPng, FlowData } from '@/lib/diagram';
 import { DiagramTemplate } from '@/config/templates';
 
@@ -61,7 +61,7 @@ function Flow() {
 
   const { type } = useDnD();
   const { undo, takeSnapshot, canUndo, canRedo } = useUndoRedo();
-  const { setViewport, getNodes, getViewport, screenToFlowPosition } = useReactFlow();
+  const { setViewport, getNodes, getViewport, screenToFlowPosition, fitView } = useReactFlow();
 
   // Get state from store
   const isDrawing = useFlowStore((s) => s.isDrawing);
@@ -141,7 +141,9 @@ function Flow() {
     resetIdCounter(template.nodes || []);
     markDirty();
     toast.success(`Template "${template.name}" loaded`);
-  }, [nodes, edges, takeSnapshot, setNodes, setEdges, markDirty]);
+    // Ajustar viewport para mostrar todos os nodes do template
+    setTimeout(() => fitView({ padding: 0.2 }), 50);
+  }, [nodes, edges, takeSnapshot, setNodes, setEdges, markDirty, fitView]);
 
   // Load diagram by ID
   const loadDiagram = useCallback(async (diagramId: string) => {
@@ -275,14 +277,26 @@ function Flow() {
       y: event.clientY,
     });
 
+    // Build node data - include variant for flowchart nodes
+    const nodeData: Record<string, unknown> = {
+      label: `${type.charAt(0).toUpperCase() + type.slice(1)}`,
+      color: selectedColor,
+    };
+
+    // For flowchart nodes, get variant and label from config
+    if (type.startsWith('flowchart-')) {
+      const config = FLOWCHART_NODE_CONFIG[type as FlowchartNodeType];
+      if (config) {
+        nodeData.variant = config.variant;
+        nodeData.label = config.label;
+      }
+    }
+
     const newNode = {
       id: generateNodeId(),
       type,
       position,
-      data: {
-        label: `${type.charAt(0).toUpperCase() + type.slice(1)}`,
-        color: selectedColor,
-      },
+      data: nodeData,
     };
 
     setNodes((nds) => nds.concat(newNode));

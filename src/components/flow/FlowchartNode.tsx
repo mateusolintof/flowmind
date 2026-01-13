@@ -101,7 +101,7 @@ const FlowchartNode = ({ data, type, selected, id }: NodeProps) => {
       <NodeResizer
         isVisible={selected}
         minWidth={150}
-        minHeight={60}
+        minHeight={80}
         maxWidth={400}
         maxHeight={300}
         handleStyle={NODE_RESIZER_HANDLE_STYLE}

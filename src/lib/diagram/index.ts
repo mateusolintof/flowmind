@@ -1,14 +1,11 @@
 import { getNodesBounds, getViewportForBounds, type Node } from '@xyflow/react';
 import type { FlowData } from '@/types/diagram';
+import { EXPORT_PADDING, EXPORT_SCALE } from '@/config/appConstants';
 
 export type { FlowData } from '@/types/diagram';
 // html-to-image is lazy loaded to reduce initial bundle size (~120KB savings)
 
 export type ExportFormat = 'png' | 'svg' | 'json';
-
-// Export configuration
-const EXPORT_PADDING = 50; // Padding around nodes in pixels
-const EXPORT_SCALE = 4; // Resolution multiplier for better quality
 
 /**
  * Export flow as PNG image

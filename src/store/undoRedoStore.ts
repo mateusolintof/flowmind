@@ -1,6 +1,7 @@
 import { create } from 'zustand';
 import { immer } from 'zustand/middleware/immer';
 import { Node, Edge } from '@xyflow/react';
+import { MAX_UNDO_HISTORY } from '@/config/appConstants';
 
 interface HistoryState {
   nodes: Node[];
@@ -17,8 +18,6 @@ interface UndoRedoStore {
   clear: () => void;
 }
 
-const MAX_HISTORY = 30; // Reduced from 50 for better memory performance
-
 export const useUndoRedoStore = create<UndoRedoStore>()(
   immer((set, get) => ({
     past: [],
@@ -33,8 +32,8 @@ export const useUndoRedoStore = create<UndoRedoStore>()(
 
       state.past.push(snapshot);
 
-      // Keep only last MAX_HISTORY items
-      if (state.past.length > MAX_HISTORY) {
+      // Keep only last MAX_UNDO_HISTORY items
+      if (state.past.length > MAX_UNDO_HISTORY) {
         state.past.shift();
       }
 

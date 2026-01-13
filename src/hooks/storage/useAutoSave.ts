@@ -2,10 +2,7 @@ import { useEffect, useCallback, useRef } from 'react';
 import { useReactFlow } from '@xyflow/react';
 import { saveDiagramById } from '@/lib/storage';
 import { useFlowStore } from '@/store/flowStore';
-
-const DEBOUNCE_MS = 2000; // Debounce saves by 2 seconds
-// Auto-save disabled - user prefers manual save only
-// const AUTO_SAVE_INTERVAL_MS = 60000;
+import { DEBOUNCE_MS } from '@/config/appConstants';
 
 /**
  * Hook for auto-saving with debouncing and change detection.

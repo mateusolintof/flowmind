@@ -133,7 +133,9 @@ const CustomEdge = memo(({
     // Memoize style object to prevent re-renders
     const edgeStyle = useMemo(() => ({
         stroke: selected ? 'var(--primary)' : color,
-        strokeWidth: selected ? 2.5 : 1.5,
+        strokeWidth: selected ? 3 : 2,
+        strokeLinecap: 'round' as const,
+        strokeLinejoin: 'round' as const,
     }), [selected, color]);
 
     return (

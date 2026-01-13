@@ -14,8 +14,12 @@ export const EDGE_COLORS = [
   { name: 'Default', value: '' },
   { name: 'Blue', value: 'hsl(217, 91%, 60%)' },
   { name: 'Green', value: 'hsl(142, 71%, 45%)' },
+  { name: 'Emerald', value: 'hsl(160, 84%, 39%)' },
   { name: 'Red', value: 'hsl(0, 84%, 60%)' },
   { name: 'Orange', value: 'hsl(25, 95%, 53%)' },
+  { name: 'Amber', value: 'hsl(45, 93%, 47%)' },
   { name: 'Purple', value: 'hsl(263, 70%, 50%)' },
+  { name: 'Indigo', value: 'hsl(239, 84%, 67%)' },
+  { name: 'Pink', value: 'hsl(330, 81%, 60%)' },
   { name: 'Cyan', value: 'hsl(186, 100%, 42%)' },
 ];

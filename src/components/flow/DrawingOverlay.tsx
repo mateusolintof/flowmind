@@ -2,9 +2,11 @@
 
 import { memo, useState, useCallback, useMemo } from 'react';
 import { Node, Edge, useReactFlow } from '@xyflow/react';
-import { useFlowStore, useDrawingTool } from '@/store/flowStore';
+import { useFlowStore, useDrawingTool, useStrokeWidth } from '@/store/flowStore';
 import { useUndoRedo } from '@/hooks/diagrams/useUndoRedo';
 import { generateNodeId } from '@/utils/diagram/idGenerator';
+import { getSvgPathFromStroke } from '@/utils/drawing/getSvgPathFromStroke';
+import { SHAPE_PADDING, MIN_SHAPE_SIZE } from '@/config/drawingConstants';
 import type { ShapeNodeData } from '@/types/flowNodes';
 
 interface DrawingOverlayProps {
@@ -33,36 +35,72 @@ function DrawingOverlay({ nodes, edges, setNodes }: DrawingOverlayProps) {
   const selectedColor = useFlowStore((s) => s.selectedColor);
   const markDirty = useFlowStore((s) => s.markDirty);
   const drawingTool = useDrawingTool();
+  const strokeWidth = useStrokeWidth();
 
   // Local state for current drawing
   const [isDrawingProcess, setIsDrawingProcess] = useState(false);
   const [currentStroke, setCurrentStroke] = useState<number[][]>([]);
   const [shapeState, setShapeState] = useState<DrawingState | null>(null);
+  const [cursorPos, setCursorPos] = useState<{ x: number; y: number } | null>(null);
 
-  // Get cursor style based on tool
+  // Hide default cursor when drawing (we show custom cursor indicator)
   const cursorStyle = useMemo(() => {
-    switch (drawingTool) {
-      case 'select':
-        return 'default';
-      case 'freehand':
-        return 'crosshair';
-      case 'arrow':
-      case 'line':
-        return 'crosshair';
-      case 'rectangle':
-      case 'ellipse':
-        return 'crosshair';
-      default:
-        return 'crosshair';
-    }
+    if (drawingTool === 'select') return 'default';
+    return 'none'; // Hide cursor, we show custom indicator
   }, [drawingTool]);
+
+  // Track cursor for custom indicator
+  const onMouseMove = useCallback((e: React.MouseEvent) => {
+    setCursorPos({ x: e.clientX, y: e.clientY });
+  }, []);
+
+  const onMouseLeave = useCallback(() => {
+    setCursorPos(null);
+  }, []);
+
+  // Eraser: find and delete drawing nodes at position
+  const eraseAtPosition = useCallback((flowX: number, flowY: number) => {
+    // Find drawing nodes (stroke, shape) that contain this point
+    const ERASER_RADIUS = 20;
+    const nodesToDelete = nodes.filter((node) => {
+      if (node.type !== 'stroke' && node.type !== 'shape') return false;
+
+      const nodeX = node.position.x;
+      const nodeY = node.position.y;
+      const nodeWidth = (node.style?.width as number) || 100;
+      const nodeHeight = (node.style?.height as number) || 100;
+
+      // Check if point is within node bounds (with some padding)
+      return (
+        flowX >= nodeX - ERASER_RADIUS &&
+        flowX <= nodeX + nodeWidth + ERASER_RADIUS &&
+        flowY >= nodeY - ERASER_RADIUS &&
+        flowY <= nodeY + nodeHeight + ERASER_RADIUS
+      );
+    });
+
+    if (nodesToDelete.length > 0) {
+      takeSnapshot(nodes, edges);
+      const idsToDelete = new Set(nodesToDelete.map((n) => n.id));
+      setNodes((nds) => nds.filter((n) => !idsToDelete.has(n.id)));
+      markDirty();
+    }
+  }, [nodes, edges, takeSnapshot, setNodes, markDirty]);
 
   const onPointerDown = useCallback((e: React.PointerEvent) => {
     if (!isDrawing || drawingTool === 'select') return;
 
+    const { x, y } = screenToFlowPosition({ x: e.clientX, y: e.clientY });
+
+    // Handle eraser tool
+    if (drawingTool === 'eraser') {
+      eraseAtPosition(x, y);
+      setIsDrawingProcess(true);
+      return;
+    }
+
     takeSnapshot(nodes, edges);
     setIsDrawingProcess(true);
-    const { x, y } = screenToFlowPosition({ x: e.clientX, y: e.clientY });
 
     if (drawingTool === 'freehand') {
       setCurrentStroke([[x, y, e.pressure]]);
@@ -75,12 +113,18 @@ function DrawingOverlay({ nodes, edges, setNodes }: DrawingOverlayProps) {
         currentY: y,
       });
     }
-  }, [isDrawing, drawingTool, takeSnapshot, nodes, edges, screenToFlowPosition]);
+  }, [isDrawing, drawingTool, takeSnapshot, nodes, edges, screenToFlowPosition, eraseAtPosition]);
 
   const onPointerMove = useCallback((e: React.PointerEvent) => {
     if (!isDrawing || !isDrawingProcess || drawingTool === 'select') return;
 
     const { x, y } = screenToFlowPosition({ x: e.clientX, y: e.clientY });
+
+    // Handle eraser dragging
+    if (drawingTool === 'eraser') {
+      eraseAtPosition(x, y);
+      return;
+    }
 
     if (drawingTool === 'freehand') {
       setCurrentStroke((points) => [...points, [x, y, e.pressure]]);
@@ -88,11 +132,16 @@ function DrawingOverlay({ nodes, edges, setNodes }: DrawingOverlayProps) {
       // Update current position for shape preview
       setShapeState((prev) => prev ? { ...prev, currentX: x, currentY: y } : null);
     }
-  }, [isDrawing, isDrawingProcess, drawingTool, screenToFlowPosition]);
+  }, [isDrawing, isDrawingProcess, drawingTool, screenToFlowPosition, eraseAtPosition]);
 
   const onPointerUp = useCallback((e: React.PointerEvent) => {
     if (!isDrawing || !isDrawingProcess || drawingTool === 'select') return;
     setIsDrawingProcess(false);
+
+    // Eraser just needs to end the process
+    if (drawingTool === 'eraser') {
+      return;
+    }
 
     const { x, y } = screenToFlowPosition({ x: e.clientX, y: e.clientY });
 
@@ -117,6 +166,7 @@ function DrawingOverlay({ nodes, edges, setNodes }: DrawingOverlayProps) {
         data: {
           points: relativePoints,
           color: selectedColor || '#64748b',
+          strokeWidth: strokeWidth,
         },
         style: { width: maxX - minX, height: maxY - minY, zIndex: 1000 },
         draggable: true,
@@ -151,10 +201,10 @@ function DrawingOverlay({ nodes, edges, setNodes }: DrawingOverlayProps) {
           color: selectedColor || '#64748b',
           strokeWidth: 2,
           fill: false,
-          width: Math.max(width, 30),
-          height: Math.max(height, 30),
+          width: Math.max(width, MIN_SHAPE_SIZE),
+          height: Math.max(height, MIN_SHAPE_SIZE),
         };
-        nodeStyle = { width: Math.max(width, 30), height: Math.max(height, 30) };
+        nodeStyle = { width: Math.max(width, MIN_SHAPE_SIZE), height: Math.max(height, MIN_SHAPE_SIZE) };
       } else {
         // Line or arrow - use relative coordinates
         const relStartX = startX - minX;
@@ -166,21 +216,21 @@ function DrawingOverlay({ nodes, edges, setNodes }: DrawingOverlayProps) {
           shapeType: drawingTool as 'line' | 'arrow',
           color: selectedColor || '#64748b',
           strokeWidth: 2,
-          startX: relStartX + 20, // Add padding
-          startY: relStartY + 20,
-          endX: relEndX + 20,
-          endY: relEndY + 20,
+          startX: relStartX + SHAPE_PADDING,
+          startY: relStartY + SHAPE_PADDING,
+          endX: relEndX + SHAPE_PADDING,
+          endY: relEndY + SHAPE_PADDING,
         };
         nodeStyle = {
-          width: Math.max(width, 40) + 40,
-          height: Math.max(height, 40) + 40
+          width: Math.max(width, SHAPE_PADDING * 2) + SHAPE_PADDING * 2,
+          height: Math.max(height, SHAPE_PADDING * 2) + SHAPE_PADDING * 2
         };
       }
 
       const newNode: Node = {
         id: generateNodeId(),
         type: 'shape',
-        position: { x: minX - 20, y: minY - 20 },
+        position: { x: minX - SHAPE_PADDING, y: minY - SHAPE_PADDING },
         data: nodeData,
         style: { ...nodeStyle, zIndex: 1000 },
         draggable: true,
@@ -191,11 +241,11 @@ function DrawingOverlay({ nodes, edges, setNodes }: DrawingOverlayProps) {
     }
 
     markDirty();
-  }, [isDrawing, isDrawingProcess, drawingTool, screenToFlowPosition, currentStroke, selectedColor, setNodes, markDirty, shapeState]);
+  }, [isDrawing, isDrawingProcess, drawingTool, screenToFlowPosition, currentStroke, selectedColor, strokeWidth, setNodes, markDirty, shapeState]);
 
   // Render preview for shapes during drawing
   const renderShapePreview = useMemo(() => {
-    if (!isDrawingProcess || !shapeState || drawingTool === 'freehand' || drawingTool === 'select') {
+    if (!isDrawingProcess || !shapeState || drawingTool === 'freehand' || drawingTool === 'select' || drawingTool === 'eraser') {
       return null;
     }
 
@@ -285,32 +335,105 @@ function DrawingOverlay({ nodes, edges, setNodes }: DrawingOverlayProps) {
     }
   }, [isDrawingProcess, shapeState, drawingTool, selectedColor]);
 
+  // Render freehand preview during drawing
+  const renderFreehandPreview = useMemo(() => {
+    if (!isDrawingProcess || drawingTool !== 'freehand' || currentStroke.length < 2) {
+      return null;
+    }
+    const path = getSvgPathFromStroke(currentStroke, { size: strokeWidth });
+    const color = selectedColor || '#64748b';
+    return (
+      <svg className="absolute inset-0 pointer-events-none overflow-visible w-full h-full">
+        <path d={path} fill={color} fillOpacity={0.6} />
+      </svg>
+    );
+  }, [isDrawingProcess, drawingTool, currentStroke, selectedColor, strokeWidth]);
+
+  // Render cursor indicator with color and size
+  const renderCursorIndicator = useMemo(() => {
+    if (!cursorPos || drawingTool === 'select') return null;
+
+    // Eraser cursor is distinct (pink/red with X)
+    if (drawingTool === 'eraser') {
+      return (
+        <div
+          className="fixed pointer-events-none z-[100] rounded-full border-2 border-white shadow-md flex items-center justify-center"
+          style={{
+            left: cursorPos.x,
+            top: cursorPos.y,
+            width: 24,
+            height: 24,
+            backgroundColor: '#f87171',
+            transform: 'translate(-50%, -50%)',
+            opacity: 0.9,
+          }}
+        >
+          <svg width="12" height="12" viewBox="0 0 12 12" className="text-white">
+            <path
+              d="M2 2L10 10M10 2L2 10"
+              stroke="currentColor"
+              strokeWidth="2"
+              strokeLinecap="round"
+            />
+          </svg>
+        </div>
+      );
+    }
+
+    const color = selectedColor || '#64748b';
+    const size = drawingTool === 'freehand' ? strokeWidth + 4 : 12;
+    return (
+      <div
+        className="fixed pointer-events-none z-[100] rounded-full border-2 border-white shadow-md"
+        style={{
+          left: cursorPos.x,
+          top: cursorPos.y,
+          width: size,
+          height: size,
+          backgroundColor: color,
+          transform: 'translate(-50%, -50%)',
+          opacity: 0.8,
+        }}
+      />
+    );
+  }, [cursorPos, drawingTool, selectedColor, strokeWidth]);
+
   if (!isDrawing || drawingTool === 'select') {
     return null;
   }
 
   return (
-    <div
-      className="absolute inset-0 z-50 transition-colors"
-      onPointerDown={onPointerDown}
-      onPointerMove={onPointerMove}
-      onPointerUp={onPointerUp}
-      onPointerLeave={onPointerUp}
-      style={{
-        pointerEvents: 'auto',
-        cursor: cursorStyle,
-      }}
-    >
-      {/* SVG overlay for shape preview */}
-      {isDrawingProcess && shapeState && (
-        <svg
-          className="absolute inset-0 w-full h-full pointer-events-none"
-          style={{ overflow: 'visible' }}
-        >
-          {renderShapePreview}
-        </svg>
-      )}
-    </div>
+    <>
+      {/* Custom cursor indicator */}
+      {renderCursorIndicator}
+
+      <div
+        className="absolute inset-0 z-50 transition-colors"
+        onPointerDown={onPointerDown}
+        onPointerMove={onPointerMove}
+        onPointerUp={onPointerUp}
+        onPointerLeave={onPointerUp}
+        onMouseMove={onMouseMove}
+        onMouseLeave={onMouseLeave}
+        style={{
+          pointerEvents: 'auto',
+          cursor: cursorStyle,
+        }}
+      >
+        {/* SVG overlay for shape preview */}
+        {isDrawingProcess && shapeState && (
+          <svg
+            className="absolute inset-0 w-full h-full pointer-events-none"
+            style={{ overflow: 'visible' }}
+          >
+            {renderShapePreview}
+          </svg>
+        )}
+
+        {/* Freehand preview */}
+        {renderFreehandPreview}
+      </div>
+    </>
   );
 }
 

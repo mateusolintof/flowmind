@@ -23,6 +23,7 @@ import { ExportMenu } from './ExportMenu';
 import { TemplateGallery } from './TemplateGallery';
 import { DiagramGuide } from './DiagramGuide';
 import DrawingToolPicker from './DrawingToolPicker';
+import StrokeWidthPicker from './StrokeWidthPicker';
 import HelpDialog from './HelpDialog';
 import { CustomEdgeData } from './CustomEdge';
 import { FlowData } from '@/lib/diagram';
@@ -149,12 +150,12 @@ function FlowToolbar({
             size="sm"
             variant={snapToGrid ? 'secondary' : 'ghost'}
             onClick={toggleSnapToGrid}
-            className="rounded-none rounded-r-md px-2 h-8"
-            title={snapToGrid ? 'Snap to Grid: ON' : 'Snap to Grid: OFF'}
+            className={`rounded-none rounded-r-md px-2 h-8 ${snapToGrid ? 'bg-primary/10 text-primary' : ''}`}
+            title={snapToGrid ? 'Snap to Grid: ON (click to disable)' : 'Snap to Grid: OFF (click to enable)'}
             aria-label="Toggle snap to grid"
             aria-pressed={snapToGrid}
           >
-            <Grid3X3 className="h-4 w-4" />
+            <Grid3X3 className={`h-4 w-4 ${snapToGrid ? 'text-primary' : ''}`} />
           </Button>
         </div>
 
@@ -162,6 +163,9 @@ function FlowToolbar({
         <div data-onboarding="drawing-toggle">
           <DrawingToolPicker />
         </div>
+
+        {/* Stroke Width Picker - visible when drawing */}
+        <StrokeWidthPicker />
 
         {/* Edge Style Picker */}
         {selectedEdge && (

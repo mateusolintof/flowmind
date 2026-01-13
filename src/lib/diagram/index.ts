@@ -1,5 +1,6 @@
 import { getNodesBounds, getViewportForBounds, type Node } from '@xyflow/react';
 import type { FlowData } from '@/types/diagram';
+import { EXPORT_PADDING, EXPORT_SCALE } from '@/config/appConstants';
 
 export type { FlowData } from '@/types/diagram';
 // html-to-image is lazy loaded to reduce initial bundle size (~120KB savings)
@@ -19,11 +20,21 @@ export async function exportAsPng(
     }
 
     const nodesBounds = getNodesBounds(nodes);
-    const imageWidth = nodesBounds.width || 1024;
-    const imageHeight = nodesBounds.height || 768;
+    // Add padding to image dimensions for better visual spacing
+    const imageWidth = (nodesBounds.width || 1024) + EXPORT_PADDING * 2;
+    const imageHeight = (nodesBounds.height || 768) + EXPORT_PADDING * 2;
+
+    // Adjust bounds to include padding
+    const paddedBounds = {
+        ...nodesBounds,
+        x: nodesBounds.x - EXPORT_PADDING,
+        y: nodesBounds.y - EXPORT_PADDING,
+        width: imageWidth,
+        height: imageHeight,
+    };
 
     const transform = getViewportForBounds(
-        nodesBounds,
+        paddedBounds,
         imageWidth,
         imageHeight,
         0.5,
@@ -37,20 +48,24 @@ export async function exportAsPng(
     try {
         const dataUrl = await toPng(element, {
             backgroundColor: '#ffffff',
-            width: imageWidth * 2,
-            height: imageHeight * 2,
+            width: imageWidth * EXPORT_SCALE,
+            height: imageHeight * EXPORT_SCALE,
             style: {
                 width: `${imageWidth}px`,
                 height: `${imageHeight}px`,
                 transform: `translate(${transform.x}px, ${transform.y}px) scale(${transform.zoom})`,
             },
+            pixelRatio: EXPORT_SCALE,
         });
 
         downloadDataUrl(dataUrl, `${filename}.png`);
     } catch (err) {
         console.error('PNG export failed, falling back to snapshot', err);
-        // Fallback to simple screenshot
-        const dataUrl = await toPng(element, { backgroundColor: '#fff' });
+        // Fallback to simple screenshot with higher quality
+        const dataUrl = await toPng(element, {
+            backgroundColor: '#fff',
+            pixelRatio: EXPORT_SCALE,
+        });
         downloadDataUrl(dataUrl, `${filename}-snapshot.png`);
     }
 }
@@ -68,11 +83,21 @@ export async function exportAsSvg(
     }
 
     const nodesBounds = getNodesBounds(nodes);
-    const imageWidth = nodesBounds.width || 1024;
-    const imageHeight = nodesBounds.height || 768;
+    // Add padding to image dimensions for better visual spacing
+    const imageWidth = (nodesBounds.width || 1024) + EXPORT_PADDING * 2;
+    const imageHeight = (nodesBounds.height || 768) + EXPORT_PADDING * 2;
+
+    // Adjust bounds to include padding
+    const paddedBounds = {
+        ...nodesBounds,
+        x: nodesBounds.x - EXPORT_PADDING,
+        y: nodesBounds.y - EXPORT_PADDING,
+        width: imageWidth,
+        height: imageHeight,
+    };
 
     const transform = getViewportForBounds(
-        nodesBounds,
+        paddedBounds,
         imageWidth,
         imageHeight,
         0.5,
@@ -86,8 +111,8 @@ export async function exportAsSvg(
     try {
         const dataUrl = await toSvg(element, {
             backgroundColor: '#ffffff',
-            width: imageWidth * 2,
-            height: imageHeight * 2,
+            width: imageWidth * EXPORT_SCALE,
+            height: imageHeight * EXPORT_SCALE,
             style: {
                 width: `${imageWidth}px`,
                 height: `${imageHeight}px`,

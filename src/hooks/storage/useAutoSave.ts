@@ -4,7 +4,8 @@ import { saveDiagramById } from '@/lib/storage';
 import { useFlowStore } from '@/store/flowStore';
 
 const DEBOUNCE_MS = 2000; // Debounce saves by 2 seconds
-const AUTO_SAVE_INTERVAL_MS = 60000; // Auto-save every 60 seconds (increased from 30s)
+// Auto-save disabled - user prefers manual save only
+// const AUTO_SAVE_INTERVAL_MS = 60000;
 
 /**
  * Hook for auto-saving with debouncing and change detection.
@@ -82,29 +83,10 @@ export const useAutoSave = (currentDiagramId: string | null, dirtyCounter: numbe
     await saveInternal(true);
   }, [saveInternal]);
 
-  // Trigger debounced save when dirty changes
-  useEffect(() => {
-    if (dirtyCounter > 0 && currentDiagramId) {
-      debouncedSave();
-    }
-
-    return () => {
-      if (debounceRef.current) {
-        clearTimeout(debounceRef.current);
-      }
-    };
-  }, [dirtyCounter, currentDiagramId, debouncedSave]);
-
-  // Periodic save check (only if dirty)
-  useEffect(() => {
-    const interval = setInterval(() => {
-      if (dirtyCounterRef.current > 0 && currentDiagramId) {
-        void saveInternal(false);
-      }
-    }, AUTO_SAVE_INTERVAL_MS);
-
-    return () => clearInterval(interval);
-  }, [currentDiagramId, saveInternal]);
+  // Auto-save disabled - user prefers manual save only
+  // Keeping debouncedSave for potential future use
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  const _debouncedSave = debouncedSave;
 
   // Save on visibility change (tab switch)
   useEffect(() => {

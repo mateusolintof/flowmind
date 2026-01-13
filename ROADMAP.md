@@ -30,13 +30,15 @@
 **Problema:** Templates aparecem "quebrados" porque o viewport não se ajusta após carregar.
 
 **Tarefas:**
-- [ ] Adicionar `fitView()` após carregar template em `handleSelectTemplate`
+- [x] Adicionar `fitView()` após carregar template em `handleSelectTemplate`
 
 **Arquivos:**
 - `src/components/flow/FlowCanvas.tsx`
 
 **Verificação:**
 - Carregar qualquer template e verificar se todos os nodes aparecem centralizados
+
+**Status:** Concluído
 
 ---
 
@@ -46,11 +48,11 @@
 **Objetivo:** Preparar a infraestrutura para comunicação segura com a API da Anthropic.
 
 **Tarefas:**
-- [ ] Instalar dependência `@anthropic-ai/sdk`
-- [ ] Criar API Route `app/api/ai/route.ts` para comunicação segura
-- [ ] Criar arquivo de prompts `lib/ai/prompts.ts`
-- [ ] Configurar variável de ambiente `ANTHROPIC_API_KEY`
-- [ ] Criar hook `useAI` para abstrair chamadas
+- [x] Instalar dependência `@anthropic-ai/sdk`
+- [x] Criar API Route `app/api/ai/route.ts` para comunicação segura
+- [x] Criar arquivo de prompts `lib/ai/prompts.ts`
+- [x] Configurar variável de ambiente `ANTHROPIC_API_KEY`
+- [x] Criar hook `useAI` para abstrair chamadas
 
 **Arquivos a criar:**
 - `src/app/api/ai/route.ts`
@@ -61,6 +63,8 @@
 **Verificação:**
 - Testar chamada simples à API via endpoint
 
+**Status:** Concluído
+
 ---
 
 ### M2: AI Discovery Flow - UI
@@ -69,12 +73,12 @@
 **Objetivo:** Criar os componentes visuais do fluxo de descoberta.
 
 **Tarefas:**
-- [ ] Criar componente `DiscoveryPanel.tsx` - painel lateral/modal
-- [ ] Criar componente `QuestionCard.tsx` - exibe pergunta + input
-- [ ] Criar componente `DiscoveryProgress.tsx` - indicador de progresso
-- [ ] Criar componente `DiscoverySummary.tsx` - resumo antes de gerar
-- [ ] Integrar com estado global (Zustand store)
-- [ ] Adicionar botão "AI Discovery" na Sidebar
+- [x] Criar componente `DiscoveryPanel.tsx` - painel lateral/modal
+- [x] Criar componente `QuestionCard.tsx` - exibe pergunta + input
+- [x] Criar componente `DiscoveryProgress.tsx` - indicador de progresso
+- [x] Criar componente `DiscoverySummary.tsx` - resumo antes de gerar
+- [x] Integrar com estado global (Zustand store)
+- [x] Adicionar botão "AI Discovery" na Sidebar
 
 **Arquivos a criar:**
 - `src/components/discovery/DiscoveryPanel.tsx`
@@ -87,6 +91,8 @@
 - UI funciona com dados mockados
 - Transições entre estados são suaves
 
+**Status:** Concluído
+
 ---
 
 ### M3: AI Discovery Flow - Lógica
@@ -95,12 +101,12 @@
 **Objetivo:** Implementar a geração dinâmica de perguntas e a geração do diagrama.
 
 **Tarefas:**
-- [ ] Implementar geração de perguntas dinâmicas via Claude
-- [ ] Criar prompts específicos para cada fase do discovery
-- [ ] Implementar análise de respostas para próxima pergunta
-- [ ] Criar função de geração de diagrama a partir das respostas
-- [ ] Implementar auto-layout com Dagre
-- [ ] Testar fluxo completo end-to-end
+- [x] Implementar geração de perguntas dinâmicas via Claude
+- [x] Criar prompts específicos para cada fase do discovery
+- [x] Implementar análise de respostas para próxima pergunta
+- [x] Criar função de geração de diagrama a partir das respostas
+- [x] Implementar auto-layout com Dagre
+- [x] Testar fluxo completo end-to-end
 
 **Arquivos a modificar:**
 - `src/lib/ai/prompts.ts`
@@ -114,6 +120,8 @@
 **Verificação:**
 - Fluxo completo funciona: pergunta -> resposta -> próxima pergunta -> gera diagrama
 - Diagrama gerado faz sentido visual e arquitetural
+
+**Status:** Concluído
 
 ---
 
@@ -246,7 +254,7 @@ src/
 
 | Data | Milestone | Status |
 |------|-----------|--------|
-| - | M0: Fix Templates | Pendente |
-| - | M1: Setup IA | Pendente |
-| - | M2: Discovery UI | Pendente |
-| - | M3: Discovery Lógica | Pendente |
+| 2026-01-13 | M0: Fix Templates | Concluído |
+| 2026-01-13 | M1: Setup IA | Concluído |
+| 2026-01-13 | M2: Discovery UI | Concluído |
+| 2026-01-13 | M3: Discovery Lógica | Concluído |

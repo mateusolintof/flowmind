@@ -6,6 +6,7 @@ import {
   Square,
   Circle,
   Minus,
+  Eraser,
 } from 'lucide-react';
 import type { DrawingTool } from '@/store/flowStore';
 
@@ -59,6 +60,13 @@ export const DRAWING_TOOLS: DrawingToolConfig[] = [
     label: 'Line',
     shortcut: 'L',
     description: 'Draw straight lines',
+  },
+  {
+    tool: 'eraser',
+    icon: Eraser,
+    label: 'Eraser',
+    shortcut: 'E',
+    description: 'Erase drawing elements',
   },
 ];
 

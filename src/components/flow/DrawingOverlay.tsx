@@ -58,12 +58,49 @@ function DrawingOverlay({ nodes, edges, setNodes }: DrawingOverlayProps) {
     setCursorPos(null);
   }, []);
 
+  // Eraser: find and delete drawing nodes at position
+  const eraseAtPosition = useCallback((flowX: number, flowY: number) => {
+    // Find drawing nodes (stroke, shape) that contain this point
+    const ERASER_RADIUS = 20;
+    const nodesToDelete = nodes.filter((node) => {
+      if (node.type !== 'stroke' && node.type !== 'shape') return false;
+
+      const nodeX = node.position.x;
+      const nodeY = node.position.y;
+      const nodeWidth = (node.style?.width as number) || 100;
+      const nodeHeight = (node.style?.height as number) || 100;
+
+      // Check if point is within node bounds (with some padding)
+      return (
+        flowX >= nodeX - ERASER_RADIUS &&
+        flowX <= nodeX + nodeWidth + ERASER_RADIUS &&
+        flowY >= nodeY - ERASER_RADIUS &&
+        flowY <= nodeY + nodeHeight + ERASER_RADIUS
+      );
+    });
+
+    if (nodesToDelete.length > 0) {
+      takeSnapshot(nodes, edges);
+      const idsToDelete = new Set(nodesToDelete.map((n) => n.id));
+      setNodes((nds) => nds.filter((n) => !idsToDelete.has(n.id)));
+      markDirty();
+    }
+  }, [nodes, edges, takeSnapshot, setNodes, markDirty]);
+
   const onPointerDown = useCallback((e: React.PointerEvent) => {
     if (!isDrawing || drawingTool === 'select') return;
 
+    const { x, y } = screenToFlowPosition({ x: e.clientX, y: e.clientY });
+
+    // Handle eraser tool
+    if (drawingTool === 'eraser') {
+      eraseAtPosition(x, y);
+      setIsDrawingProcess(true);
+      return;
+    }
+
     takeSnapshot(nodes, edges);
     setIsDrawingProcess(true);
-    const { x, y } = screenToFlowPosition({ x: e.clientX, y: e.clientY });
 
     if (drawingTool === 'freehand') {
       setCurrentStroke([[x, y, e.pressure]]);
@@ -76,12 +113,18 @@ function DrawingOverlay({ nodes, edges, setNodes }: DrawingOverlayProps) {
         currentY: y,
       });
     }
-  }, [isDrawing, drawingTool, takeSnapshot, nodes, edges, screenToFlowPosition]);
+  }, [isDrawing, drawingTool, takeSnapshot, nodes, edges, screenToFlowPosition, eraseAtPosition]);
 
   const onPointerMove = useCallback((e: React.PointerEvent) => {
     if (!isDrawing || !isDrawingProcess || drawingTool === 'select') return;
 
     const { x, y } = screenToFlowPosition({ x: e.clientX, y: e.clientY });
+
+    // Handle eraser dragging
+    if (drawingTool === 'eraser') {
+      eraseAtPosition(x, y);
+      return;
+    }
 
     if (drawingTool === 'freehand') {
       setCurrentStroke((points) => [...points, [x, y, e.pressure]]);
@@ -89,11 +132,16 @@ function DrawingOverlay({ nodes, edges, setNodes }: DrawingOverlayProps) {
       // Update current position for shape preview
       setShapeState((prev) => prev ? { ...prev, currentX: x, currentY: y } : null);
     }
-  }, [isDrawing, isDrawingProcess, drawingTool, screenToFlowPosition]);
+  }, [isDrawing, isDrawingProcess, drawingTool, screenToFlowPosition, eraseAtPosition]);
 
   const onPointerUp = useCallback((e: React.PointerEvent) => {
     if (!isDrawing || !isDrawingProcess || drawingTool === 'select') return;
     setIsDrawingProcess(false);
+
+    // Eraser just needs to end the process
+    if (drawingTool === 'eraser') {
+      return;
+    }
 
     const { x, y } = screenToFlowPosition({ x: e.clientX, y: e.clientY });
 
@@ -197,7 +245,7 @@ function DrawingOverlay({ nodes, edges, setNodes }: DrawingOverlayProps) {
 
   // Render preview for shapes during drawing
   const renderShapePreview = useMemo(() => {
-    if (!isDrawingProcess || !shapeState || drawingTool === 'freehand' || drawingTool === 'select') {
+    if (!isDrawingProcess || !shapeState || drawingTool === 'freehand' || drawingTool === 'select' || drawingTool === 'eraser') {
       return null;
     }
 
@@ -304,6 +352,34 @@ function DrawingOverlay({ nodes, edges, setNodes }: DrawingOverlayProps) {
   // Render cursor indicator with color and size
   const renderCursorIndicator = useMemo(() => {
     if (!cursorPos || drawingTool === 'select') return null;
+
+    // Eraser cursor is distinct (pink/red with X)
+    if (drawingTool === 'eraser') {
+      return (
+        <div
+          className="fixed pointer-events-none z-[100] rounded-full border-2 border-white shadow-md flex items-center justify-center"
+          style={{
+            left: cursorPos.x,
+            top: cursorPos.y,
+            width: 24,
+            height: 24,
+            backgroundColor: '#f87171',
+            transform: 'translate(-50%, -50%)',
+            opacity: 0.9,
+          }}
+        >
+          <svg width="12" height="12" viewBox="0 0 12 12" className="text-white">
+            <path
+              d="M2 2L10 10M10 2L2 10"
+              stroke="currentColor"
+              strokeWidth="2"
+              strokeLinecap="round"
+            />
+          </svg>
+        </div>
+      );
+    }
+
     const color = selectedColor || '#64748b';
     const size = drawingTool === 'freehand' ? strokeWidth + 4 : 12;
     return (

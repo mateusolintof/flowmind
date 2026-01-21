@@ -1,8 +1,8 @@
 'use client';
 
-import { useState, useCallback, KeyboardEvent } from 'react';
+import { useState, useCallback, KeyboardEvent, ChangeEvent } from 'react';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea';
 import { SendIcon, Loader2Icon } from 'lucide-react';
 
 interface QuestionCardProps {
@@ -22,8 +22,9 @@ export function QuestionCard({ question, onAnswer, isLoading }: QuestionCardProp
   }, [answer, isLoading, onAnswer]);
 
   const handleKeyDown = useCallback(
-    (e: KeyboardEvent<HTMLInputElement>) => {
-      if (e.key === 'Enter' && !e.shiftKey) {
+    (e: KeyboardEvent<HTMLTextAreaElement>) => {
+      // Cmd/Ctrl + Enter to submit (allows regular Enter for new lines)
+      if (e.key === 'Enter' && (e.metaKey || e.ctrlKey)) {
         e.preventDefault();
         handleSubmit();
       }
@@ -40,27 +41,33 @@ export function QuestionCard({ question, onAnswer, isLoading }: QuestionCardProp
         <p className="text-sm leading-relaxed pt-1">{question}</p>
       </div>
 
-      <div className="flex gap-2">
-        <Input
+      <div className="flex flex-col gap-2">
+        <Textarea
           value={answer}
-          onChange={(e) => setAnswer(e.target.value)}
+          onChange={(e: ChangeEvent<HTMLTextAreaElement>) => setAnswer(e.target.value)}
           onKeyDown={handleKeyDown}
-          placeholder="Type your answer..."
+          placeholder="Type your answer... (Cmd+Enter to send)"
           disabled={isLoading}
-          className="flex-1"
+          className="min-h-[100px] max-h-[300px] resize-y"
           autoFocus
         />
-        <Button
-          onClick={handleSubmit}
-          disabled={!answer.trim() || isLoading}
-          size="icon"
-        >
-          {isLoading ? (
-            <Loader2Icon className="w-4 h-4 animate-spin" />
-          ) : (
-            <SendIcon className="w-4 h-4" />
-          )}
-        </Button>
+        <div className="flex justify-between items-center">
+          <span className="text-xs text-muted-foreground">
+            Press Cmd+Enter to send
+          </span>
+          <Button
+            onClick={handleSubmit}
+            disabled={!answer.trim() || isLoading}
+            size="sm"
+          >
+            {isLoading ? (
+              <Loader2Icon className="w-4 h-4 animate-spin mr-2" />
+            ) : (
+              <SendIcon className="w-4 h-4 mr-2" />
+            )}
+            Send
+          </Button>
+        </div>
       </div>
     </div>
   );

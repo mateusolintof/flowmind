@@ -27,7 +27,7 @@ interface DrawingState {
  * Handles pointer events for freehand drawing and shape tools.
  */
 function DrawingOverlay({ nodes, edges, setNodes }: DrawingOverlayProps) {
-  const { screenToFlowPosition } = useReactFlow();
+  const { screenToFlowPosition, flowToScreenPosition } = useReactFlow();
   const { takeSnapshot } = useUndoRedo();
 
   // Get state from store
@@ -244,22 +244,32 @@ function DrawingOverlay({ nodes, edges, setNodes }: DrawingOverlayProps) {
   }, [isDrawing, isDrawingProcess, drawingTool, screenToFlowPosition, currentStroke, selectedColor, strokeWidth, setNodes, markDirty, shapeState]);
 
   // Render preview for shapes during drawing
+  // Note: shapeState stores FLOW coordinates, but we render in SCREEN coordinates
   const renderShapePreview = useMemo(() => {
     if (!isDrawingProcess || !shapeState || drawingTool === 'freehand' || drawingTool === 'select' || drawingTool === 'eraser') {
       return null;
     }
 
     const { startX, startY, currentX, currentY } = shapeState;
+
+    // Convert flow coordinates to screen coordinates for preview
+    const startScreen = flowToScreenPosition({ x: startX, y: startY });
+    const currentScreen = flowToScreenPosition({ x: currentX, y: currentY });
+    const sX = startScreen.x;
+    const sY = startScreen.y;
+    const cX = currentScreen.x;
+    const cY = currentScreen.y;
+
     const color = selectedColor || '#64748b';
 
     switch (drawingTool) {
       case 'rectangle':
         return (
           <rect
-            x={Math.min(startX, currentX)}
-            y={Math.min(startY, currentY)}
-            width={Math.abs(currentX - startX)}
-            height={Math.abs(currentY - startY)}
+            x={Math.min(sX, cX)}
+            y={Math.min(sY, cY)}
+            width={Math.abs(cX - sX)}
+            height={Math.abs(cY - sY)}
             fill="none"
             stroke={color}
             strokeWidth={2}
@@ -268,10 +278,10 @@ function DrawingOverlay({ nodes, edges, setNodes }: DrawingOverlayProps) {
           />
         );
       case 'ellipse':
-        const cx = (startX + currentX) / 2;
-        const cy = (startY + currentY) / 2;
-        const rx = Math.abs(currentX - startX) / 2;
-        const ry = Math.abs(currentY - startY) / 2;
+        const cx = (sX + cX) / 2;
+        const cy = (sY + cY) / 2;
+        const rx = Math.abs(cX - sX) / 2;
+        const ry = Math.abs(cY - sY) / 2;
         return (
           <ellipse
             cx={cx}
@@ -287,10 +297,10 @@ function DrawingOverlay({ nodes, edges, setNodes }: DrawingOverlayProps) {
       case 'line':
         return (
           <line
-            x1={startX}
-            y1={startY}
-            x2={currentX}
-            y2={currentY}
+            x1={sX}
+            y1={sY}
+            x2={cX}
+            y2={cY}
             stroke={color}
             strokeWidth={2}
             strokeDasharray="4"
@@ -298,31 +308,31 @@ function DrawingOverlay({ nodes, edges, setNodes }: DrawingOverlayProps) {
           />
         );
       case 'arrow':
-        // Calculate arrow head for preview
-        const dx = currentX - startX;
-        const dy = currentY - startY;
+        // Calculate arrow head for preview (in screen coordinates)
+        const dx = cX - sX;
+        const dy = cY - sY;
         const angle = Math.atan2(dy, dx);
         const arrowLength = 12;
         const arrowAngle = Math.PI / 6;
-        const arrowX1 = currentX - arrowLength * Math.cos(angle - arrowAngle);
-        const arrowY1 = currentY - arrowLength * Math.sin(angle - arrowAngle);
-        const arrowX2 = currentX - arrowLength * Math.cos(angle + arrowAngle);
-        const arrowY2 = currentY - arrowLength * Math.sin(angle + arrowAngle);
+        const arrowX1 = cX - arrowLength * Math.cos(angle - arrowAngle);
+        const arrowY1 = cY - arrowLength * Math.sin(angle - arrowAngle);
+        const arrowX2 = cX - arrowLength * Math.cos(angle + arrowAngle);
+        const arrowY2 = cY - arrowLength * Math.sin(angle + arrowAngle);
 
         return (
           <g>
             <line
-              x1={startX}
-              y1={startY}
-              x2={currentX}
-              y2={currentY}
+              x1={sX}
+              y1={sY}
+              x2={cX}
+              y2={cY}
               stroke={color}
               strokeWidth={2}
               strokeDasharray="4"
               strokeLinecap="round"
             />
             <path
-              d={`M ${currentX} ${currentY} L ${arrowX1} ${arrowY1} M ${currentX} ${currentY} L ${arrowX2} ${arrowY2}`}
+              d={`M ${cX} ${cY} L ${arrowX1} ${arrowY1} M ${cX} ${cY} L ${arrowX2} ${arrowY2}`}
               stroke={color}
               strokeWidth={2}
               strokeLinecap="round"
@@ -333,21 +343,29 @@ function DrawingOverlay({ nodes, edges, setNodes }: DrawingOverlayProps) {
       default:
         return null;
     }
-  }, [isDrawingProcess, shapeState, drawingTool, selectedColor]);
+  }, [isDrawingProcess, shapeState, drawingTool, selectedColor, flowToScreenPosition]);
 
   // Render freehand preview during drawing
+  // Note: currentStroke stores FLOW coordinates, convert to SCREEN for preview
   const renderFreehandPreview = useMemo(() => {
     if (!isDrawingProcess || drawingTool !== 'freehand' || currentStroke.length < 2) {
       return null;
     }
-    const path = getSvgPathFromStroke(currentStroke, { size: strokeWidth });
+
+    // Convert flow coordinates to screen coordinates for preview
+    const screenStroke = currentStroke.map(([x, y, pressure]) => {
+      const screen = flowToScreenPosition({ x, y });
+      return [screen.x, screen.y, pressure];
+    });
+
+    const path = getSvgPathFromStroke(screenStroke, { size: strokeWidth });
     const color = selectedColor || '#64748b';
     return (
       <svg className="absolute inset-0 pointer-events-none overflow-visible w-full h-full">
         <path d={path} fill={color} fillOpacity={0.6} />
       </svg>
     );
-  }, [isDrawingProcess, drawingTool, currentStroke, selectedColor, strokeWidth]);
+  }, [isDrawingProcess, drawingTool, currentStroke, selectedColor, strokeWidth, flowToScreenPosition]);
 
   // Render cursor indicator with color and size
   const renderCursorIndicator = useMemo(() => {

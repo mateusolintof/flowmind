@@ -1,6 +1,6 @@
 'use client';
 
-import { memo, useMemo, useState, useCallback } from 'react';
+import { memo, useMemo, useState, useCallback, useRef } from 'react';
 import { NodeProps, NodeResizer, Handle, Position, useReactFlow } from '@xyflow/react';
 import { cn } from '@/lib/utils';
 import { useFlowStore } from '@/store/flowStore';
@@ -14,9 +14,69 @@ import {
   PopoverTrigger,
 } from '@/components/ui/popover';
 
+interface EndpointHandleProps {
+  position: { x: number; y: number };
+  endpoint: 'start' | 'end';
+  onDrag: (endpoint: 'start' | 'end', deltaX: number, deltaY: number) => void;
+  color: string;
+}
+
+/**
+ * Draggable endpoint handle for lines and arrows
+ */
+function EndpointHandle({ position, endpoint, onDrag, color }: EndpointHandleProps) {
+  const dragRef = useRef<{ startX: number; startY: number; lastX: number; lastY: number } | null>(null);
+
+  const onPointerDown = useCallback((e: React.PointerEvent) => {
+    e.stopPropagation();
+    e.preventDefault();
+    (e.target as HTMLElement).setPointerCapture(e.pointerId);
+
+    dragRef.current = {
+      startX: e.clientX,
+      startY: e.clientY,
+      lastX: e.clientX,
+      lastY: e.clientY,
+    };
+  }, []);
+
+  const onPointerMove = useCallback((e: React.PointerEvent) => {
+    if (!dragRef.current) return;
+    e.stopPropagation();
+
+    const deltaX = e.clientX - dragRef.current.lastX;
+    const deltaY = e.clientY - dragRef.current.lastY;
+
+    dragRef.current.lastX = e.clientX;
+    dragRef.current.lastY = e.clientY;
+
+    onDrag(endpoint, deltaX, deltaY);
+  }, [endpoint, onDrag]);
+
+  const onPointerUp = useCallback((e: React.PointerEvent) => {
+    e.stopPropagation();
+    (e.target as HTMLElement).releasePointerCapture(e.pointerId);
+    dragRef.current = null;
+  }, []);
+
+  return (
+    <div
+      className="absolute w-3 h-3 rounded-full border-2 border-white shadow-md cursor-move z-10 transition-transform hover:scale-125"
+      style={{
+        left: position.x - 6,
+        top: position.y - 6,
+        backgroundColor: color,
+      }}
+      onPointerDown={onPointerDown}
+      onPointerMove={onPointerMove}
+      onPointerUp={onPointerUp}
+    />
+  );
+}
+
 const ShapeNode = ({ data, selected, id }: NodeProps) => {
   const nodeData = data as ShapeNodeData;
-  const { setNodes } = useReactFlow();
+  const { setNodes, getZoom } = useReactFlow();
   const markDirty = useFlowStore((s) => s.markDirty);
   const [showColorPicker, setShowColorPicker] = useState(false);
 
@@ -55,6 +115,78 @@ const ShapeNode = ({ data, selected, id }: NodeProps) => {
     );
     markDirty();
   }, [id, setNodes, fill, markDirty]);
+
+  // Handle endpoint dragging for lines and arrows
+  const handleEndpointDrag = useCallback((endpoint: 'start' | 'end', deltaX: number, deltaY: number) => {
+    const zoom = getZoom();
+    const scaledDeltaX = deltaX / zoom;
+    const scaledDeltaY = deltaY / zoom;
+
+    setNodes((nds) =>
+      nds.map((node) => {
+        if (node.id !== id) return node;
+
+        const nodeData = node.data as ShapeNodeData;
+        const currentStartX = nodeData.startX ?? SHAPE_PADDING;
+        const currentStartY = nodeData.startY ?? SHAPE_PADDING;
+        const currentEndX = nodeData.endX ?? 100 + SHAPE_PADDING;
+        const currentEndY = nodeData.endY ?? SHAPE_PADDING;
+
+        let newStartX = currentStartX;
+        let newStartY = currentStartY;
+        let newEndX = currentEndX;
+        let newEndY = currentEndY;
+
+        if (endpoint === 'start') {
+          newStartX = currentStartX + scaledDeltaX;
+          newStartY = currentStartY + scaledDeltaY;
+        } else {
+          newEndX = currentEndX + scaledDeltaX;
+          newEndY = currentEndY + scaledDeltaY;
+        }
+
+        // Calculate new bounds
+        const minX = Math.min(newStartX, newEndX);
+        const minY = Math.min(newStartY, newEndY);
+        const maxX = Math.max(newStartX, newEndX);
+        const maxY = Math.max(newStartY, newEndY);
+
+        // Normalize coordinates so minimum is at SHAPE_PADDING
+        const offsetX = minX - SHAPE_PADDING;
+        const offsetY = minY - SHAPE_PADDING;
+
+        const normalizedStartX = newStartX - offsetX;
+        const normalizedStartY = newStartY - offsetY;
+        const normalizedEndX = newEndX - offsetX;
+        const normalizedEndY = newEndY - offsetY;
+
+        // Calculate new dimensions
+        const newWidth = Math.max(maxX - minX, SHAPE_PADDING * 2) + SHAPE_PADDING * 2;
+        const newHeight = Math.max(maxY - minY, SHAPE_PADDING * 2) + SHAPE_PADDING * 2;
+
+        return {
+          ...node,
+          position: {
+            x: node.position.x + offsetX,
+            y: node.position.y + offsetY,
+          },
+          data: {
+            ...nodeData,
+            startX: normalizedStartX,
+            startY: normalizedStartY,
+            endX: normalizedEndX,
+            endY: normalizedEndY,
+          },
+          style: {
+            ...node.style,
+            width: newWidth,
+            height: newHeight,
+          },
+        };
+      })
+    );
+    markDirty();
+  }, [id, setNodes, markDirty, getZoom]);
 
   // Render the appropriate shape
   const shapeElement = useMemo(() => {
@@ -160,8 +292,29 @@ const ShapeNode = ({ data, selected, id }: NodeProps) => {
     return { width, height };
   }, [shapeType, width, height, startX, startY, endX, endY]);
 
+  // Calculate endpoint positions (in pixel coordinates relative to node)
+  const endpointPositions = useMemo(() => {
+    if (shapeType !== 'line' && shapeType !== 'arrow') return null;
+
+    // Calculate the offset from viewBox to pixel coordinates
+    const viewBoxMinX = Math.min(startX, endX) - SHAPE_PADDING;
+    const viewBoxMinY = Math.min(startY, endY) - SHAPE_PADDING;
+
+    return {
+      start: {
+        x: startX - viewBoxMinX,
+        y: startY - viewBoxMinY,
+      },
+      end: {
+        x: endX - viewBoxMinX,
+        y: endY - viewBoxMinY,
+      },
+    };
+  }, [shapeType, startX, startY, endX, endY]);
+
   // Determine if shape should have handles (rectangles and ellipses yes, lines/arrows optional)
   const hasHandles = shapeType === 'rectangle' || shapeType === 'ellipse';
+  const isLineOrArrow = shapeType === 'line' || shapeType === 'arrow';
   const shapeHandleClassName = '!w-2.5 !h-2.5 !bg-slate-400 !border-2 !border-white opacity-0 group-hover:opacity-100 transition-opacity';
 
   return (
@@ -185,6 +338,24 @@ const ShapeNode = ({ data, selected, id }: NodeProps) => {
           handleStyle={NODE_RESIZER_HANDLE_STYLE}
           lineStyle={NODE_RESIZER_LINE_STYLE}
         />
+      )}
+
+      {/* Endpoint handles for lines and arrows */}
+      {isLineOrArrow && selected && endpointPositions && (
+        <>
+          <EndpointHandle
+            position={endpointPositions.start}
+            endpoint="start"
+            onDrag={handleEndpointDrag}
+            color={color}
+          />
+          <EndpointHandle
+            position={endpointPositions.end}
+            endpoint="end"
+            onDrag={handleEndpointDrag}
+            color={color}
+          />
+        </>
       )}
 
       {/* Handles for connecting shapes */}
@@ -246,6 +417,38 @@ const ShapeNode = ({ data, selected, id }: NodeProps) => {
           </button>
 
           {/* Color picker */}
+          <Popover open={showColorPicker} onOpenChange={setShowColorPicker}>
+            <PopoverTrigger asChild>
+              <button
+                className="w-5 h-5 rounded-full border-2 border-white shadow cursor-pointer hover:scale-110 transition-transform"
+                style={{ backgroundColor: color }}
+                title="Change color"
+              />
+            </PopoverTrigger>
+            <PopoverContent className="w-36 p-2" align="center">
+              <div className="text-xs font-medium text-muted-foreground mb-2">Color</div>
+              <div className="grid grid-cols-6 gap-1">
+                {SHAPE_COLORS.map((c) => (
+                  <button
+                    key={c.value}
+                    onClick={() => onColorChange(c.value)}
+                    className={cn(
+                      'w-5 h-5 rounded-full border-2 hover:scale-110 transition-transform',
+                      color === c.value ? 'border-slate-900' : 'border-white'
+                    )}
+                    style={{ backgroundColor: c.value }}
+                    title={c.name}
+                  />
+                ))}
+              </div>
+            </PopoverContent>
+          </Popover>
+        </div>
+      )}
+
+      {/* Color picker for lines/arrows */}
+      {selected && isLineOrArrow && (
+        <div className="absolute -bottom-8 left-1/2 -translate-x-1/2 flex items-center gap-1 bg-white rounded-lg shadow-lg px-2 py-1 border nodrag">
           <Popover open={showColorPicker} onOpenChange={setShowColorPicker}>
             <PopoverTrigger asChild>
               <button

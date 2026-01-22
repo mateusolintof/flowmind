@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback, useEffect, useRef } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import {
   Sheet,
   SheetContent,
@@ -10,13 +10,22 @@ import {
 } from '@/components/ui/sheet';
 import { Button } from '@/components/ui/button';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { useDiscoveryStore } from '@/store/discoveryStore';
+import { useDiscoveryStore, type DiscoveryPhase } from '@/store/discoveryStore';
 import { useAI } from '@/hooks/ai/useAI';
 import { DiscoveryProgress } from './DiscoveryProgress';
 import { QuestionCard } from './QuestionCard';
 import { DiscoverySummary } from './DiscoverySummary';
 import { Loader2Icon, SparklesIcon, AlertCircleIcon, RefreshCwIcon, Trash2Icon } from 'lucide-react';
 import { toast } from 'sonner';
+
+// Loading messages for each phase
+const LOADING_MESSAGES: Record<string, string> = {
+  initial: 'Generating your first question...',
+  followup: 'Analyzing your response...',
+  summarizing: 'Creating a summary of your requirements...',
+  generating: 'Generating your diagram...',
+  default: 'Processing...',
+};
 
 interface DiscoveryPanelProps {
   onDiagramGenerated?: (nodes: unknown[], edges: unknown[]) => void;
@@ -39,9 +48,13 @@ export function DiscoveryPanel({ onDiagramGenerated }: DiscoveryPanelProps) {
   const reset = useDiscoveryStore((s) => s.reset);
   const getConversationText = useDiscoveryStore((s) => s.getConversationText);
 
-  const { isLoading, getInitialQuestion, getFollowUpQuestion, getSummary, generateDiagram } = useAI({
+  const { isLoading, cancelRequest, getInitialQuestion, getFollowUpQuestion, getSummary, generateDiagram } = useAI({
     onError: (err) => setError(err),
   });
+
+  // Track current operation for retry functionality
+  const [currentOperation, setCurrentOperation] = useState<string>('initial');
+  const [lastAnswer, setLastAnswer] = useState<string>('');
 
   // Ref for auto-scroll
   const scrollEndRef = useRef<HTMLDivElement>(null);
@@ -53,8 +66,16 @@ export function DiscoveryPanel({ onDiagramGenerated }: DiscoveryPanelProps) {
     }
   }, [qaHistory, currentQuestion, phase]);
 
+  // Get appropriate loading message
+  const getLoadingMessage = useCallback(() => {
+    if (phase === 'summarizing') return LOADING_MESSAGES.summarizing;
+    if (phase === 'generating') return LOADING_MESSAGES.generating;
+    return LOADING_MESSAGES[currentOperation] || LOADING_MESSAGES.default;
+  }, [phase, currentOperation]);
+
   // Start discovery when opened
   const startDiscovery = useCallback(async () => {
+    setCurrentOperation('initial');
     setPhase('loading');
     setError(null);
 
@@ -68,6 +89,8 @@ export function DiscoveryPanel({ onDiagramGenerated }: DiscoveryPanelProps) {
   const handleAnswer = useCallback(async (answer: string) => {
     // Save Q&A
     addQA(currentQuestion, answer);
+    setLastAnswer(answer);
+    setCurrentOperation('followup');
     setPhase('loading');
 
     // Get conversation so far
@@ -78,6 +101,7 @@ export function DiscoveryPanel({ onDiagramGenerated }: DiscoveryPanelProps) {
 
     if (response?.isReady) {
       // AI has enough info, get summary
+      setCurrentOperation('summarizing');
       setPhase('summarizing');
       const summaryResponse = await getSummary(conversation);
 
@@ -85,7 +109,7 @@ export function DiscoveryPanel({ onDiagramGenerated }: DiscoveryPanelProps) {
         try {
           const parsedSummary = JSON.parse(summaryResponse.content);
           setSummary(parsedSummary);
-          setPhase('summarizing');
+          // Already in 'summarizing' phase, no need to set again
         } catch {
           setError('Failed to parse summary. Please try again.');
         }
@@ -99,6 +123,7 @@ export function DiscoveryPanel({ onDiagramGenerated }: DiscoveryPanelProps) {
   const handleGenerateDiagram = useCallback(async () => {
     if (!summary) return;
 
+    setCurrentOperation('generating');
     setPhase('generating');
     const conversation = getConversationText();
     const summaryText = JSON.stringify(summary);
@@ -132,6 +157,63 @@ export function DiscoveryPanel({ onDiagramGenerated }: DiscoveryPanelProps) {
     }
   }, [qaHistory, setCurrentQuestion, setPhase]);
 
+  // Retry the last failed operation
+  const handleRetry = useCallback(async () => {
+    setError(null);
+
+    switch (currentOperation) {
+      case 'initial':
+        await startDiscovery();
+        break;
+      case 'followup':
+        // Retry follow-up with last answer
+        if (lastAnswer) {
+          // Remove the last QA since we're retrying
+          // Actually, we should NOT remove because addQA was already called
+          // Just retry the followup call
+          setPhase('loading');
+          const conversation = getConversationText();
+          const response = await getFollowUpQuestion(conversation);
+          if (response?.isReady) {
+            setCurrentOperation('summarizing');
+            setPhase('summarizing');
+            const summaryResponse = await getSummary(conversation);
+            if (summaryResponse?.content) {
+              try {
+                const parsedSummary = JSON.parse(summaryResponse.content);
+                setSummary(parsedSummary);
+              } catch {
+                setError('Failed to parse summary. Please try again.');
+              }
+            }
+          } else if (response?.content) {
+            setCurrentQuestion(response.content);
+          }
+        }
+        break;
+      case 'summarizing':
+        // Retry summary generation
+        setPhase('summarizing');
+        const convForSummary = getConversationText();
+        const summaryResponse = await getSummary(convForSummary);
+        if (summaryResponse?.content) {
+          try {
+            const parsedSummary = JSON.parse(summaryResponse.content);
+            setSummary(parsedSummary);
+          } catch {
+            setError('Failed to parse summary. Please try again.');
+          }
+        }
+        break;
+      case 'generating':
+        // Retry diagram generation
+        await handleGenerateDiagram();
+        break;
+      default:
+        await startDiscovery();
+    }
+  }, [currentOperation, lastAnswer, startDiscovery, getConversationText, getFollowUpQuestion, getSummary, setSummary, setPhase, setError, setCurrentQuestion, handleGenerateDiagram]);
+
   // Start discovery when panel opens (only if no existing conversation)
   useEffect(() => {
     if (isOpen && phase === 'loading' && !currentQuestion && qaHistory.length === 0) {
@@ -139,23 +221,30 @@ export function DiscoveryPanel({ onDiagramGenerated }: DiscoveryPanelProps) {
     }
   }, [isOpen, phase, currentQuestion, qaHistory.length, startDiscovery]);
 
-  // Handle close - DON'T reset, just close
+  // Handle close - cancel any ongoing requests, DON'T reset
   const handleOpenChange = useCallback((open: boolean) => {
     if (!open) {
+      cancelRequest();
       close();
       // Don't reset - keep conversation state
     }
-  }, [close]);
+  }, [close, cancelRequest]);
 
   // Handle new conversation - explicit reset
   const handleNewConversation = useCallback(() => {
+    cancelRequest();
     reset();
+    setCurrentOperation('initial');
+    setLastAnswer('');
     // Start fresh
     setTimeout(() => {
       setPhase('loading');
       startDiscovery();
     }, 100);
-  }, [reset, setPhase, startDiscovery]);
+  }, [reset, setPhase, startDiscovery, cancelRequest]);
+
+  // Determine if we should show loading state
+  const showLoading = (phase === 'loading' || isLoading) && !error;
 
   return (
     <Sheet open={isOpen} onOpenChange={handleOpenChange}>
@@ -199,8 +288,8 @@ export function DiscoveryPanel({ onDiagramGenerated }: DiscoveryPanelProps) {
                 {error && (
                   <div className="flex flex-col items-center gap-3 py-8 text-center">
                     <AlertCircleIcon className="w-10 h-10 text-destructive" />
-                    <p className="text-sm text-destructive">{error}</p>
-                    <Button variant="outline" onClick={startDiscovery}>
+                    <p className="text-sm text-destructive max-w-xs">{error}</p>
+                    <Button variant="outline" onClick={handleRetry}>
                       <RefreshCwIcon className="w-4 h-4 mr-2" />
                       Try Again
                     </Button>
@@ -208,13 +297,11 @@ export function DiscoveryPanel({ onDiagramGenerated }: DiscoveryPanelProps) {
                 )}
 
                 {/* Loading State */}
-                {phase === 'loading' && !error && (
+                {showLoading && (
                   <div className="flex flex-col items-center gap-3 py-8">
                     <Loader2Icon className="w-8 h-8 animate-spin text-primary" />
                     <p className="text-sm text-muted-foreground">
-                      {qaHistory.length === 0
-                        ? 'Starting discovery...'
-                        : 'Analyzing your response...'}
+                      {getLoadingMessage()}
                     </p>
                   </div>
                 )}

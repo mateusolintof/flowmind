@@ -106,9 +106,14 @@ function Sidebar({ onItemSelect, showModeToggle = true }: SidebarProps = {}) {
                     <div className="p-4 gap-6 flex flex-col pb-2">
                         {categories.map((cat) => (
                             <div key={cat.name}>
-                                <h3 className="mb-3 text-xs font-medium text-muted-foreground uppercase tracking-wider">
+                                <h3 className="mb-1 text-xs font-medium text-muted-foreground uppercase tracking-wider">
                                     {cat.name}
                                 </h3>
+                                {'description' in cat && cat.description && (
+                                    <p className="mb-3 text-[10px] text-muted-foreground/70">
+                                        {cat.description}
+                                    </p>
+                                )}
                                 <div className="grid grid-cols-2 gap-2 auto-rows-[1fr]">
                                     {cat.items.map((nodeType) => {
                                         const config = ALL_NODE_CONFIG[nodeType as keyof typeof ALL_NODE_CONFIG];

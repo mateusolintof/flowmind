@@ -50,7 +50,7 @@ const initialNodes: Node[] = [
   {
     id: '1',
     type: 'agent',
-    data: { label: 'Start Agent' },
+    data: { label: 'Agente IA' },
     position: { x: 250, y: 5 },
   },
 ];

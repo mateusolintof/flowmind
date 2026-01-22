@@ -11,11 +11,20 @@ A hybrid visual diagram editor for brainstorming, flowcharts, AI agent architect
 
 ### Core Features
 - **33+ Node Types** - AI Architecture (22), Flowchart (11), and Brainstorming nodes
+- **AI Discovery** - Guided AI assistant to help design your architecture (powered by Claude)
 - **Shape Drawing Tools** - Rectangle, Ellipse, Arrow, Line (Excalidraw-style)
 - **Freehand Drawing** - Sketch annotations directly on the canvas
 - **Auto-Save** - Local (IndexedDB) + Cloud (Supabase) synchronization
 - **Undo/Redo** - Full history with 30 states
 - **Multiple Diagrams** - Create, rename, duplicate, and delete diagrams
+
+### AI Discovery
+- **Guided Questions** - AI asks questions to understand your requirements
+- **Dynamic Progress** - Visual progress indicator that adapts to conversation
+- **Auto-Summary** - AI generates a summary before creating the diagram
+- **Diagram Generation** - Automatically creates nodes and connections based on your answers
+- **Auto-Layout** - Uses dagre for optimal node positioning
+- **Retry Support** - "Try Again" retries the specific failed operation, not the whole flow
 
 ### Node Customization
 - **Inline Color Picker** - Change node colors by clicking the color dot when selected
@@ -27,10 +36,12 @@ A hybrid visual diagram editor for brainstorming, flowcharts, AI agent architect
 ### Drawing Tools
 - **Select (V)** - Move and select elements
 - **Pencil (P)** - Freehand drawing
-- **Arrow (A)** - Draw arrows
+- **Arrow (A)** - Draw arrows with real-time preview
 - **Rectangle (R)** - Draw rectangles with connectable handles
 - **Ellipse (O)** - Draw circles/ellipses with connectable handles
-- **Line (L)** - Draw straight lines
+- **Line (L)** - Draw straight lines with real-time preview
+- **Resizable Shapes** - Drag corners/endpoints to resize after creation
+- **Color Picker** - Change colors on any selected shape
 
 ### Productivity
 - **Keyboard Shortcuts** - Full keyboard support (see table below)
@@ -77,6 +88,8 @@ A hybrid visual diagram editor for brainstorming, flowcharts, AI agent architect
 | **Styling** | Tailwind CSS 4, Radix UI, shadcn/ui |
 | **Animations** | Framer Motion |
 | **Drawing** | perfect-freehand |
+| **AI** | Anthropic Claude API (@anthropic-ai/sdk) |
+| **Auto-Layout** | dagre (graph layout algorithm) |
 | **Storage** | Supabase (cloud) + IndexedDB (local via idb-keyval) |
 | **Language** | TypeScript 5.x |
 
@@ -109,9 +122,15 @@ Open [http://localhost:3000](http://localhost:3000) to see the app.
 ### Environment Variables
 
 ```env
+# Required for cloud storage
 NEXT_PUBLIC_SUPABASE_URL=your_supabase_url
 NEXT_PUBLIC_SUPABASE_ANON_KEY=your_supabase_anon_key
+
+# Required for AI Discovery feature
+ANTHROPIC_API_KEY=your_anthropic_api_key
 ```
+
+> **Note:** The `ANTHROPIC_API_KEY` is required for the AI Discovery feature. Without it, the "Start with AI" functionality will not work. Get your API key at [console.anthropic.com](https://console.anthropic.com/).
 
 ## Keyboard Shortcuts
 
@@ -159,11 +178,16 @@ src/
 │   │   ├── BaseNode.tsx     # AI Architecture nodes
 │   │   ├── FlowchartNode.tsx # Flowchart nodes
 │   │   ├── GenericNode.tsx  # Brainstorming nodes
-│   │   ├── ShapeNode.tsx    # Geometric shapes
+│   │   ├── ShapeNode.tsx    # Geometric shapes (with endpoint handles)
 │   │   ├── StrokeNode.tsx   # Freehand drawings
 │   │   ├── CustomEdge.tsx   # Custom edge with labels
 │   │   ├── Sidebar.tsx      # Component library
 │   │   └── ...
+│   ├── discovery/           # AI Discovery components
+│   │   ├── DiscoveryPanel.tsx    # Main discovery panel
+│   │   ├── DiscoveryProgress.tsx # Dynamic progress bar
+│   │   ├── DiscoverySummary.tsx  # Summary before generation
+│   │   └── QuestionCard.tsx      # Q&A card component
 │   └── ui/                  # shadcn/ui components
 ├── config/
 │   ├── nodeTypes.ts         # AI Architecture node definitions
@@ -185,19 +209,25 @@ src/
 │   │   └── useSyncStatus.ts
 │   ├── drawing/             # Drawing/drag hooks
 │   │   └── useDnD.tsx
+│   ├── ai/                  # AI hooks
+│   │   └── useAI.ts         # AI API calls with timeout
 │   └── ...
 ├── types/
 │   ├── flowNodes.ts         # Shared node data types
 │   └── diagram.ts           # Diagram data models
 ├── store/
 │   ├── flowStore.ts         # Main UI state (Zustand)
+│   ├── discoveryStore.ts    # AI Discovery state
 │   └── ...
 ├── lib/
 │   ├── storage/             # IndexedDB + Supabase sync
 │   │   ├── index.ts         # Diagram CRUD + sync
 │   │   └── supabase.ts      # Supabase client
+│   ├── ai/                  # AI integration
+│   │   ├── client.ts        # Anthropic client (server-side)
+│   │   └── prompts.ts       # Discovery and diagram prompts
 │   └── diagram/             # Diagram export helpers
-│       └── index.ts
+│       └── index.ts         # Export + auto-layout (dagre)
 └── utils/
     ├── diagram/
     │   └── idGenerator.ts   # Node ID generation

@@ -110,9 +110,38 @@ src/store/
 ### AI Discovery System
 
 Located in `src/components/discovery/` and `src/lib/ai/`:
-- `DiscoveryPanel.tsx` - Main discovery UI
-- `prompts.ts` - AI prompts for diagram generation
-- `client.ts` - Anthropic API client
+
+| File | Purpose |
+|------|---------|
+| `DiscoveryPanel.tsx` | Main discovery UI with Q&A flow |
+| `DiscoveryProgress.tsx` | Dynamic progress bar (not hardcoded) |
+| `DiscoverySummary.tsx` | Summary before diagram generation |
+| `QuestionCard.tsx` | Question display with textarea input |
+| `prompts.ts` | AI prompts for diagram generation |
+| `client.ts` | Anthropic API client (server-side only) |
+
+**useAI Hook** (`src/hooks/ai/useAI.ts`):
+- 30-second timeout with AbortController
+- Operation-specific error messages
+- Request cancellation on panel close
+- Retry support for failed operations
+
+**Environment Variable Required:**
+```env
+ANTHROPIC_API_KEY=your_api_key
+```
+
+### Drawing System
+
+| File | Purpose |
+|------|---------|
+| `DrawingOverlay.tsx` | Captures pointer events, shows real-time preview |
+| `ShapeNode.tsx` | Geometric shapes with endpoint handles for resize |
+
+**Key Features:**
+- Real-time preview uses `flowToScreenPosition()` for correct coordinates
+- Arrows/Lines have draggable endpoint handles when selected
+- All shapes have color picker when selected
 
 ---
 
@@ -189,14 +218,22 @@ The build must pass without errors before considering changes complete.
 
 ```
 src/
-├── app/              # Next.js pages
+├── app/              # Next.js pages + API routes
+│   └── api/ai/       # AI Discovery API endpoint
 ├── components/
-│   ├── flow/         # Canvas, nodes, edges
-│   ├── discovery/    # AI Discovery components
+│   ├── flow/         # Canvas, nodes, edges, drawing
+│   ├── discovery/    # AI Discovery UI components
 │   └── ui/           # shadcn/ui components
-├── config/           # Node types, templates
-├── hooks/            # Custom React hooks
-├── store/            # Zustand stores
-├── lib/              # AI client, storage, utilities
+├── config/           # Node types, templates, shortcuts
+├── hooks/
+│   ├── ai/           # useAI (API calls with timeout)
+│   ├── diagrams/     # useUndoRedo, useClipboard
+│   ├── storage/      # useAutoSave, useSyncStatus
+│   └── drawing/      # useDnD
+├── store/            # Zustand stores (flow, discovery, undo)
+├── lib/
+│   ├── ai/           # Anthropic client, prompts
+│   ├── storage/      # IndexedDB, Supabase
+│   └── diagram/      # Export, auto-layout (dagre)
 └── types/            # TypeScript types
 ```

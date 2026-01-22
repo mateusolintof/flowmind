@@ -7,15 +7,16 @@ Este documento explica a logica, arquitetura e funcionamento do FlowMind.
 1. [Visao Geral](#visao-geral)
 2. [Tipos de Nodes](#tipos-de-nodes)
 3. [Ferramentas de Desenho](#ferramentas-de-desenho)
-4. [Fluxo do Usuario](#fluxo-do-usuario)
-5. [Arquitetura de Componentes](#arquitetura-de-componentes)
-6. [Gerenciamento de Estado](#gerenciamento-de-estado)
-7. [Sistema de Storage](#sistema-de-storage)
-8. [Funcionalidades Principais](#funcionalidades-principais)
-9. [Sistema de Undo/Redo](#sistema-de-undoredo)
-10. [Auto-Save](#auto-save)
-11. [Exportacao](#exportacao)
-12. [Atalhos de Teclado](#atalhos-de-teclado)
+4. [AI Discovery](#ai-discovery)
+5. [Fluxo do Usuario](#fluxo-do-usuario)
+6. [Arquitetura de Componentes](#arquitetura-de-componentes)
+7. [Gerenciamento de Estado](#gerenciamento-de-estado)
+8. [Sistema de Storage](#sistema-de-storage)
+9. [Funcionalidades Principais](#funcionalidades-principais)
+10. [Sistema de Undo/Redo](#sistema-de-undoredo)
+11. [Auto-Save](#auto-save)
+12. [Exportacao](#exportacao)
+13. [Atalhos de Teclado](#atalhos-de-teclado)
 
 ---
 
@@ -190,6 +191,142 @@ Paleta: `src/config/nodeColors.ts`
 Para desenhos a mao livre usando perfect-freehand:
 
 Arquivo: `src/components/flow/StrokeNode.tsx`
+
+### Preview em Tempo Real
+
+Ao desenhar formas (Rectangle, Ellipse, Arrow, Line), o usuario ve um preview em tempo real:
+
+- Coordenadas sao convertidas de flow space para screen space
+- Preview mostra forma tracejada enquanto arrasta
+- Setas mostram preview da cabeca da seta
+
+Arquivo: `src/components/flow/DrawingOverlay.tsx`
+
+### Resize de Arrows e Lines
+
+Arrows e Lines podem ser redimensionadas apos criacao:
+
+| Recurso | Descricao |
+|---------|-----------|
+| **Endpoint Handles** | Circulos arrastaveis nos pontos inicial e final |
+| **Color Picker** | Aparece quando selecionado |
+| **Zoom-aware** | Movimento escala com zoom do canvas |
+
+Arquivo: `src/components/flow/ShapeNode.tsx` (componente `EndpointHandle`)
+
+---
+
+## AI Discovery
+
+### Visao Geral
+
+AI Discovery e um assistente que guia o usuario atraves de perguntas para criar diagramas de arquitetura de IA automaticamente.
+
+### Fluxo
+
+```
+[Abrir Panel] -> [Pergunta Inicial] -> [Q&A Loop] -> [Summary] -> [Generate] -> [Diagram]
+```
+
+### Fases (DiscoveryPhase)
+
+| Fase | Descricao |
+|------|-----------|
+| `idle` | Painel fechado |
+| `loading` | Carregando pergunta ou processando resposta |
+| `questioning` | Mostrando pergunta atual, aguardando resposta |
+| `summarizing` | Gerando resumo das respostas |
+| `generating` | Gerando diagrama |
+| `complete` | Diagrama gerado com sucesso |
+| `error` | Erro ocorreu |
+
+### Arquitetura
+
+```
++------------------+     +------------------+     +------------------+
+|  DiscoveryPanel  |---->|     useAI        |---->|   /api/ai        |
+|  (UI Component)  |     |  (React Hook)    |     |  (API Route)     |
++------------------+     +------------------+     +------------------+
+        |                        |                        |
+        v                        v                        v
++------------------+     +------------------+     +------------------+
+| discoveryStore   |     |  AbortController |     | Anthropic Client |
+|  (Zustand)       |     |  (30s timeout)   |     |  (Claude API)    |
++------------------+     +------------------+     +------------------+
+```
+
+### Componentes
+
+| Componente | Arquivo | Responsabilidade |
+|------------|---------|------------------|
+| **DiscoveryPanel** | `src/components/discovery/DiscoveryPanel.tsx` | Painel principal com Q&A |
+| **DiscoveryProgress** | `src/components/discovery/DiscoveryProgress.tsx` | Barra de progresso dinamica |
+| **DiscoverySummary** | `src/components/discovery/DiscoverySummary.tsx` | Resumo antes de gerar |
+| **QuestionCard** | `src/components/discovery/QuestionCard.tsx` | Card de pergunta com textarea |
+
+### Hook useAI
+
+Localizado em `src/hooks/ai/useAI.ts`:
+
+```typescript
+interface UseAIOptions {
+  onError?: (error: string) => void;
+}
+
+// Retorna
+{
+  isLoading: boolean;
+  error: string | null;
+  cancelRequest: () => void;      // Cancela request atual
+  getInitialQuestion: () => Promise<AIResponse | null>;
+  getFollowUpQuestion: (conversation: string) => Promise<AIResponse | null>;
+  getSummary: (conversation: string) => Promise<AIResponse | null>;
+  generateDiagram: (conversation: string, summary: string) => Promise<AIResponse | null>;
+}
+```
+
+Recursos:
+- **Timeout de 30s** via AbortController
+- **Mensagens de erro especificas** por operacao
+- **Cancelamento** ao fechar painel
+
+### Prompts
+
+Definidos em `src/lib/ai/prompts.ts`:
+
+| Prompt | Uso |
+|--------|-----|
+| `SYSTEM_PROMPT` | Contexto do assistente |
+| `DISCOVERY_INITIAL_PROMPT` | Primeira pergunta |
+| `DISCOVERY_FOLLOWUP_PROMPT` | Perguntas seguintes |
+| `DISCOVERY_SUMMARY_PROMPT` | Gerar resumo JSON |
+| `DIAGRAM_GENERATION_PROMPT` | Gerar nodes/edges JSON |
+
+### Auto-Layout
+
+Apos gerar o diagrama, os nodes sao posicionados automaticamente usando `dagre`:
+
+```typescript
+// src/lib/diagram/index.ts
+export async function autoLayoutNodes(
+  nodes: Node[],
+  edges: Edge[],
+  options?: LayoutOptions
+): Promise<Node[]>
+```
+
+Opcoes:
+- `direction`: 'TB' (top-bottom) ou 'LR' (left-right)
+- `nodeSpacing`: Espaco horizontal entre nodes
+- `rankSpacing`: Espaco vertical entre ranks
+
+### Variaveis de Ambiente
+
+```env
+ANTHROPIC_API_KEY=your_anthropic_api_key
+```
+
+> **Importante:** Sem esta variavel, o AI Discovery nao funcionara.
 
 ---
 

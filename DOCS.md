@@ -21,13 +21,13 @@ Este documento explica a logica, arquitetura e funcionamento do FlowMind.
 
 ## Visao Geral
 
-FlowMind e um editor visual de diagramas hibrido que suporta:
+FlowMind e um editor visual de diagramas para arquiteturas de IA que suporta:
 
-1. **Brainstorming Livre** - GenericNode totalmente customizavel (icone + cor + texto)
+1. **Diagramas de Arquitetura de IA** - 22 tipos de nodes semanticos (LLM, Agent, Orchestrator, Worker, RAG, etc)
 2. **Fluxogramas Profissionais** - 11 tipos de nodes de flowchart com variantes de cor
-3. **Diagramas de Arquitetura de Software** - Frontend, Backend, Database, Cloud
-4. **Diagramas de Agentes de IA** - Agent, LLM, Tool, Memory, Input
-5. **Desenho de Formas** - Retangulos, elipses, linhas e setas conectaveis
+3. **Brainstorming Livre** - GenericNode totalmente customizavel (icone + cor + texto)
+4. **Desenho de Formas** - Retangulos, elipses, linhas e setas conectaveis
+5. **AI Discovery** - Assistente de IA para ajudar a criar diagramas
 
 O usuario pode arrastar componentes para o canvas, conecta-los com edges, desenhar formas geometricas, adicionar anotacoes a mao livre, e salvar/exportar seus diagramas.
 
@@ -94,38 +94,59 @@ Arquivos:
 - Paleta: `src/config/nodeColors.ts`
 - Componente: `src/components/flow/FlowchartNode.tsx`
 
-### AI Agents Nodes
+### AI Architecture Nodes (Nova Ontologia)
 
-5 tipos para diagramas de agentes de IA:
+22 tipos organizados em camadas semanticas para diagramas profissionais de arquitetura de IA:
 
+#### Entrada (Input Layer)
 | Node | Descricao |
 |------|-----------|
-| `agent` | Agente de IA |
-| `llm` | Modelo de linguagem |
-| `tool` | Ferramenta externa |
-| `memory` | Memoria (vector DB, history) |
-| `input` | Input do usuario |
+| `user` | Usuario que interage com o sistema |
+| `user-input` | Mensagem, query ou comando do usuario |
+| `prompt` | System prompt, instrucoes do agente |
 
-### Architecture Nodes
-
-4 tipos para arquitetura de software:
-
+#### Conhecimento (Knowledge Layer)
 | Node | Descricao |
 |------|-----------|
-| `frontend` | Aplicacao frontend |
-| `backend` | API ou servidor |
-| `database` | Banco de dados |
-| `cloud` | Servico de cloud |
+| `knowledge-base` | Documentos, FAQs, wikis, corpus |
+| `embedding` | Modelo de embedding (text-embedding-3, etc) |
+| `vector-db` | Vector database (Pinecone, Chroma, Weaviate) |
 
-### General Nodes
-
-3 tipos de uso geral:
-
+#### Processamento (Processing Layer)
 | Node | Descricao |
 |------|-----------|
-| `user` | Usuario/ator |
-| `note` | Nota ou comentario |
-| `container` | Agrupador visual |
+| `llm` | Modelo de linguagem (GPT, Claude, Llama) |
+| `agent` | Agente de IA generico |
+| `orchestrator` | Agente que coordena outros agentes |
+| `worker` | Agente especializado em uma tarefa |
+| `classifier` | Agente que roteia/classifica intents |
+| `retriever` | Componente que busca documentos relevantes |
+| `reranker` | Reordena resultados por relevancia |
+
+#### Ferramentas (Tools Layer)
+| Node | Descricao |
+|------|-----------|
+| `tool` | Ferramenta/funcao generica |
+| `api` | Integracao com API externa |
+| `code-exec` | Sandbox para executar codigo |
+
+#### Memoria (Memory Layer)
+| Node | Descricao |
+|------|-----------|
+| `memory` | Memoria de curto prazo / contexto |
+| `conversation` | Historico de conversacao |
+
+#### Saida (Output Layer)
+| Node | Descricao |
+|------|-----------|
+| `output` | Resposta final ao usuario |
+| `action` | Acao executada no mundo real |
+
+#### Estrutural (Structural)
+| Node | Descricao |
+|------|-----------|
+| `container` | Agrupa componentes relacionados |
+| `note` | Anotacao explicativa |
 
 Catalogo e categorias do Sidebar ficam centralizados em:
 - `src/config/nodeCatalog.ts`
@@ -412,9 +433,8 @@ interface DiagramTemplate {
 ```
 
 Templates disponiveis:
-- **AI Agents**: Single Agent, Multi-Agent System, RAG Pipeline
-- **Architecture**: Microservices, Serverless
-- **Flowchart**: Basic Flowchart, Decision Tree
+- **AI Agents**: Single Agent, Multi-Agent System, RAG Pipeline, RAG with Reranking, Customer Service Agent, Research Agent, Code Review Agent
+- **Flowchart**: Basic Flowchart, Decision Tree, Data Pipeline (ETL)
 - **General**: Blank Canvas
 
 UI (web): Templates e Guide abrem em modal fullscreen (com scroll interno) para evitar quebra de layout em desktop.

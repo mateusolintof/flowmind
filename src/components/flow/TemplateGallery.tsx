@@ -12,40 +12,84 @@ import {
 } from '@/components/ui/dialog';
 import { Card } from '@/components/ui/card';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { LayoutTemplate, Bot, Server, Layout, ChevronRight } from 'lucide-react';
+import { Input } from '@/components/ui/input';
+import { Badge } from '@/components/ui/badge';
+import {
+    LayoutTemplate,
+    Bot,
+    Server,
+    Layout,
+    ChevronRight,
+    Search,
+    Sparkles,
+    GitBranch
+} from 'lucide-react';
 import { DIAGRAM_TEMPLATES, DiagramTemplate } from '@/config/templates';
 import { cn } from '@/lib/utils';
+import { useDiscoveryStore } from '@/store/discoveryStore';
 
 interface TemplateGalleryProps {
     onSelectTemplate: (template: DiagramTemplate) => void;
 }
 
-// Module-level constant
+// Module-level constants
 const CATEGORIES = [
     { id: 'all', label: 'All Templates', icon: LayoutTemplate },
     { id: 'ai-agents', label: 'AI Agents', icon: Bot },
     { id: 'architecture', label: 'Architecture', icon: Server },
+    { id: 'flowchart', label: 'Flowcharts', icon: GitBranch },
     { id: 'general', label: 'General', icon: Layout },
 ] as const;
+
+// Templates added recently (show NEW badge)
+const NEW_TEMPLATE_IDS = [
+    'customer-service',
+    'research-agent',
+    'code-review',
+    'rag-reranking',
+    'data-pipeline-etl',
+];
 
 export function TemplateGallery({ onSelectTemplate }: TemplateGalleryProps) {
     const [open, setOpen] = useState(false);
     const [selectedCategory, setSelectedCategory] = useState('all');
     const [hoveredTemplate, setHoveredTemplate] = useState<string | null>(null);
+    const [searchQuery, setSearchQuery] = useState('');
 
-    // Memoize filtered templates
-    const filteredTemplates = useMemo(() =>
-        selectedCategory === 'all'
+    const openDiscovery = useDiscoveryStore((s) => s.open);
+
+    // Memoize filtered templates with search
+    const filteredTemplates = useMemo(() => {
+        let templates = selectedCategory === 'all'
             ? DIAGRAM_TEMPLATES
-            : DIAGRAM_TEMPLATES.filter((t) => t.category === selectedCategory),
-        [selectedCategory]
-    );
+            : DIAGRAM_TEMPLATES.filter((t) => t.category === selectedCategory);
+
+        // Apply search filter
+        if (searchQuery.trim()) {
+            const query = searchQuery.toLowerCase();
+            templates = templates.filter((t) =>
+                t.name.toLowerCase().includes(query) ||
+                t.description.toLowerCase().includes(query)
+            );
+        }
+
+        return templates;
+    }, [selectedCategory, searchQuery]);
 
     // Memoize handler
     const handleSelect = useCallback((template: DiagramTemplate) => {
         onSelectTemplate(template);
         setOpen(false);
     }, [onSelectTemplate]);
+
+    // Handle "Start with AI" click
+    const handleStartWithAI = useCallback(() => {
+        setOpen(false);
+        // Small delay to let dialog close animation complete
+        setTimeout(() => {
+            openDiscovery();
+        }, 150);
+    }, [openDiscovery]);
 
     return (
         <Dialog open={open} onOpenChange={setOpen}>
@@ -57,13 +101,27 @@ export function TemplateGallery({ onSelectTemplate }: TemplateGalleryProps) {
             </DialogTrigger>
             <DialogContent variant="fullscreen" className="overflow-hidden flex flex-col">
                 <DialogHeader className="shrink-0">
-                    <DialogTitle className="flex items-center gap-2">
-                        <LayoutTemplate className="h-5 w-5" />
-                        Diagram Templates
-                    </DialogTitle>
-                    <DialogDescription>
-                        Choose a template to get started quickly or start with a blank canvas.
-                    </DialogDescription>
+                    <div className="flex items-center justify-between gap-4">
+                        <div>
+                            <DialogTitle className="flex items-center gap-2">
+                                <LayoutTemplate className="h-5 w-5" />
+                                Diagram Templates
+                            </DialogTitle>
+                            <DialogDescription>
+                                Choose a template to get started quickly or start with a blank canvas.
+                            </DialogDescription>
+                        </div>
+                        {/* Search Input */}
+                        <div className="relative w-64">
+                            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                            <Input
+                                placeholder="Search templates..."
+                                value={searchQuery}
+                                onChange={(e) => setSearchQuery(e.target.value)}
+                                className="pl-9 h-9"
+                            />
+                        </div>
+                    </div>
                 </DialogHeader>
 
                 <div className="flex flex-col md:flex-row gap-4 flex-1 min-h-0">
@@ -99,6 +157,34 @@ export function TemplateGallery({ onSelectTemplate }: TemplateGalleryProps) {
                     {/* Templates Grid */}
                     <ScrollArea className="flex-1 min-h-0">
                         <div className="grid grid-cols-[repeat(auto-fill,minmax(280px,1fr))] gap-4 pr-2 md:pr-4">
+                            {/* Start with AI - Featured Card */}
+                            {selectedCategory === 'all' && !searchQuery && (
+                                <Card
+                                    className="p-4 cursor-pointer transition-all hover:shadow-lg border-2 border-dashed border-primary/50 hover:border-primary bg-gradient-to-br from-primary/5 to-primary/10 col-span-full md:col-span-1"
+                                    onClick={handleStartWithAI}
+                                >
+                                    <div className="h-32 mb-3 rounded-md bg-primary/10 flex items-center justify-center">
+                                        <div className="flex flex-col items-center gap-2">
+                                            <div className="w-12 h-12 rounded-full bg-primary/20 flex items-center justify-center">
+                                                <Sparkles className="h-6 w-6 text-primary" />
+                                            </div>
+                                            <span className="text-sm font-medium text-primary">AI-Powered</span>
+                                        </div>
+                                    </div>
+                                    <div className="flex items-start justify-between gap-2">
+                                        <div className="min-w-0 flex-1">
+                                            <h3 className="font-semibold text-sm leading-snug text-primary">
+                                                Start with AI Discovery
+                                            </h3>
+                                            <p className="text-xs text-muted-foreground mt-0.5">
+                                                Answer a few questions and let AI generate your diagram automatically.
+                                            </p>
+                                        </div>
+                                        <ChevronRight className="h-4 w-4 shrink-0 text-primary mt-0.5" />
+                                    </div>
+                                </Card>
+                            )}
+
                             {filteredTemplates.map((template) => (
                                 <Card
                                     key={template.id}
@@ -116,6 +202,15 @@ export function TemplateGallery({ onSelectTemplate }: TemplateGalleryProps) {
                                             <span className="text-muted-foreground text-sm">Blank Canvas</span>
                                         ) : (
                                             <TemplatePreview template={template} />
+                                        )}
+                                        {/* NEW Badge */}
+                                        {NEW_TEMPLATE_IDS.includes(template.id) && (
+                                            <Badge
+                                                variant="default"
+                                                className="absolute top-2 right-2 text-[10px] px-1.5 py-0 h-5 bg-emerald-500 hover:bg-emerald-500"
+                                            >
+                                                NEW
+                                            </Badge>
                                         )}
                                     </div>
 

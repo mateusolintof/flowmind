@@ -1,8 +1,8 @@
 /**
  * AI Prompts for FlowMind Discovery Flow
  *
- * These prompts guide Claude to help users design AI system architectures
- * through a structured question-and-answer flow.
+ * Prompts para guiar Claude na criação de diagramas profissionais
+ * de arquitetura de sistemas de IA.
  */
 
 export const SYSTEM_PROMPT = `You are FlowMind AI, an expert AI architecture consultant.
@@ -10,9 +10,10 @@ Your role is to help users design and visualize AI system architectures through 
 
 You specialize in:
 - RAG (Retrieval-Augmented Generation) systems
-- Multi-agent architectures
+- Multi-agent architectures with orchestrators and workers
 - LLM-based applications
 - AI pipelines and workflows
+- Knowledge bases and vector databases
 - Memory and context management systems
 
 Communication style:
@@ -34,12 +35,12 @@ Respond with ONLY the question, no additional text.`;
 export const DISCOVERY_FOLLOWUP_PROMPT = `You are continuing a discovery session. Based on the conversation so far, ask the next most important question to better understand the user's requirements.
 
 Consider asking about:
-- Data sources and types
+- Data sources and types (knowledge bases, documents, APIs)
 - Expected scale and performance requirements
 - Integration points with existing systems
 - User interaction patterns
 - Security and privacy requirements
-- Budget and infrastructure constraints
+- Whether they need multi-agent orchestration
 
 Guidelines:
 - Ask ONE focused question at a time
@@ -75,19 +76,49 @@ Conversation:
 Summary:
 {summary}
 
-Generate a JSON object representing the diagram with nodes and edges. Use these node types:
-- "agent": For AI agents and orchestrators
-- "llm": For language model components
-- "tool": For external tools and APIs
-- "memory": For memory/storage components
-- "input": For user inputs and data sources
-- "generic": For other components (specify icon)
+Generate a JSON object representing the diagram with nodes and edges. Use ONLY these node types:
+
+INPUT LAYER (entry points):
+- "user": Human user interacting with the system
+- "user-input": User message, query, or command
+- "prompt": System prompt or agent instructions
+
+KNOWLEDGE LAYER (data sources):
+- "knowledge-base": Documents, FAQs, wikis, knowledge corpus
+- "embedding": Embedding model (text-embedding-3, etc)
+- "vector-db": Vector database (Pinecone, Chroma, Weaviate)
+
+PROCESSING LAYER (LLMs and Agents):
+- "llm": Language model (GPT, Claude, Llama)
+- "agent": Generic AI agent
+- "orchestrator": Agent that coordinates other agents
+- "worker": Specialized worker agent
+- "classifier": Intent classifier/router agent
+- "retriever": Component that fetches relevant documents
+- "reranker": Re-orders results by relevance
+
+TOOLS LAYER (external integrations):
+- "tool": Generic tool/function
+- "api": External API integration
+- "code-exec": Code execution sandbox
+
+MEMORY LAYER (context and history):
+- "memory": Short-term memory / context
+- "conversation": Conversation history
+
+OUTPUT LAYER (responses and actions):
+- "output": Final response to user
+- "action": Action executed in the real world
+
+STRUCTURAL:
+- "container": Groups related components
+- "note": Explanatory annotation
 
 Each node should have:
 - id: Unique identifier (use format "node-1", "node-2", etc.)
 - type: One of the types above
 - position: {x, y} coordinates (space them out, use increments of 200)
-- data: {label: "Component Name", color?: "#hex"}
+- data: {label: "Component Name"}
 
 Each edge should have:
 - id: Unique identifier (use format "edge-1", "edge-2", etc.)
@@ -102,7 +133,14 @@ Response format:
   "edges": [...]
 }
 
-Create a logical, well-organized diagram that clearly shows the system architecture.
+Guidelines:
+- Create a logical, well-organized diagram that clearly shows the system architecture
+- Use appropriate node types for each component (don't use "agent" for everything)
+- For RAG systems, include: knowledge-base, embedding, vector-db, retriever
+- For multi-agent systems, include: orchestrator and workers
+- Always include user, user-input at the start and output at the end
+- Limit to 6-15 nodes for clarity
+
 Respond ONLY with the JSON object, no additional text.`;
 
 export type PromptType =

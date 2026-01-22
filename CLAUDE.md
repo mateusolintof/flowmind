@@ -1,169 +1,164 @@
-# AGENTS.md - AI Assistant Context
+# CLAUDE.md - AI Assistant Context
 
 This file provides context for AI assistants working on the FlowMind codebase.
 
-## IMPORTANT: Development Roadmap
+## Project Overview
 
-**Before starting any new feature development, consult the `ROADMAP.md` file in the project root.**
+FlowMind is a visual diagram editor for designing AI system architectures. Built with Next.js 16, React 19, and @xyflow/react.
 
-The roadmap contains:
-- Strategic positioning and decisions
-- Prioritized milestones (M0-M8)
-- Detailed task descriptions with checkboxes
-- File dependencies and modifications
-- Verification steps for each milestone
+**Core Purpose:** Create professional diagrams for AI agent architectures, RAG pipelines, multi-agent systems, and flowcharts.
 
-**Current Priority:** AI Discovery Flow (Milestones M0-M3)
+**Key Features:**
+- **AI Architecture Diagrams** - Professional nodes for LLMs, agents, vector databases, etc.
+- **Flowcharts** - Process diagrams with decision nodes
+- **Brainstorming** - Free-form nodes with customizable icons
+- **AI Discovery** - Guided AI assistant to help design architectures
 
 ---
 
-## Project Overview
+## Node Type System (AI Architecture)
 
-FlowMind is a hybrid visual diagram editor built with Next.js 16, React 19, and @xyflow/react. It supports:
+The node system is organized in semantic layers for creating professional AI architecture diagrams.
 
-- **Brainstorming** - Free-form nodes with customizable icons and colors
-- **Flowcharts** - Professional process diagrams
-- **AI Agent Architecture** - Diagrams for AI systems
-- **Software Architecture** - System design diagrams
-- **Drawing** - Excalidraw-style shape tools
+### Node Categories
+
+| Category | Node Types | Purpose |
+|----------|------------|---------|
+| **Entrada** | `user`, `user-input`, `prompt` | Entry points - user, queries, instructions |
+| **Conhecimento** | `knowledge-base`, `embedding`, `vector-db` | Data sources and semantic search |
+| **Processamento** | `llm`, `agent`, `orchestrator`, `worker`, `classifier`, `retriever`, `reranker` | LLMs and AI agents |
+| **Ferramentas** | `tool`, `api`, `code-exec` | External APIs and functions |
+| **Memória** | `memory`, `conversation` | Context and history |
+| **Saída** | `output`, `action` | Responses and real-world actions |
+| **Estrutural** | `container`, `note` | Visual organization |
+| **Flowchart** | `flowchart-*` | Process flow diagrams |
+
+### Key Node Types
+
+```
+INPUT LAYER:
+- user          → Human user
+- user-input    → User message/query
+- prompt        → System prompt/instructions
+
+KNOWLEDGE LAYER:
+- knowledge-base → Documents, FAQs, wikis
+- embedding      → Embedding model (text-embedding-3)
+- vector-db      → Vector database (Pinecone, Chroma)
+
+PROCESSING LAYER:
+- llm           → Language model (GPT, Claude, Llama)
+- agent         → Generic AI agent
+- orchestrator  → Coordinates other agents
+- worker        → Specialized worker agent
+- classifier    → Intent classifier/router
+- retriever     → Fetches relevant documents
+- reranker      → Re-orders by relevance
+
+TOOLS LAYER:
+- tool          → Generic tool/function
+- api           → External API integration
+- code-exec     → Code execution sandbox
+
+MEMORY LAYER:
+- memory        → Short-term memory/context
+- conversation  → Conversation history
+
+OUTPUT LAYER:
+- output        → Final response to user
+- action        → Real-world action
+```
+
+### Configuration Files
+
+| File | Purpose |
+|------|---------|
+| `config/nodeTypes.ts` | AI Architecture node definitions (22 types) |
+| `config/flowchartNodeTypes.ts` | Flowchart node definitions |
+| `config/nodeCatalog.ts` | Sidebar categories + combined catalog |
+| `config/templates.ts` | Pre-built diagram templates |
+
+---
 
 ## Key Architecture Patterns
-
-### 1. Node Type System
-
-Nodes are categorized and rendered by different components:
-
-| Node Type | Component | Config File |
-|-----------|-----------|-------------|
-| AI Architecture (agent, llm, tool, memory, input) | `BaseNode.tsx` | `nodeTypes.ts` |
-| Flowchart (flowchart-*) | `FlowchartNode.tsx` | `flowchartNodeTypes.ts` |
-| Brainstorming (generic) | `GenericNode.tsx` | N/A (self-contained) |
-| Shapes (shape) | `ShapeNode.tsx` | N/A |
-| Freehand (stroke) | `StrokeNode.tsx` | N/A |
-
-### 2. State Management
-
-Uses Zustand with Immer for immutable updates:
-
-```
-src/store/
-├── flowStore.ts      # UI state (isDrawing, drawingTool, selectedColor, etc.)
-├── undoRedoStore.ts  # History management
-├── syncStatusStore.ts # Cloud sync status
-└── clipboardStore.ts # Copy/paste state
-```
-
-**Important**: React Flow manages `nodes` and `edges` internally via `useNodesState` and `useEdgesState`. Don't try to put them in Zustand.
-
-### 3. Drawing System
-
-The drawing system uses a `drawingTool` state that determines behavior:
-
-```typescript
-type DrawingTool = 'select' | 'freehand' | 'arrow' | 'rectangle' | 'ellipse' | 'line';
-```
-
-- `DrawingOverlay.tsx` captures pointer events when drawing
-- `DrawingToolPicker.tsx` provides the UI for tool selection
-- Setting any tool except 'select' automatically enables `isDrawing`
-
-### 4. Storage Architecture
-
-Two-tier storage with offline-first approach:
-
-1. **IndexedDB** (via idb-keyval) - Primary local storage
-2. **Supabase** - Cloud sync for backup and cross-device access
-
-Key functions in `lib/storage`:
-- `saveDiagramState()` - Save nodes/edges/viewport
-- `loadDiagramState()` - Load diagram data
-- `syncToCloud()` - Sync to Supabase
-
-### 5. Design System & Theming
-
-The project uses a robust theming system built on `next-themes` and Tailwind CSS v4 variables:
-
-- **Theme Provider**: Wraps the app in `src/app/layout.tsx` to handle Light/Dark/System preference.
-- **Palettes**:
-  - **Light (Default)**: "Porcelain & Navy" (`:root` variables) - Optimized for clarity.
-  - **Dark**: "Midnight Blue & Gold" (`.dark` class) - Premium, immersive look.
-- **Typography**:
-  - **Headings**: `Outfit` (Google Font) for brand personality.
-  - **Body**: `Geist` for readability and code.
-- **Global Styles**: Defined in `src/app/globals.css` using a **Primitive vs Semantic** architecture:
-  - **Primitives**: `--p-light-*` and `--p-dark-*` (definitions).
-  - **Semantics**: Standard shadcn vars (`--background`) mapped to primitives.
-  - **Do NOT hardcode colors**. Always use semantic variables.
-- **Hybrid Canvas**: The `.canvas-light-mode` utility class forces light primitives on the canvas container, even in dark mode.
-- **Effects**: Utility classes like `@utility glass-panel` and `@utility glow-effect` used for UI depth.
-
-## Important Files
 
 ### Components
 
 | File | Purpose |
 |------|---------|
-| `FlowCanvas.tsx` | Main orchestrator - handles all canvas logic |
-| `FlowToolbar.tsx` | Top toolbar UI |
-| `DrawingOverlay.tsx` | Captures drawing events, creates shapes |
-| `Sidebar.tsx` | Component library with categories |
+| `FlowCanvas.tsx` | Main canvas orchestrator |
 | `BaseNode.tsx` | Renders AI Architecture nodes |
-| `FlowchartNode.tsx` | Renders flowchart nodes with variants |
-| `GenericNode.tsx` | Fully customizable brainstorming node |
-| `ShapeNode.tsx` | Geometric shapes (rect, ellipse, line, arrow) |
-| `CustomEdge.tsx` | Edge with labels and style picker |
+| `FlowchartNode.tsx` | Renders flowchart nodes |
+| `GenericNode.tsx` | Customizable brainstorming node |
+| `Sidebar.tsx` | Node library with categories |
+| `CustomEdge.tsx` | Edge with labels and styles |
 
-### Configuration
+### State Management
 
-| File | Purpose |
-|------|---------|
-| `config/nodeTypes.ts` | AI Architecture node definitions |
-| `config/flowchartNodeTypes.ts` | Flowchart node definitions with variants |
-| `config/nodeCatalog.ts` | Sidebar categories + combined node catalog |
-| `config/drawingTools.ts` | Drawing tool catalog + shortcuts |
-| `config/nodeColors.ts` | Shared color palettes |
-| `config/genericNode.ts` | Generic node icon catalog |
-| `config/edgeStyles.ts` | Edge styles + label presets |
-| `config/shortcuts.ts` | Keyboard shortcut catalog |
-| `config/templates.ts` | Pre-built diagram templates |
+Uses Zustand with Immer:
 
-### Types
+```
+src/store/
+├── flowStore.ts       # UI state (drawing, colors, etc.)
+├── discoveryStore.ts  # AI Discovery state
+├── undoRedoStore.ts   # History management
+└── clipboardStore.ts  # Copy/paste state
+```
 
-| File | Purpose |
-|------|---------|
-| `types/flowNodes.ts` | Shared node data types |
-| `types/diagram.ts` | Diagram data models |
+**Important**: React Flow manages `nodes` and `edges` internally via `useNodesState` and `useEdgesState`.
 
-### Hooks
+### AI Discovery System
 
-| File | Purpose |
-|------|---------|
-| `hooks/diagrams/useKeyboardShortcuts.ts` | All keyboard handlers |
-| `hooks/diagrams/useUndoRedo.ts` | Undo/redo with snapshots |
-| `hooks/diagrams/useClipboard.ts` | Copy/cut/paste |
-| `hooks/storage/useAutoSave.ts` | Debounced auto-save logic |
-| `hooks/storage/useSyncStatus.ts` | Sync/online status |
-| `hooks/drawing/useDnD.tsx` | Drag-and-drop context |
+Located in `src/components/discovery/` and `src/lib/ai/`:
+- `DiscoveryPanel.tsx` - Main discovery UI
+- `prompts.ts` - AI prompts for diagram generation
+- `client.ts` - Anthropic API client
+
+---
+
+## Common Tasks
+
+### Adding a New Node Type
+
+1. Add config to `src/config/nodeTypes.ts`
+2. Add to appropriate category in `src/config/nodeCatalog.ts`
+3. Node will automatically use `BaseNode.tsx` component
+
+### Adding a New Template
+
+Add to `src/config/templates.ts`:
+
+```typescript
+{
+  id: 'my-template',
+  name: 'My Template',
+  description: 'Description here',
+  category: 'ai-agents', // or 'flowchart', 'general'
+  nodes: [...],  // Use new node types
+  edges: [...],
+}
+```
+
+### Updating AI Discovery Prompts
+
+Edit `src/lib/ai/prompts.ts` to update the `DIAGRAM_GENERATION_PROMPT` with new node types.
+
+---
 
 ## Code Conventions
 
 ### TypeScript
 
 - Use `NodeProps` from `@xyflow/react` for node components
-- Cast `data` to specific type: `const nodeData = data as FlowchartNodeData;`
-- Add index signature for React Flow compatibility: `[key: string]: unknown;`
+- Cast `data` to specific type: `const nodeData = data as BaseNodeData;`
+- Add index signature for React Flow compatibility
 
 ### Component Structure
 
 ```typescript
 const MyNode = ({ data, selected, id }: NodeProps) => {
-  const nodeData = data as MyNodeData;
+  const nodeData = data as BaseNodeData;
   const { setNodes } = useReactFlow();
-
-  // Callbacks with useCallback
-  const onLabelChange = useCallback(() => {
-    setNodes((nds) => nds.map(/* ... */));
-  }, [id, setNodes]);
 
   return (
     <div>
@@ -177,95 +172,7 @@ const MyNode = ({ data, selected, id }: NodeProps) => {
 export default memo(MyNode);
 ```
 
-### Zustand Store Pattern
-
-```typescript
-export const useFlowStore = create<FlowState>()(
-  devtools(
-    immer((set) => ({
-      // State
-      drawingTool: 'select' as DrawingTool,
-
-      // Actions
-      setDrawingTool: (tool) => set((state) => {
-        state.drawingTool = tool;
-        state.isDrawing = tool !== 'select';
-      }),
-    }))
-  )
-);
-
-// Selectors for performance
-export const useDrawingTool = () => useFlowStore((s) => s.drawingTool);
-```
-
-## Common Tasks
-
-### Adding a New Node Type
-
-1. Define config in appropriate file (`nodeTypes.ts` or `flowchartNodeTypes.ts`)
-2. Create component if needed (or reuse existing)
-3. Register in `FlowCanvas.tsx` nodeTypes memo
-4. Add to `config/nodeCatalog.ts` categories
-
-### Adding a New Drawing Tool
-
-1. Add to `DrawingTool` type in `flowStore.ts`
-2. Add icon and config to `config/drawingTools.ts`
-3. Handle in `DrawingOverlay.tsx` drawing logic
-4. Add keyboard shortcut in `hooks/diagrams/useKeyboardShortcuts.ts` (if not already covered by config)
-
-### Adding a New Template
-
-Add to `config/templates.ts`:
-
-```typescript
-{
-  id: 'my-template',
-  name: 'My Template',
-  description: 'Description here',
-  category: 'flowchart', // or 'ai-agents', 'architecture', 'general'
-  nodes: [...],
-  edges: [...],
-}
-```
-
-## TypeScript Gotchas
-
-### React Flow Node Data
-
-React Flow requires node data to be compatible with `Record<string, unknown>`. Always add index signature:
-
-```typescript
-export interface MyNodeData {
-  label: string;
-  color?: string;
-  // Required for React Flow compatibility
-  [key: string]: unknown;
-}
-```
-
-### NodeProps Generic
-
-Don't use generic with NodeProps if you need to access `type`:
-
-```typescript
-// DON'T
-const MyNode = ({ data }: NodeProps<MyNodeData>) => { ... }
-
-// DO
-const MyNode = ({ data, type }: NodeProps) => {
-  const nodeData = data as MyNodeData;
-  // Now you can use both `type` and `nodeData`
-}
-```
-
-## Performance Tips
-
-1. **Memoize components** - All node/edge components should use `memo()`
-2. **Selective subscriptions** - Use specific selectors with Zustand
-3. **Module-level constants** - Put static configs outside components
-4. **Lazy loading** - Use dynamic imports for heavy libraries (html-to-image)
+---
 
 ## Testing Changes
 
@@ -276,28 +183,20 @@ npm run dev    # Test in development mode
 
 The build must pass without errors before considering changes complete.
 
-## UI Components
-
-Uses shadcn/ui built on Radix UI. Components are in `src/components/ui/`. Common ones:
-
-- `Button`, `Input` - Basic controls
-- `Popover` - Floating content (color pickers, menus)
-- `DropdownMenu` - Menu dropdowns
-- `Dialog` - Modal dialogs
-- `Tooltip` - Hover tooltips
-- `ScrollArea` - Scrollable containers
+---
 
 ## File Organization
 
 ```
 src/
-├── app/           # Next.js pages
+├── app/              # Next.js pages
 ├── components/
-│   ├── flow/      # Diagram-specific components
-│   └── ui/        # shadcn/ui components
-├── config/        # Node types, templates
-├── hooks/         # Custom React hooks (domain folders)
-├── store/         # Zustand stores
-├── lib/           # Utilities (storage, diagram)
-└── utils/         # Small utilities (diagram, drawing)
+│   ├── flow/         # Canvas, nodes, edges
+│   ├── discovery/    # AI Discovery components
+│   └── ui/           # shadcn/ui components
+├── config/           # Node types, templates
+├── hooks/            # Custom React hooks
+├── store/            # Zustand stores
+├── lib/              # AI client, storage, utilities
+└── types/            # TypeScript types
 ```

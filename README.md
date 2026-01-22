@@ -10,7 +10,7 @@ A hybrid visual diagram editor for brainstorming, flowcharts, AI agent architect
 ## Features
 
 ### Core Features
-- **24+ Node Types** - Brainstorming, Flowchart, AI Agents, and Architecture nodes
+- **33+ Node Types** - AI Architecture (22), Flowchart (11), and Brainstorming nodes
 - **Shape Drawing Tools** - Rectangle, Ellipse, Arrow, Line (Excalidraw-style)
 - **Freehand Drawing** - Sketch annotations directly on the canvas
 - **Auto-Save** - Local (IndexedDB) + Cloud (Supabase) synchronization
@@ -57,10 +57,14 @@ A hybrid visual diagram editor for brainstorming, flowcharts, AI agent architect
 | Category | Nodes | Description |
 |----------|-------|-------------|
 | **Brainstorming** | Free Node | Fully customizable - pick any icon (60+) and color |
-| **Flowchart** | Start, End, Process, Decision, Data, I/O, Condition, Action, Result, User Action, System | Professional flowchart nodes with color variants |
-| **AI Agents** | Agent, LLM, Tool, Memory, Input | Components for building AI agent systems |
-| **Architecture** | Frontend, Backend, Database, Cloud | Software architecture components |
-| **General** | User, Note, Container | General-purpose diagram elements |
+| **Entrada** | User, User Input, Prompt | Entry points - user, queries, instructions |
+| **Conhecimento** | Knowledge Base, Embedding, Vector DB | Data sources and semantic search |
+| **Processamento** | LLM, Agent, Orchestrator, Worker, Classifier, Retriever, Reranker | LLMs and AI agents |
+| **Ferramentas** | Tool, API, Code Executor | External APIs and functions |
+| **Memória** | Memory, Conversation | Context and history |
+| **Saída** | Output, Action | Responses and real-world actions |
+| **Estrutural** | Container, Note | Visual organization |
+| **Flowchart** | Start, End, Process, Decision, Data, I/O, Condition, Action, Result, User Action, System | Professional flowchart nodes |
 
 ## Tech Stack
 
@@ -207,9 +211,8 @@ Available templates:
 
 | Category | Templates |
 |----------|-----------|
-| **AI Agents** | Single Agent, Multi-Agent System, RAG Pipeline |
-| **Architecture** | Microservices, Serverless |
-| **Flowchart** | Basic Flowchart, Decision Tree |
+| **AI Agents** | Single Agent, Multi-Agent System, RAG Pipeline, RAG with Reranking, Customer Service Agent, Research Agent, Code Review Agent |
+| **Flowchart** | Basic Flowchart, Decision Tree, Data Pipeline (ETL) |
 | **General** | Blank Canvas |
 
 ## Documentation
